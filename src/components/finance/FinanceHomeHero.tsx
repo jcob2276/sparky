@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import type { PortfolioTotals } from '@vanguard/domain';
 import { formatPln } from '../../lib/finance/formatMoney';
-import { ControlInput, Pressable } from '../ui/ControlPrimitives';
+import { Pressable } from '../ui/ControlPrimitives';
+import { Switch } from '../ui/Switch';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
 type Segment = 'net' | 'invest' | 'bank' | 'cash';
@@ -86,10 +87,11 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, 
         )}
       </div>
 
-      {metrics.savingsCash > 0 && <label className="mx-auto flex min-h-11 w-fit cursor-pointer items-center gap-2 text-sm text-text-secondary">
-        <ControlInput type="checkbox" checked={includeSavings} onChange={event => setIncludeSavings(event.target.checked)} className="h-4 w-4 accent-primary" />
-        Uwzględnij oszczędności
-      </label>}
+      {metrics.savingsCash > 0 && (
+        <div className="flex justify-center">
+          <Switch label="Uwzględnij oszczędności" checked={includeSavings} onChange={event => setIncludeSavings(event.target.checked)} />
+        </div>
+      )}
 
       <div className="mx-auto flex justify-center gap-8">
         <ActionButton icon={ArrowUpRight} label="Wydatek" onClick={() => onQuickEntry('expense')} />

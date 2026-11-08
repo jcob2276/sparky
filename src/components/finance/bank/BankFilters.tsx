@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import { BANK_CATEGORY_LABELS } from '@vanguard/domain';
 import type { BankAccount } from '../../../lib/finance/bankApi';
 import type { BankFilters as Filters } from '../../../lib/finance/bankAnalytics';
@@ -8,7 +10,11 @@ import Button from '../../ui/Button';
 interface Props { filters: Filters; accounts: BankAccount[]; currencies: string[]; onChange: (patch: Partial<Filters>) => void }
 const controlClass = 'min-h-11 w-full min-w-0 rounded-lg bg-surface-2 px-3 text-sm';
 
+/** Filtry poza miesiącem, rachunkiem i wyszukiwaniem (kategoria, rodzaj, status, kontrahent) chowają się pod „Filtry”. */
 export function BankFilters({ filters, accounts, currencies, onChange }: Props) {
+  const activeAdvanced = [filters.category, filters.direction, filters.counterparty].filter(Boolean).length + (filters.bookedOnly ? 1 : 0);
+  const [open, setOpen] = useState(activeAdvanced > 0);
+  const showAdvanced = open || activeAdvanced > 0;
   return (
     <div className="space-y-3" aria-label="Filtry transakcji">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -27,25 +33,41 @@ export function BankFilters({ filters, accounts, currencies, onChange }: Props) 
           </ControlSelect>
         </label>}
       </div>
-      <ControlInput aria-label="Szukaj transakcji" placeholder="Szukaj kontrahenta lub opisu…" value={filters.search ?? ''} onChange={e => onChange({ search: e.target.value })} className={controlClass} />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ControlSelect aria-label="Kategoria" value={filters.category ?? ''} onChange={e => onChange({ category: e.target.value })} className={controlClass}>
-          <option value="">Wszystkie kategorie</option>
-          {Object.entries(BANK_CATEGORY_LABELS).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
-        </ControlSelect>
-        <ControlSelect aria-label="Rodzaj transakcji" value={filters.direction ?? ''} onChange={e => onChange({ direction: e.target.value })} className={controlClass}>
-          <option value="">Wszystkie ruchy</option><option value="credit">Wpływy na konto</option><option value="debit">Obciążenia konta</option>
-          <option value="income">Przychody</option><option value="expense">Koszty życia</option>
-          <option value="refund">Zwroty</option><option value="transfer">Przelewy własne</option><option value="investment">Inwestycje</option><option value="cash">Gotówka</option><option value="pending">Poza wykonaniem</option>
-        </ControlSelect>
-        <ControlSelect aria-label="Status transakcji" value={filters.bookedOnly ? 'booked' : 'all'} onChange={e => onChange({ bookedOnly: e.target.value === 'booked', today: e.target.value === 'booked' ? getTodayWarsaw() : undefined })} className={controlClass}>
-          <option value="all">Wszystkie statusy</option><option value="booked">Zaksięgowane do dziś</option>
-        </ControlSelect>
+      <div className="flex items-center gap-2">
+        <ControlInput aria-label="Szukaj transakcji" placeholder="Szukaj kontrahenta lub opisu…" value={filters.search ?? ''} onChange={e => onChange({ search: e.target.value })} className={`${controlClass} flex-1`} />
+        <Button
+          variant={showAdvanced ? 'tonal' : 'outline'}
+          className="min-h-11 shrink-0"
+          icon={<SlidersHorizontal size={16} aria-hidden="true" />}
+          aria-expanded={showAdvanced}
+          aria-controls="bank-advanced-filters"
+          onClick={() => setOpen(!showAdvanced)}
+        >
+          Filtry{activeAdvanced > 0 ? ` · ${activeAdvanced}` : ''}
+        </Button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" onClick={() => onChange({ month: '' })}>Cała historia</Button>
-        <Button size="sm" variant="ghost" onClick={() => onChange({ month: getTodayWarsaw().slice(0, 7), accountId: '', category: '', direction: '', search: '', counterparty: '', bookedOnly: false, today: undefined })}>Wyczyść filtry</Button>
-      </div>
+      {showAdvanced && (
+        <div id="bank-advanced-filters" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <ControlSelect aria-label="Kategoria" value={filters.category ?? ''} onChange={e => onChange({ category: e.target.value })} className={controlClass}>
+              <option value="">Wszystkie kategorie</option>
+              {Object.entries(BANK_CATEGORY_LABELS).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+            </ControlSelect>
+            <ControlSelect aria-label="Rodzaj transakcji" value={filters.direction ?? ''} onChange={e => onChange({ direction: e.target.value })} className={controlClass}>
+              <option value="">Wszystkie ruchy</option><option value="credit">Wpływy na konto</option><option value="debit">Obciążenia konta</option>
+              <option value="income">Przychody</option><option value="expense">Koszty życia</option>
+              <option value="refund">Zwroty</option><option value="transfer">Przelewy własne</option><option value="investment">Inwestycje</option><option value="cash">Gotówka</option><option value="pending">Poza wykonaniem</option>
+            </ControlSelect>
+            <ControlSelect aria-label="Status transakcji" value={filters.bookedOnly ? 'booked' : 'all'} onChange={e => onChange({ bookedOnly: e.target.value === 'booked', today: e.target.value === 'booked' ? getTodayWarsaw() : undefined })} className={controlClass}>
+              <option value="all">Wszystkie statusy</option><option value="booked">Zaksięgowane do dziś</option>
+            </ControlSelect>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="ghost" onClick={() => onChange({ month: '' })}>Cała historia</Button>
+            <Button size="sm" variant="ghost" onClick={() => onChange({ month: getTodayWarsaw().slice(0, 7), accountId: '', category: '', direction: '', search: '', counterparty: '', bookedOnly: false, today: undefined })}>Wyczyść filtry</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

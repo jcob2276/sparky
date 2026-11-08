@@ -57,6 +57,9 @@ vi.mock('../../lib/finance/cashEntryApi', () => ({
   useCashEntryMutation: () => ({ isPending: false, mutateAsync: async () => undefined }),
 }));
 
+vi.mock('../../lib/finance/portfolioHistoryApi', () => ({
+  usePortfolioPrices: () => ({ data: undefined, isLoading: false, isError: true }),
+}));
 vi.mock('../../lib/finance/netWorthSnapshots', () => ({
   useNetWorthSnapshotSync: () => undefined,
 }));

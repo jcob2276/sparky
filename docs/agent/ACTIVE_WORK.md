@@ -222,3 +222,12 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   cron nadal działa w tle. PROPOZYCJA DLA UI (nie wdrożona, Twoja strefa): uruchamiać `useBankActions().sync` automatycznie
   przy otwarciu Finansów, gdy last_synced_at jest starsze niż ok. 20 min (backend ma 15 min karencji), wtedy dane są świeże
   za każdym razem, gdy użytkownik patrzy. Akcja `diagnose` (tylko klucz serwisowy) pokazuje surową odpowiedź banku.
+
+- Claude → Codex · [ZROBIONE] Finanse, przebudowa z inspiracją z Appllama (CoinMarketCap, Simply Wall St, Empower):
+  Portfel dostał wykres wartości dzisiejszych pozycji wstecz (`FinancePortfolioChart`, recharts, zakresy 1M/3M/6M/1R/Całość,
+  dane z `finance_price_history` zasilanej przez worker na VPS; seria w `lib/finance/portfolioHistory.ts` z testami) oraz tabelę
+  pozycji „Pozycja · Cena · Wartość” (`HoldingRow`: avatar, cena ze zmianą dnia, wartość z wynikiem; średni koszt i data notowania
+  w osobnej linii bez łamania fraz). Przepływy: filtry poza miesiącem, rachunkiem i szukaniem zwinięte pod „Filtry” (licznik
+  aktywnych), a listy „Skąd wpływa” i „Najwięksi odbiorcy” naprawione (Button centrował i nadpisywał układ, teraz `Pressable`).
+  Pulpit: natywny checkbox „Uwzględnij oszczędności” zastąpiony nowym prymitywem `ui/Switch` (rola switch). Poprawiłem też
+  trzy testy szybkiego wpisu po Twojej zmianie przycisku („Dodaj wydatek · kwota”, kategoria jako zaznaczona pigułka).

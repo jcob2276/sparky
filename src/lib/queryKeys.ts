@@ -206,4 +206,5 @@ export const financeKeys = {
   holdings: (userId: string) => [...financeKeys.all, 'holdings', userId] as const,
   bank: (userId: string) => [...financeKeys.all, 'bank', userId] as const,
   quotes: (tickers: string[]) => [...financeKeys.all, 'quotes', ...tickers] as const,
+  priceHistory: (tickers: string[]) => [...financeKeys.all, 'price-history', ...tickers] as const,
 };

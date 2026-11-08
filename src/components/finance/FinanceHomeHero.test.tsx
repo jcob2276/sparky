@@ -21,12 +21,12 @@ it('excludes savings from hero amounts until requested while retaining full weal
   expect(screen.getByRole('region',{name:'Gotówka fizyczna'})).toHaveTextContent('500');
   fireEvent.click(screen.getByRole('button',{name:'Inwestycje'}));
   expect(screen.getByRole('region',{name:'Wartość inwestycji'})).toHaveTextContent('730');
-  fireEvent.click(screen.getByRole('checkbox',{name:'Uwzględnij oszczędności'}));
+  fireEvent.click(screen.getByRole('switch',{name:'Uwzględnij oszczędności'}));
   expect(screen.getByRole('region',{name:'Wartość inwestycji'})).toHaveTextContent('730');
   fireEvent.click(screen.getByRole('button',{name:'Konta'}));
   expect(screen.getByRole('region',{name:'Środki na kontach i oszczędności'})).toHaveTextContent('19 600');
   fireEvent.click(screen.getByRole('button',{name:'Majątek'}));
   expect(screen.getByRole('region',{name:'Majątek netto'})).toHaveTextContent('20 830');
-  fireEvent.click(screen.getByRole('checkbox',{name:'Uwzględnij oszczędności'}));
+  fireEvent.click(screen.getByRole('switch',{name:'Uwzględnij oszczędności'}));
   expect(screen.getByRole('region',{name:'Majątek bez oszczędności'})).toHaveTextContent('1330');
 });

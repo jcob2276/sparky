@@ -87,7 +87,7 @@ describe('FinanceQuickEntry', () => {
     render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={onOpenChange} onSubmit={onSubmit} />);
 
     for (const key of ['2', '5', 'Przecinek', '5']) fireEvent.click(screen.getByRole('button', { name: key }));
-    fireEvent.submit(screen.getByRole('button', { name: /Zapisz/ }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /Dodaj wydatek/ }).closest('form')!);
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
@@ -102,12 +102,12 @@ describe('FinanceQuickEntry', () => {
     const { unmount } = render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={vi.fn()} onSubmit={onSubmit} />);
     fireEvent.click(screen.getByRole('button', { name: 'Transport' }));
     fireEvent.click(screen.getByRole('button', { name: '7' }));
-    fireEvent.submit(screen.getByRole('button', { name: /Zapisz/ }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /Dodaj wydatek/ }).closest('form')!);
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
     unmount();
 
     render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={vi.fn()} onSubmit={onSubmit} />);
     fireEvent.click(screen.getByRole('button', { name: '8' }));
-    expect(screen.getByText(/· Transport/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Transport' })).toHaveAttribute('aria-pressed', 'true');
   });
 });

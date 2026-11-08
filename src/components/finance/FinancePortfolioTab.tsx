@@ -8,9 +8,10 @@ import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
 import Sheet from '../ui/Sheet';
 import { Pressable } from '../ui/ControlPrimitives';
-import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
+import { FinanceEmpty, FinanceSection } from './financeUi';
 import { FinanceHoldingForm } from './FinanceHoldingForm';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
+import { FinancePortfolioChart } from './FinancePortfolioChart';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 import { formatWarsawDate } from '../../lib/date';
 
@@ -60,6 +61,44 @@ function Summary({ totals, brokerCashPln }: { totals: PortfolioTotals; brokerCas
   );
 }
 
+/** Wiersz tabeli pozycji (wzorzec z aplikacji portfelowych): symbol i nazwa, cena ze zmianą dnia, wartość z wynikiem. */
+function HoldingRow({ item, onOpen }: { item: ValuedHolding; onOpen: () => void }) {
+  const symbol = item.ticker.replace(/[-.].*$/, '').slice(0, 3);
+  const weight = item.weightPct.toFixed(1).replace('.', ',');
+  return (
+    <Pressable type="button" onClick={onOpen} className="block w-full px-4 py-3 text-left transition-colors hover:bg-surface-2/50">
+      <span className="flex items-center gap-3">
+        <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs font-semibold text-text-secondary">{symbol}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-base font-medium text-text-primary">{item.ticker}</span>
+          <span className="block truncate text-xs text-text-muted">{item.name} · {weight}%{item.targetWeightPct != null ? ` / cel ${item.targetWeightPct}%` : ''}</span>
+        </span>
+        <span className="w-24 shrink-0 text-right">
+          <span className="block text-sm tabular-nums text-text-primary">{item.pricePln != null ? formatPln(item.pricePln, 2) : '—'}</span>
+          <span className={`block text-xs tabular-nums ${tone(item.dayChangePct)}`}>{pct(item.dayChangePct)}</span>
+        </span>
+        <span className="w-24 shrink-0 text-right">
+          <span className="block text-base font-medium tabular-nums text-text-primary">{item.valuationSource === 'missing' ? '—' : formatPln(item.valuePln)}</span>
+          <span className={`block text-xs tabular-nums ${tone(item.pnlPct)}`}>{pct(item.pnlPct)} łącznie</span>
+        </span>
+      </span>
+      {/* Każda informacja to osobny, niełamany kawałek: zawija się całymi frazami, nie w środku kwoty. */}
+      <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 pl-13 text-xs text-text-muted">
+        {item.avgCostOriginal != null && (
+          <span className="whitespace-nowrap">średni koszt {formatCurrency(item.avgCostOriginal, item.avgCostCurrency || 'PLN')}</span>
+        )}
+        {item.valuationSource === 'snapshot' && <span className="whitespace-nowrap">wycena ze zrzutu ({item.snapshotAsOf || 'data notowania niepodana'})</span>}
+        {item.valuationSource === 'cost' && <span className="whitespace-nowrap">wycena po koszcie</span>}
+        {item.valuationSource === 'missing' && <span className="whitespace-nowrap">brak wyceny</span>}
+        <span className="whitespace-nowrap">
+          {item.assetClass === 'crypto' ? 'Zmiana dzienna' : 'Ostatnia sesja'}
+          {item.quoteAsOf ? ` · ${formatWarsawDate(item.quoteAsOf)}` : ' · data notowania niepodana'}
+        </span>
+      </span>
+    </Pressable>
+  );
+}
+
 export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCashPln = 0, fundingAccounts = [] }: FinancePortfolioTabProps) {
   const [editing, setEditing] = useState<HoldingInput | 'new' | null>(null);
   const close = () => setEditing(null);
@@ -88,40 +127,33 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
     <div className="space-y-8">
       <Summary totals={totals} brokerCashPln={brokerCashPln} />
 
+      <FinancePortfolioChart holdings={holdings} />
+
       <FinanceHoldingsHeatmap holdings={holdings} loading={false} />
 
       <FinanceSection title="Pozycje">
         {holdings.length === 0 ? (
           <FinanceEmpty>Dodaj pierwszą pozycję: symbol notowań, ilość i średnią cenę zakupu w PLN.</FinanceEmpty>
         ) : (
-          <FinanceList>
-            {[...holdings]
-              .sort((a, b) => b.valuePln - a.valuePln)
-              .map((item) => (
-                <Pressable key={item.id} type="button" onClick={() => setEditing(item)} className="block w-full text-left transition-colors hover:bg-surface-2/50">
-                  <FinanceRow
-                    primary={item.ticker}
-                    secondary={`${item.name} · ${item.weightPct.toFixed(1).replace('.', ',')}%${item.targetWeightPct != null ? ` / cel ${item.targetWeightPct}%` : ''}${item.avgCostOriginal != null ? ` · średni koszt ${formatCurrency(item.avgCostOriginal, item.avgCostCurrency || 'PLN')}` : ''}${item.valuationSource === 'snapshot' ? ` · wycena ze zrzutu (${item.snapshotAsOf || 'data notowania niepodana'})` : item.valuationSource === 'cost' ? ' · wycena po koszcie' : item.valuationSource === 'missing' ? ' · brak wyceny' : ''}`}
-                    trailing={
-                      <span className="block text-right">
-                        {item.valuationSource === 'missing' ? '—' : formatPln(item.valuePln)}
-                        <span className={`block text-sm ${tone(item.pnlPln)}`}>{pct(item.pnlPct)} łącznie</span>
-                      </span>
-                    }
-                  >
-                    <p className="mt-1 text-xs text-text-muted">
-                      {item.assetClass === 'crypto' ? 'Zmiana dzienna' : 'Ostatnia sesja'}
-                      {item.quoteAsOf ? ` · ${formatWarsawDate(item.quoteAsOf)}` : ' · data notowania niepodana'}
-                      {' · '}
-                      <span className={tone(item.dayChangePct)}>{pct(item.dayChangePct)}</span>
-                    </p>
-                  </FinanceRow>
-                </Pressable>
-              ))}
-          </FinanceList>
+          <>
+            <div className="flex items-center gap-3 px-4 pb-1 pt-3 text-xs text-text-muted" aria-hidden="true">
+              <span className="flex-1">Pozycja</span>
+              <span className="w-24 shrink-0 text-right">Cena</span>
+              <span className="w-24 shrink-0 text-right">Wartość</span>
+            </div>
+            <ul className="divide-y divide-border-custom/20">
+              {[...holdings]
+                .sort((x, y) => y.valuePln - x.valuePln)
+                .map((item) => (
+                  <li key={item.id}>
+                    <HoldingRow item={item} onOpen={() => setEditing(item)} />
+                  </li>
+                ))}
+            </ul>
+          </>
         )}
         <div className="border-t border-border-custom/20 p-3">
-          <Button variant="ghost" size="sm" icon={<Plus size={16} />} onClick={() => setEditing('new')}>
+          <Button variant="tonal" className="w-full" icon={<Plus size={16} />} onClick={() => setEditing('new')}>
             Dodaj pozycję
           </Button>
         </div>
