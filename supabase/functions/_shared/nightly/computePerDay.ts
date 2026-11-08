@@ -3,6 +3,7 @@ import { clamp } from './baselines.ts';
 import { computeReadiness, type ReadinessDay } from './readiness.ts';
 import { computeRecoveryScore } from './recovery_score.ts';
 import { sleepDebtExcess } from './sleepDebt.ts';
+import { computeSleepQuality, type SleepNightRow } from './sleepQuality.ts';
 import { computeStrainScore } from './strain_score.ts';
 import { estimateCaffeineMg } from '../caffeineEstimate.ts';
 
@@ -28,6 +29,7 @@ export function computePerDay(opts: {
   workouts: any; strava: any; recon: any; food: any;
   baseByDate: any; respByDate: any; skinTempByDate: any;
   sleepByDate: Record<string, number>;
+  sleepRows?: SleepNightRow[];
   strainHistRunning: Array<{ date: string; strain_score: number | null }>;
   illnessDates: Map<string, number>;
   weight: number; sex: string; ageYears: number;
@@ -36,7 +38,7 @@ export function computePerDay(opts: {
   sleepTargetH?: number;
 }) {
   const { date, todayWarsaw, now, zones, summ, nutr, workouts, strava, recon, food,
-    baseByDate, respByDate, skinTempByDate, sleepByDate, strainHistRunning, illnessDates,
+    baseByDate, respByDate, skinTempByDate, sleepByDate, sleepRows, strainHistRunning, illnessDates,
     weight, sex, ageYears, algoVersion, uid, getBaselinesForDate, sleepTargetH } = opts;
 
   const { hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase } = getBaselinesForDate(date);
@@ -58,7 +60,8 @@ export function computePerDay(opts: {
   const skinTempToday = skinTempByDate[date] ?? null;
 
   const strainScoreResult = computeStrainScore({ z, runs, wsets, steps, kcal, carbs, protein, fuelingProvisional, weight });
-  const recoveryScoreResult = computeRecoveryScore({ sleep, sleepByDate, date, respToday, skinTempToday, hrvAvg: s?.hrv_avg ?? null, rhrAvg: s?.rhr_avg ?? null, sleepScore: s?.sleep_score ?? null, readinessScore: s?.readiness_score ?? null, hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase, subjectiveScore, ageYears, sex: (sex === 'F' || sex === 'M') ? sex : 'M', steps, sleepTargetH });
+  const sleepQuality = sleepRows ? computeSleepQuality(sleepRows, date) : null;
+  const recoveryScoreResult = computeRecoveryScore({ sleepQualityZ: sleepQuality?.z ?? null, sleep, sleepByDate, date, respToday, skinTempToday, hrvAvg: s?.hrv_avg ?? null, rhrAvg: s?.rhr_avg ?? null, sleepScore: s?.sleep_score ?? null, readinessScore: s?.readiness_score ?? null, hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase, subjectiveScore, ageYears, sex: (sex === 'F' || sex === 'M') ? sex : 'M', steps, sleepTargetH });
 
   let recovery = recoveryScoreResult.recovery;
   const strain = strainScoreResult.strain;
@@ -162,6 +165,8 @@ export function computePerDay(opts: {
         rhr_z: recoveryScoreResult.zRhr != null ? Math.round(recoveryScoreResult.zRhr * 100) / 100 : null,
         sleep_score_today: s?.sleep_score != null ? Number(s.sleep_score) : null,
         sleep_z: recoveryScoreResult.zSleepScore,
+        sleep_quality_z: sleepQuality?.z ?? null,
+        sleep_quality_parts: sleepQuality?.parts ?? null,
       },
       updated_at: new Date().toISOString(),
     },

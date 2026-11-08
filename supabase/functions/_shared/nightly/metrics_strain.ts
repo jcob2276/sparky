@@ -1,6 +1,7 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getWarsawDateString } from '../time.ts';
 import { ewmaBaseline } from './baselines.ts';
+import { type SleepNightRow } from './sleepQuality.ts';
 import { byKey, type OuraDailySummaryRow, type OuraHrZonesDailyRow, type DailyNutritionRow, type WorkoutSessionRow, type StravaActivityRow, type DailyFoodEntryRow, type BehaviorLogRow, type DailyReconciliationRow } from './metricsTypes.ts';
 import { buildIllnessDates, computePerDay } from './computePerDay.ts';
 import { resolvePersonalTargets } from '../personalTargets.ts';
@@ -40,10 +41,10 @@ export const runComputeDailyStrain = async (
         const sex: 'M' | 'F' = String(profile?.sex ?? 'M').toUpperCase() === 'F' ? 'F' : 'M';
         const ageYears = profile?.birth_date ? (now.getTime() - new Date(profile.birth_date).getTime()) / (365.25 * 86400000) : 30;
 
-        const { data: base } = await supabase.from('oura_daily_summary').select('date, hrv_avg, rhr_avg, total_sleep_hours, sleep_score, readiness_score').eq('user_id', uid).gte('date', start90).lte('date', endStr).order('date');
+        const { data: base } = await supabase.from('oura_daily_summary').select('date, hrv_avg, rhr_avg, total_sleep_hours, sleep_score, readiness_score, deep_sleep_hours, rem_sleep_hours, sleep_efficiency, latency_minutes, bedtime_timestamp').eq('user_id', uid).gte('date', start90).lte('date', endStr).order('date');
         const baseByDate: Record<string, OuraDailySummaryRow> = {};
         const sleepByDate: Record<string, number> = {};
-        for (const row of (base || []) as OuraDailySummaryRow[]) { baseByDate[row.date] = row; if (row.total_sleep_hours != null) sleepByDate[row.date] = Number(row.total_sleep_hours); }
+        for (const row of (base || []) as unknown as OuraDailySummaryRow[]) { baseByDate[row.date] = row; if (row.total_sleep_hours != null) sleepByDate[row.date] = Number(row.total_sleep_hours); }
 
         const { data: respBase } = await supabase.from('oura_enhanced').select('date, sleep_average_breath, temperature_deviation').eq('user_id', uid).gte('date', start90).lte('date', endStr).order('date');
         const respByDate: Record<string, number | null> = {};
@@ -95,7 +96,7 @@ export const runComputeDailyStrain = async (
         for (const date of dayList) {
           const { row, strain } = computePerDay({
             date, todayWarsaw, now, zones, summ, nutr, workouts, strava, recon, food,
-            baseByDate, respByDate, skinTempByDate, sleepByDate, strainHistRunning, illnessDates,
+            baseByDate, respByDate, skinTempByDate, sleepByDate, sleepRows: (base || []) as SleepNightRow[], strainHistRunning, illnessDates,
             weight, sex, ageYears, algoVersion, uid, getBaselinesForDate, sleepTargetH,
           });
           upserts.push(row);

@@ -27,6 +27,8 @@ export interface RecoveryInput {
   sex: 'M' | 'F';
   steps: number | null;
   sleepTargetH?: number;
+  /** Jakość snu (faza głęboka, REM, efektywność, regularność) względem Twojej normy; zastępuje samą długość snu. */
+  sleepQualityZ?: number | null;
 }
 
 export interface RecoveryResult {
@@ -126,7 +128,7 @@ export function computeRecoveryScore(input: RecoveryInput): RecoveryResult {
         : null;
 
     const sleepPerf = sleep != null ? Number(sleep) / (input.sleepTargetH ?? 8.0) : null;
-    const zSleep = sleepPerf != null ? (sleepPerf - 0.85) / 0.12 : null;
+    const zSleep = input.sleepQualityZ != null ? input.sleepQualityZ : sleepPerf != null ? (sleepPerf - 0.85) / 0.12 : null;
 
     // Resp: wyższa wartość = gorzej (early illness signal), inwersja jak RHR
     const zResp =
