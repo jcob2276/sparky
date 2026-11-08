@@ -103,7 +103,7 @@ function NextUrgentBanner({
           onEdit(next.item.id);
         }
       }}
-      className="group relative cursor-pointer overflow-hidden rounded-[var(--radius-2xl)] border border-primary/25 bg-primary/10 p-6.5 transition-all duration-200 ease-out active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
+      className="group relative cursor-pointer overflow-hidden rounded-[var(--radius-2xl)] border border-primary/25 bg-primary/10 p-6.5 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 ease-out active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
     >
       <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1.5">

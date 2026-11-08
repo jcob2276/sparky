@@ -145,7 +145,7 @@ function VitalSliderRow({ vital }: { vital: VitalBaseline }) {
         {/* Current Value Marker Dot */}
         {vital.currentValue != null && vital.baselineMin != null && vital.baselineMax != null && (
           <div
-            className={`absolute top-0 bottom-0 w-3 -ml-1.5 rounded-full shadow-xs border border-border-custom/70 transition-all ${
+            className={`absolute top-0 bottom-0 w-3 -ml-1.5 rounded-full shadow-xs border border-border-custom/70 transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
               vital.status === 'optimal'
                 ? 'bg-success'
                 : vital.status === 'attention'

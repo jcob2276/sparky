@@ -104,7 +104,7 @@ export default function RestTimerBar({
       }`}
     >
       <div
-        className={`rounded-lg border p-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
+        className={`rounded-lg border p-3 shadow-xl backdrop-blur-md transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 ${
           isFlashing
             ? 'animate-pulse border-success bg-success/30 text-success ring-4 ring-success/50 shadow-[0_0_30px_rgba(34,197,94,0.4)]'
             : isDone

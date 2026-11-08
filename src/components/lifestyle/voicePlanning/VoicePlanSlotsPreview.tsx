@@ -39,7 +39,7 @@ export default function VoicePlanSlotsPreview({ slots, onClearSlot }: Props) {
           return (
             <div
               key={slot.slot}
-              className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
+              className={`flex items-center gap-2 p-2 rounded-lg border transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
                 hasTitle
                   ? 'border-border-custom/60 bg-surface'
                   : 'border-dashed border-border-custom/40 bg-surface/20'

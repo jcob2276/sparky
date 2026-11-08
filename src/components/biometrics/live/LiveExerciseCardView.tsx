@@ -70,7 +70,7 @@ function LiveSetFooter({
       <Pressable
         type="button"
         onClick={onAdd}
-        className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-surface-2 text-sm font-bold text-primary hover:bg-primary/10 active:scale-95 transition-all"
+        className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-surface-2 text-sm font-bold text-primary hover:bg-primary/10 active:scale-95 transition-[color,background-color,border-color,box-shadow,opacity,transform]"
         aria-label="Dodaj serię"
       >
         <Plus size={16} /> Dodaj serię
@@ -84,7 +84,7 @@ function LiveSetFooter({
               onRemove();
             } else setConfirming(true);
           }}
-          className={`flex h-11 items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold active:scale-95 transition-all ${
+          className={`flex h-11 items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold active:scale-95 transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
             confirming ? 'bg-danger text-on-accent' : 'bg-surface-2 text-text-muted hover:text-danger hover:bg-danger/10'
           }`}
           aria-label={confirming ? 'Potwierdź usunięcie ostatniej serii' : 'Usuń ostatnią serię'}

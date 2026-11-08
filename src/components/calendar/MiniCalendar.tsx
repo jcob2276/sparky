@@ -132,7 +132,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
                     <Pressable
                       onClick={() => onSelectDay(item.dayStr)}
                       title={showMoon ? `${item.dayStr} · ${moon.name}` : item.dayStr}
-                      className={`h-7 w-7 sm:h-7.5 sm:w-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-150 active:scale-90 ${
+                      className={`h-7 w-7 sm:h-7.5 sm:w-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 active:scale-90 ${
                         isSelected
                           ? 'bg-primary text-on-accent font-semibold shadow-xs scale-105'
                           : isToday

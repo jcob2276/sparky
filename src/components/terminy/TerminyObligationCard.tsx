@@ -151,7 +151,7 @@ export function TerminyObligationCard({
       }
       className={`group relative flex flex-wrap items-center sm:flex-nowrap ${
         compact ? 'gap-2.5 rounded-lg p-2.5' : 'gap-3.5 rounded-[20px] p-3.5'
-      } border border-border-custom/30 bg-surface-solid/70 shadow-xs transition-all duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
+      } border border-border-custom/30 bg-surface-solid/70 shadow-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
         onEdit ? 'cursor-pointer' : ''
       }`}
     >
@@ -218,7 +218,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onConvertToTodo();
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj zadanie do Todo"
             aria-label="Dodaj zadanie do Todo"
           >
@@ -232,7 +232,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onAddToCalendar(row);
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj do Kalendarza Sparky"
             aria-label="Dodaj do Kalendarza Sparky"
           >
@@ -246,7 +246,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onExportICS(row);
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Eksportuj do pliku iCal (.ics)"
             aria-label="Eksportuj do pliku iCal (.ics)"
           >
@@ -259,7 +259,7 @@ export function TerminyObligationCard({
             e.stopPropagation();
             onDelete();
           }}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-60 transition-all duration-150 ease-out hover:bg-danger/10 hover:text-danger hover:opacity-100 active:scale-90 group-hover:opacity-100"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-60 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-danger/10 hover:text-danger hover:opacity-100 active:scale-90 group-hover:opacity-100"
           aria-label="Usuń termin"
         >
           <Trash2 size={15} strokeWidth={2} />

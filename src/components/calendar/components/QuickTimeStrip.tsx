@@ -80,7 +80,7 @@ export function QuickTimeStrip({
               onClick={() => setQuickDuration(p.mins)}
               disabled={durationLocked}
               title={durationLocked ? 'Czas trwania jest wpisany w tytule' : undefined}
-              className={`flex-1 rounded-lg border px-1 py-1.5 text-center text-2xs font-semibold select-none active:scale-[0.96] transition-all duration-100 disabled:opacity-[var(--opacity-dimmed)] disabled:active:scale-100 sm:py-1 ${
+              className={`flex-1 rounded-lg border px-1 py-1.5 text-center text-2xs font-semibold select-none active:scale-[0.96] transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-100 disabled:opacity-[var(--opacity-dimmed)] disabled:active:scale-100 sm:py-1 ${
                 isSelected
                   ? 'border-primary/50 bg-primary/20 text-primary font-bold'
                   : 'border-border-custom/20 bg-surface-solid/50 text-text-muted hover:text-text-primary hover:bg-surface-solid'

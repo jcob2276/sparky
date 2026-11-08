@@ -18,7 +18,7 @@ export function QuickTypeSwitcher({
       <Pressable
         type="button"
         onClick={onSelectEvent}
-        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1 rounded-lg active:scale-[0.98] transition-all duration-150 ${
+        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1 rounded-lg active:scale-[0.98] transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ${
           quickType === 'event'
             ? 'bg-background text-primary shadow-xs font-bold border border-border-custom/20'
             : 'text-text-muted hover:text-text-primary'
@@ -30,7 +30,7 @@ export function QuickTypeSwitcher({
       <Pressable
         type="button"
         onClick={onSelectTask}
-        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1 rounded-lg active:scale-[0.98] transition-all duration-150 ${
+        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-1 rounded-lg active:scale-[0.98] transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ${
           quickType === 'task'
             ? 'bg-background text-primary shadow-xs font-bold border border-border-custom/20'
             : 'text-text-muted hover:text-text-primary'

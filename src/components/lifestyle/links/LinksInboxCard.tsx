@@ -73,7 +73,7 @@ function LinksCardThumbnail({
             e.stopPropagation();
             onToggleSelect?.();
           }}
-          className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center transition-all cursor-pointer backdrop-blur-md ${
+          className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center transition-[color,background-color,border-color,box-shadow,opacity,transform] cursor-pointer backdrop-blur-md ${
             isSelected
               ? 'bg-primary border-primary text-on-accent shadow-xs'
               : 'border-border-custom bg-background/80 text-transparent'
@@ -162,7 +162,7 @@ export function LinksInboxCard({
 
   return (
     <div
-      className={`pocket-card group relative transition-all duration-[var(--motion-medium)] select-none ${
+      className={`pocket-card group relative transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'
@@ -192,7 +192,7 @@ export function LinksInboxCard({
                   e.stopPropagation();
                   onToggleSelect?.();
                 }}
-                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all cursor-pointer ${
+                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-[color,background-color,border-color,box-shadow,opacity,transform] cursor-pointer ${
                   isSelected
                     ? 'bg-primary border-primary text-on-accent shadow-xs'
                     : 'border-border-custom bg-surface-solid'

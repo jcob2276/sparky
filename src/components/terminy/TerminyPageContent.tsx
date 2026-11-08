@@ -80,7 +80,7 @@ function TerminyHeader({
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-white/10 bg-background/70 backdrop-blur-xl transition-colors duration-200 dark:border-white/5">
       <div className="mx-auto flex max-w-[var(--content-wide)] items-center gap-3 px-4 py-3.5 md:px-8">
-        <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90 cursor-pointer">
+        <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90 cursor-pointer">
           <ArrowLeft size={18} strokeWidth={2.2} />
         </Pressable>
         <SidebarTrigger className="!h-9 !w-9 shrink-0 md:hidden" aria-label="Otwórz nawigację" />
@@ -93,13 +93,13 @@ function TerminyHeader({
             onClick={onExportAllICS}
             title="Eksportuj terminy do pliku .ics (iCal, Apple, Google)"
             aria-label="Eksportuj do iCal"
-            className="flex h-9.5 items-center gap-1.5 rounded-full border border-border-custom/40 bg-surface-2/60 px-3 text-xs font-semibold text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-95"
+            className="flex h-9.5 items-center gap-1.5 rounded-full border border-border-custom/40 bg-surface-2/60 px-3 text-xs font-semibold text-text-secondary transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-95"
           >
             <Download size={15} strokeWidth={2.2} />
             <span className="hidden sm:inline">Eksportuj .ics</span>
           </Pressable>
         )}
-        <Pressable onClick={onAdd} aria-label="Dodaj termin" className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-on-accent shadow-xs transition-all duration-150 hover:opacity-90 active:scale-95">
+        <Pressable onClick={onAdd} aria-label="Dodaj termin" className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-on-accent shadow-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 hover:opacity-90 active:scale-95">
           <Plus size={16} strokeWidth={2.5} />
           <span className="hidden sm:inline">Dodaj</span>
         </Pressable>

@@ -144,7 +144,7 @@ export function LinksInboxRow({
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 border rounded-lg px-4 py-3 transition-all duration-[var(--motion-medium)] select-none ${
+      className={`flex items-center justify-between gap-3 border rounded-lg px-4 py-3 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'
@@ -159,7 +159,7 @@ export function LinksInboxRow({
             e.stopPropagation();
             onToggleSelect?.();
           }}
-          className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all cursor-pointer ${
+          className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-[color,background-color,border-color,box-shadow,opacity,transform] cursor-pointer ${
             isSelected
               ? 'bg-primary border-primary text-on-accent shadow-xs'
               : 'border-border-custom bg-surface-solid'

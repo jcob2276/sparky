@@ -84,7 +84,7 @@ function SingleBodyView({
       </span>
       <svg
         viewBox={view.vb}
-        className={`${compact ? 'w-[5.5rem] sm:w-28' : 'w-36 sm:w-44'} h-auto select-none transition-all`}
+        className={`${compact ? 'w-[5.5rem] sm:w-28' : 'w-36 sm:w-44'} h-auto select-none transition-[color,background-color,border-color,box-shadow,opacity,transform]`}
         role="img"
       >
         {/* Inert silhouette paths */}

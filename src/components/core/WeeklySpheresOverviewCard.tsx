@@ -178,7 +178,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
             <Pressable
               key={pillar}
               onClick={() => togglePillar(pillar)}
-              className={`flex flex-col justify-between rounded-lg border p-2.5 text-left transition-all ui-interactive cursor-pointer ${
+              className={`flex flex-col justify-between rounded-lg border p-2.5 text-left transition-[color,background-color,border-color,box-shadow,opacity,transform] ui-interactive cursor-pointer ${
                 isSelected
                   ? `${cfg.borderColor} ${cfg.bgActive} ring-1 ring-primary/30 shadow-xs`
                   : 'border-border-custom/60 bg-surface-2/40 hover:bg-surface-2/70'

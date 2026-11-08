@@ -67,7 +67,7 @@ export default function NoteFolderPicker({
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-custom/35 bg-surface-solid/65 hover:bg-surface-solid text-xs font-semibold text-text-primary shadow-2xs transition-all active:scale-[0.97]"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-custom/35 bg-surface-solid/65 hover:bg-surface-solid text-xs font-semibold text-text-primary shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] active:scale-[0.97]"
       >
         <Folder size={13} className="text-warning shrink-0" />
         <span className="truncate max-w-[140px]">{activeLabel}</span>

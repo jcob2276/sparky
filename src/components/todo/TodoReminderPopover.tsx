@@ -36,6 +36,8 @@ export default function TodoReminderPopover({
       const target = e.target as Element | null;
       // The trigger toggles the popover itself; closing here would make its click reopen it.
       if (target?.closest?.('[data-todo-popover-trigger]')) return;
+      // Arkusz wyboru (ControlSelect) to osobny portal: tap w niego nie moze zamykac popovera przed wyborem.
+      if (target?.closest?.('[aria-modal="true"]')) return;
       if (ref.current && !ref.current.contains(target as Node)) onClose();
     };
     // Capture + stopPropagation: Esc closes only the popover, not the modal/card behind it.

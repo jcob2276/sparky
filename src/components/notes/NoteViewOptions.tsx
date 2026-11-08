@@ -75,7 +75,7 @@ export default function NoteViewOptions({
                     role="menuitemradio"
                     aria-checked={viewMode === 'list'}
                     onClick={() => onViewModeChange('list')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
                       viewMode === 'list'
                         ? 'bg-surface-solid text-primary font-bold shadow-2xs'
                         : 'text-text-muted hover:text-text-primary'
@@ -89,7 +89,7 @@ export default function NoteViewOptions({
                     role="menuitemradio"
                     aria-checked={viewMode === 'gallery'}
                     onClick={() => onViewModeChange('gallery')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
                       viewMode === 'gallery'
                         ? 'bg-surface-solid text-primary font-bold shadow-2xs'
                         : 'text-text-muted hover:text-text-primary'

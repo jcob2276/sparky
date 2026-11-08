@@ -51,6 +51,8 @@ export default function TodoAnchoredPopover({ anchor, label, width = 232, onClos
   useEffect(() => {
     const panel = ref.current;
     const closeOutside = (event: PointerEvent) => {
+      // Arkusz wyboru (ControlSelect) to osobny portal: tap w niego nie moze zamykac popovera przed wyborem.
+      if (event.target instanceof Element && event.target.closest('[aria-modal="true"]')) return;
       if (panel && !panel.contains(event.target as Node)) onCloseRef.current();
     };
     const onKey = (event: KeyboardEvent) => {

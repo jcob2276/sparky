@@ -58,7 +58,7 @@ export function MealTypeSegmentedPicker({
               haptics.selection();
               setMealType(m.id);
             }}
-            className={`rounded-xl py-1.5 text-center text-2xs font-semibold tracking-wide transition-all duration-150 active:scale-95 ${
+            className={`rounded-xl py-1.5 text-center text-2xs font-semibold tracking-wide transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 active:scale-95 ${
               mealType === m.id
                 ? 'bg-surface text-primary shadow-xs'
                 : 'text-text-muted hover:text-text-secondary'

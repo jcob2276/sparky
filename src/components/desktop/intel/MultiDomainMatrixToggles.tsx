@@ -22,7 +22,7 @@ export function MultiDomainMatrixToggles({
           <Pressable
             key={layer.id}
             onClick={() => onToggleLayer(layer.id)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 cursor-pointer ${
               isSelected
                 ? `${layer.badgeClass} shadow-sm ring-1 ring-white/10`
                 : 'border-border-custom/50 bg-surface/30 text-text-muted hover:border-border-custom hover:text-text-secondary opacity-60'

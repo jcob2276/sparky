@@ -30,7 +30,7 @@ export function LinksInboxItem({
 
   return (
     <div
-      className={`transition-all duration-[var(--ds-duration-250ms)] ease-[var(--spring)] ${
+      className={`transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-[var(--ds-duration-250ms)] ease-[var(--spring)] ${
         isDeleting ? 'opacity-0 scale-95 -translate-y-2 pointer-events-none' : 'opacity-100 scale-100'
       }`}
     >

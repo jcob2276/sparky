@@ -52,7 +52,7 @@ export function OfflineStatusBanner() {
       role="status"
       aria-live="polite"
       data-testid="offline-status-banner"
-      className="fixed top-2.5 left-1/2 -translate-x-1/2 z-[var(--z-toast)] pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+      className="fixed top-2.5 left-1/2 -translate-x-1/2 z-[var(--z-toast)] pointer-events-none transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
     >
       {!isOnline ? (
         <div className="flex items-center gap-2 rounded-full border border-warning/40 bg-surface-solid/95 px-3.5 py-1.5 shadow-lg shadow-black/10 backdrop-blur-md text-text-primary text-xs font-semibold">

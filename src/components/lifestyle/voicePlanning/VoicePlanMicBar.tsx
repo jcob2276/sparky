@@ -104,7 +104,7 @@ export default function VoicePlanMicBar({
               onStartRecording();
             }}
             disabled={isProcessing}
-            className="flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-primary hover:bg-primary-hover text-on-accent font-semibold text-xs transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-primary hover:bg-primary-hover text-on-accent font-semibold text-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] active:scale-98 disabled:opacity-50 cursor-pointer"
           >
             <div className="size-6 rounded-full bg-on-accent/20 flex items-center justify-center pointer-events-none">
               <Mic size={14} className="text-on-accent animate-bounce" />

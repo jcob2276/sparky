@@ -124,7 +124,7 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
           onClick={onToggleDone}
           aria-pressed={done}
           aria-label={done ? `Cofnij serię ${number}` : `Zalicz serię ${number}`}
-          className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all active:scale-90 ${
+          className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-[color,background-color,border-color,box-shadow,opacity,transform] active:scale-90 ${
             done ? 'live-set-check' : 'border-border-custom bg-surface-1 text-text-muted'
           }`}
         >
