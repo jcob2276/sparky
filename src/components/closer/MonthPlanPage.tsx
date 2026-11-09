@@ -10,7 +10,10 @@ import PageHeader from '../shared/PageHeader';
 import { MonthPlanEntryForm } from './MonthPlanEntryForm';
 import { MonthPlanView } from './MonthPlanView';
 
-const PLAN = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3 };
+const PLAN = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3,
+  /** Pierwszy tydzień zamknięty na 9 umówionych z 111; reszta rozłożona na dni od 9.11. */
+  rebase: { from: '2026-11-09', done: 9 },
+};
 const END_DATE = monthEnd(PLAN.startDate);
 
 /** Tymczasowy plan listopada: minimum umówień na dzień i tydzień oraz wpisywanie liczb dnia do dziennika closera. */

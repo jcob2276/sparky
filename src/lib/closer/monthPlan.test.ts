@@ -34,6 +34,25 @@ describe('buildMonthPlan', () => {
   });
 });
 
+describe('przeliczenie od 9.11 po 9 umówionych', () => {
+  const rebased = buildMonthPlan({ ...config, rebase: { from: '2026-11-09', done: 9 } });
+  const rebasedDays = rebased.weeks.flatMap((week) => week.cells).filter((cell): cell is PlanDay => cell !== null);
+  const fromNow = rebasedDays.filter((d) => d.kind === 'plan' && d.date >= '2026-11-09');
+
+  it('102 brakujące spotkania rozkłada na 16 dni roboczych po 6 albo 7', () => {
+    expect(fromNow).toHaveLength(16);
+    expect(fromNow.reduce((sum, d) => sum + d.target, 0)).toBe(102);
+    expect(fromNow.every((d) => d.target === 6 || d.target === 7)).toBe(true);
+    expect(fromNow[fromNow.length - 1].cumulative).toBe(111);
+  });
+
+  it('zaległość z pierwszego tygodnia nie liczy się podwójnie', () => {
+    const progress = summarizeProgress(rebased, { '2026-11-02': day({ appointments: 9 }) }, '2026-11-09');
+    expect(progress.backlog).toBe(0);
+    expect(progress.todayNeeded).toBe(progress.todayTarget);
+  });
+});
+
 describe('summarizeProgress', () => {
   it('liczy zaległość z dni sprzed dzisiaj, a weekend ją zmniejsza', () => {
     const behind = summarizeProgress(plan, { '2026-11-02': day({ appointments: 3, salesCalls: 0, salesClosed: 0 }) }, '2026-11-03');

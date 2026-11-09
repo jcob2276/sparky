@@ -12,6 +12,8 @@ export interface MonthPlanConfig {
   showRate: number;
   /** Tydzień z co najmniej tyloma dniami roboczymi wymaga jednej sprzedaży. */
   minSalesWeekDays: number;
+  /** Przeliczenie w trakcie miesiąca: od `from` brakujące umówienia (cel minus `done`) rozkładają się na pozostałe dni robocze. */
+  rebase?: { from: string; done: number };
 }
 
 export interface PlanDay {
@@ -35,6 +37,8 @@ interface PlanWeek {
 
 export interface MonthPlan {
   weeks: PlanWeek[];
+  /** Dzień przeliczenia planu; zaległość liczy się dopiero od niego. */
+  rebaseFrom?: string;
   totals: { sales: number; held: number; booked: number; payout: number; planDays: number };
 }
 
@@ -73,14 +77,25 @@ export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
   const booked = Math.ceil(held / config.showRate - 1e-9);
   const planDays = spans.flat().filter(isPlanDay).length;
 
+  const { rebase } = config;
+  const remainingDays = rebase ? spans.flat().filter((date) => isPlanDay(date) && date! >= rebase.from).length : 0;
+  const remaining = rebase ? Math.max(0, booked - rebase.done) : 0;
   let index = 0;
+  let rebased = 0;
   let previous = 0;
   const weeks = spans.map((week): PlanWeek => {
     const cells = week.map((date): PlanDay | null => {
       if (date === null) return null;
       if (!isPlanDay(date)) return { date, kind: 'reserve', target: 0, cumulative: previous, minutes: 0 };
       index += 1;
-      const cumulative = Math.ceil((booked * index) / planDays - 1e-9);
+      let cumulative: number;
+      if (rebase && date >= rebase.from) {
+        if (rebased === 0) previous = rebase.done;
+        rebased += 1;
+        cumulative = rebase.done + Math.ceil((remaining * rebased) / remainingDays - 1e-9);
+      } else {
+        cumulative = Math.ceil((booked * index) / planDays - 1e-9);
+      }
       const target = cumulative - previous;
       previous = cumulative;
       return { date, kind: 'plan', target, cumulative, minutes: Math.round((target / MEETINGS_PER_BLOCK) * 60) };
@@ -92,7 +107,7 @@ export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
     };
   });
 
-  return { weeks, totals: { sales, held, booked, payout: held * MEETING_PAY + sales * OWN_SALE_PAY, planDays } };
+  return { weeks, rebaseFrom: rebase?.from, totals: { sales, held, booked, payout: held * MEETING_PAY + sales * OWN_SALE_PAY, planDays } };
 }
 
 /** Refleksja liczy się jako zamykająca dzień od tylu znaków. */
@@ -148,8 +163,12 @@ export function summarizeProgress(plan: MonthPlan, actuals: Record<string, DayAc
   const sum = (pick: (a: DayActual) => number, before?: string) => Object.entries(actuals)
     .filter(([date]) => date >= days[0].date && (before === undefined || date < before))
     .reduce((total, [, actual]) => total + pick(actual), 0);
-  const plannedBefore = days.filter((day) => day.kind === 'plan' && day.date < today).reduce((total, day) => total + day.target, 0);
-  const backlog = Math.max(0, plannedBefore - sum((a) => a.appointments, today));
+  const from = plan.rebaseFrom ?? days[0].date;
+  const plannedBefore = days.filter((day) => day.kind === 'plan' && day.date >= from && day.date < today).reduce((total, day) => total + day.target, 0);
+  const doneSinceFrom = Object.entries(actuals)
+    .filter(([date]) => date >= from && date < today)
+    .reduce((total, [, actual]) => total + actual.appointments, 0);
+  const backlog = Math.max(0, plannedBefore - doneSinceFrom);
   const todayTarget = days.find((day) => day.date === today && day.kind === 'plan')?.target ?? 0;
   const todayNeeded = todayTarget + backlog;
   const salesDone = sum((a) => a.salesClosed);
