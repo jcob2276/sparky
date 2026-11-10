@@ -36,6 +36,8 @@ export function MonthPlanDay({ day, actual, today, selected, onSelect }: MonthPl
     );
   }
 
+  const delta = day.target - day.planned;
+  const idle = delta === 0 ? 'umówić' : `${delta > 0 ? '+' : '−'}${Math.abs(delta)} vs plan`;
   const ratio = day.target > 0 ? Math.min(1, booked / day.target) : 0;
   const met = booked >= day.target;
   const tone = isPast ? (met ? 'bg-success/10' : 'bg-warning/10') : 'bg-surface-1/70';
@@ -56,7 +58,7 @@ export function MonthPlanDay({ day, actual, today, selected, onSelect }: MonthPl
           {isPast || booked > 0 ? `${booked}/${day.target}` : day.target}
         </p>
         <p className={`mt-0.5 text-xs ${reflected ? 'text-success' : isPast ? 'text-warning' : 'text-text-muted'}`}>
-          {reflected ? 'zamknięty' : isPast ? 'bez refleksji' : calls > 0 ? `calle ${calls}` : `${day.minutes} min`}
+          {reflected ? 'zamknięty' : isPast ? 'bez refleksji' : calls > 0 ? `calle ${calls}` : idle}
         </p>
       </div>
       <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-2">

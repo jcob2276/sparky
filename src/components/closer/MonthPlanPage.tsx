@@ -16,15 +16,15 @@ const PLAN = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSa
 };
 const END_DATE = monthEnd(PLAN.startDate);
 
-/** Tymczasowy plan listopada: minimum umówień na dzień i tydzień oraz wpisywanie liczb dnia do dziennika closera. */
+/** Plan listopada przeliczany na bieżąco: minimum umówień na dzień i tydzień zależy od wpisanych liczb i sprzedaży, a liczby dnia trafiają do dziennika closera. */
 function MonthPlanPage() {
   const userId = useStore((s) => s.session?.user?.id);
   const today = getTodayWarsaw();
   const inRange = today >= PLAN.startDate && today <= END_DATE;
   const [selectedDate, setSelectedDate] = useState(inRange ? today : PLAN.startDate);
-  const plan = useMemo(() => buildMonthPlan(PLAN), []);
   const actualsQuery = useCloserRangeActuals(userId, PLAN.startDate, END_DATE);
   const actuals = useMemo(() => actualsQuery.data ?? {}, [actualsQuery.data]);
+  const plan = useMemo(() => buildMonthPlan(PLAN, actuals, today), [actuals, today]);
   const progress = useMemo(() => summarizeProgress(plan, actuals, today), [plan, actuals, today]);
   const save = useSaveCloserDay(userId);
 

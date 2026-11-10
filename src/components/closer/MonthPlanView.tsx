@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { closeRate, isReflected, LEARNING_TARGET_MIN, MEETINGS_PER_BLOCK, REFLECTION_TARGET_MIN, type DayActual, type MonthPlan, type PlanProgress } from '../../lib/closer/monthPlan';
+import { closeRate, isReflected, LEARNING_TARGET_MIN, REFLECTION_TARGET_MIN, type DayActual, type MonthPlan, type PlanProgress } from '../../lib/closer/monthPlan';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { MonthPlanDay } from './MonthPlanDay';
 
@@ -21,6 +21,15 @@ const MIN_CALLS_FOR_RATE = 5;
 const short = (date: string) => `${Number(date.slice(8))}.${date.slice(5, 7)}`;
 const percent = (rate: number | null) => (rate === null ? '—' : `${Math.round(rate * 100)}%`);
 const hoursLabel = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min`;
+
+/** Podpis celu na dziś: ile zostało oraz o ile minimum odbiega od pierwotnego planu. */
+function todayHint(progress: PlanProgress): string {
+  if (!progress.todayIsPlanDay) return 'dzień wolny';
+  if (progress.todayTarget === 0) return 'minimum wykonane z nadwyżką';
+  const delta = progress.todayTarget - progress.todayPlanned;
+  const shift = delta > 0 ? ` · +${delta} ponad plan` : delta < 0 ? ` · ${delta} względem planu` : '';
+  return `zostało ${progress.todayLeft}${shift}`;
+}
 
 function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
@@ -48,11 +57,7 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
         <div className="grid grid-cols-3 gap-3">
           <Stat label="Umówione" value={`${progress.bookedDone}/${totals.booked}`} hint={`odbyte ok. ${totals.held}`} />
           <Stat label="Sprzedaże" value={`${progress.salesDone}/${totals.sales}`} hint="min. 1 na tydzień" />
-          <Stat
-            label="Dziś"
-            value={String(progress.todayNeeded)}
-            hint={progress.todayNeeded > 0 ? `${progress.todayBlocks}× 60 min${progress.backlog ? `, w tym ${progress.backlog} zaległe` : ''}` : 'dzień wolny'}
-          />
+          <Stat label="Dziś" value={String(progress.todayTarget)} hint={todayHint(progress)} />
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Umówione spotkania w miesiącu">
           <div className="h-full rounded-full bg-primary transition-[width] duration-[var(--motion-slow)] ease-[var(--ease-out)]" style={{ width: `${pct}%` }} />
@@ -117,8 +122,9 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
       </section>
 
       <p className="px-1 text-sm leading-relaxed text-text-muted">
-        Minimum dnia to liczba umówionych spotkań, nie odbytych. W {MEETINGS_PER_BLOCK} spotkań na godzinę wychodzi 60 min bloku.
-        Sobota, niedziela i 11.11 są rezerwą na nadrabianie, więc zaległość z dni roboczych wlicza się w „Dziś”.
+        Minimum dnia to liczba umówionych spotkań, nie odbytych. Plan liczy się od nowa po każdym zamkniętym dniu i po każdej sprzedaży:
+        brak rozkłada się na pozostałe dni robocze, nadwyżka je skraca, a tydzień bez sprzedaży podnosi liczbę spotkań potrzebnych do celu.
+        Sobota i niedziela są rezerwą, więc to, co w nie wpiszesz, zmniejsza kolejne dni.
         Kliknij dzień, żeby wpisać liczby, czas i refleksję. Dzień jest zamknięty dopiero z refleksją. Close rate to sprzedaże podzielone przez sales calle. Cele self-refleksji i nauki to minima dzienne.
       </p>
     </div>

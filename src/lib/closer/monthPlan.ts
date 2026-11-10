@@ -1,8 +1,6 @@
 /** Prowizja za sprzedaż zamkniętą samodzielnie: 15% od netto oferty 5,5 tys. brutto (VAT 23%). */
 const OWN_SALE_PAY = (5500 / 1.23) * 0.15;
 const MEETING_PAY = 100;
-/** Ile spotkań da się umówić w 60-minutowym bloku. */
-export const MEETINGS_PER_BLOCK = 5;
 
 export interface MonthPlanConfig {
   /** Pierwszy dzień planu, `YYYY-MM-DD`; plan kończy się z miesiącem. */
@@ -12,20 +10,18 @@ export interface MonthPlanConfig {
   showRate: number;
   /** Tydzień z co najmniej tyloma dniami roboczymi wymaga jednej sprzedaży. */
   minSalesWeekDays: number;
-  /** Przeliczenie w trakcie miesiąca: od `from` brakujące umówienia (cel minus `done`) rozkładają się na pozostałe dni robocze. */
+  /** Przeliczenie w trakcie miesiąca: od `from` minimum liczy się od `done` umówionych, a nie od zera; wcześniejsze dni zostają jak w pierwotnym planie. */
   rebase?: { from: string; done: number };
 }
 
 export interface PlanDay {
   date: string;
-  /** Dzień roboczy (pn–pt) ma minimum; sobota i niedziela to rezerwa do nadrabiania. */
+  /** Dzień roboczy (pn–pt) ma minimum; sobota i niedziela to rezerwa, ich wpisy skracają kolejne dni. */
   kind: 'plan' | 'reserve';
-  /** Minimum umówionych spotkań tego dnia. */
+  /** Minimum umówionych spotkań tego dnia, liczone od nowa po każdym zamkniętym dniu i po każdej sprzedaży. */
   target: number;
-  /** Narastająco do końca tego dnia roboczego. */
-  cumulative: number;
-  /** Przybliżony czas umawiania przy 5 spotkaniach na godzinę. */
-  minutes: number;
+  /** Minimum z pierwotnego planu, bez wpisanych liczb; różnica do `target` to nadrabianie albo zapas. */
+  planned: number;
 }
 
 interface PlanWeek {
@@ -37,8 +33,7 @@ interface PlanWeek {
 
 export interface MonthPlan {
   weeks: PlanWeek[];
-  /** Dzień przeliczenia planu; zaległość liczy się dopiero od niego. */
-  rebaseFrom?: string;
+  /** Sumy miesiąca na dziś: wpisane liczby, brakująca sprzedaż i reszta do umówienia. `sales` to sprzedaże z pierwotnego planu (min. 1 na tydzień). */
   totals: { sales: number; held: number; booked: number; payout: number; planDays: number };
 }
 
@@ -56,11 +51,23 @@ export function monthEnd(date: string): string {
   return toDate(Date.UTC(y, m, 0));
 }
 
+interface Snapshot {
+  done: number;
+  remaining: number;
+  heldNeeded: number;
+  salesDone: number;
+  futureSales: number;
+}
+
 /**
- * Plan miesiąca: ile sprzedaży (minimum jedna na pełny tydzień) i odbytych spotkań (po 100 zł) daje cel,
- * ile trzeba umówić przy zadanym odsetku odbytych oraz jak rozłożyć to po dniach roboczych z zapasem na początku.
+ * Plan miesiąca: ile sprzedaży (minimum jedna na pełny tydzień) i odbytych spotkań (po 100 zł) daje cel, ile trzeba umówić
+ * przy zadanym odsetku odbytych oraz jak rozłożyć to po dniach roboczych.
+ *
+ * Z `actuals` i `today` plan liczy się na bieżąco: dzień przed dzisiejszym albo zamknięty refleksją liczy się tym, co wpisano
+ * (brak rozkłada się na pozostałe dni robocze, nadwyżka je skraca), a dzień otwarty i przyszłe dni zakładają, że minimum zostanie wykonane.
+ * Tydzień bez sprzedaży, który już minął, podnosi liczbę potrzebnych spotkań, bo cel w złotych zostaje ten sam.
  */
-export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
+export function buildMonthPlan(config: MonthPlanConfig, actuals: Record<string, DayActual> = {}, today = ''): MonthPlan {
   const end = monthEnd(config.startDate);
   const firstMonday = toTime(config.startDate) - weekday(config.startDate) * DAY_MS;
   const spans: Array<Array<string | null>> = [];
@@ -72,42 +79,92 @@ export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
   }
 
   const isPlanDay = (date: string | null) => date !== null && weekday(date) < 5;
-  const sales = spans.filter((week) => week.filter(isPlanDay).length >= config.minSalesWeekDays).length;
-  const held = Math.max(0, Math.ceil((config.targetPln - sales * OWN_SALE_PAY) / MEETING_PAY - 1e-9));
+  const qualifies = spans.map((week) => week.filter(isPlanDay).length >= config.minSalesWeekDays);
+  const sales = qualifies.filter(Boolean).length;
+  const heldFor = (salesCount: number) => Math.max(0, Math.ceil((config.targetPln - salesCount * OWN_SALE_PAY) / MEETING_PAY - 1e-9));
+  const held = heldFor(sales);
   const booked = Math.ceil(held / config.showRate - 1e-9);
   const planDays = spans.flat().filter(isPlanDay).length;
 
-  const { rebase } = config;
-  const remainingDays = rebase ? spans.flat().filter((date) => isPlanDay(date) && date! >= rebase.from).length : 0;
-  const remaining = rebase ? Math.max(0, booked - rebase.done) : 0;
+  const from = config.rebase?.from ?? config.startDate;
+  const startDone = config.rebase?.done ?? 0;
+  const dated = spans.flatMap((week, w) => week.flatMap((date) => (date === null ? [] : [{ date, w }])));
+  const rollDays = dated.filter(({ date }) => isPlanDay(date) && date >= from).length;
+  const lastPlanDay = spans.map((week) => week.filter(isPlanDay).pop() ?? '');
+
+  // Dni przed przeliczeniem zostają w pierwotnym rozkładzie całego planu.
+  const staticTargets = new Map<string, number>();
   let index = 0;
-  let rebased = 0;
   let previous = 0;
-  const weeks = spans.map((week): PlanWeek => {
+  for (const { date } of dated) {
+    if (!isPlanDay(date) || date >= from) continue;
+    index += 1;
+    const cumulative = Math.ceil((booked * index) / planDays - 1e-9);
+    staticTargets.set(date, cumulative - previous);
+    previous = cumulative;
+  }
+
+  /** Minimum każdego dnia roboczego od `from`: brakujące spotkania dzielone równo na pozostałe dni robocze. */
+  const roll = (entered: Record<string, DayActual>, now: string) => {
+    const targets = new Map<string, number>();
+    const weekSales = spans.map(() => 0);
+    let done = startDone;
+    let salesDone = 0;
+    let remainingDays = rollDays;
+    let snapshot: Snapshot | undefined;
+    for (const { date, w } of dated) {
+      const actual = entered[date];
+      let target = 0;
+      if (date >= from && isPlanDay(date)) {
+        const futureSales = qualifies.slice(w + 1).filter(Boolean).length + (qualifies[w] && weekSales[w] === 0 ? 1 : 0);
+        const heldNeeded = heldFor(salesDone + futureSales);
+        const remaining = Math.max(0, Math.ceil((heldNeeded - done * config.showRate) / config.showRate - 1e-9));
+        target = Math.max(0, Math.ceil(remaining / remainingDays - 1e-9));
+        remainingDays -= 1;
+        targets.set(date, target);
+        if (!snapshot && date >= now) snapshot = { done, remaining, heldNeeded, salesDone, futureSales };
+      }
+      if (date >= from) {
+        const appointments = actual?.appointments ?? 0;
+        done += date < now || isReflected(actual) ? appointments : Math.max(appointments, target);
+      }
+      const sold = actual?.salesClosed ?? 0;
+      salesDone += sold;
+      weekSales[w] += sold;
+      // Tydzień, który jeszcze trwa, zakłada swoją jedną sprzedaż; minięty bez sprzedaży to brak.
+      if (date === lastPlanDay[w] && qualifies[w] && weekSales[w] === 0 && date >= now) {
+        salesDone += 1;
+        weekSales[w] += 1;
+      }
+    }
+    snapshot ??= { done, remaining: 0, heldNeeded: heldFor(salesDone), salesDone, futureSales: 0 };
+    return { targets, snapshot };
+  };
+
+  const base = roll({}, '');
+  const live = roll(actuals, today);
+  const { snapshot } = live;
+
+  const weeks = spans.map((week, w): PlanWeek => {
     const cells = week.map((date): PlanDay | null => {
       if (date === null) return null;
-      if (!isPlanDay(date)) return { date, kind: 'reserve', target: 0, cumulative: previous, minutes: 0 };
-      index += 1;
-      let cumulative: number;
-      if (rebase && date >= rebase.from) {
-        if (rebased === 0) previous = rebase.done;
-        rebased += 1;
-        cumulative = rebase.done + Math.ceil((remaining * rebased) / remainingDays - 1e-9);
-      } else {
-        cumulative = Math.ceil((booked * index) / planDays - 1e-9);
-      }
-      const target = cumulative - previous;
-      previous = cumulative;
-      return { date, kind: 'plan', target, cumulative, minutes: Math.round((target / MEETINGS_PER_BLOCK) * 60) };
+      if (!isPlanDay(date)) return { date, kind: 'reserve', target: 0, planned: 0 };
+      const planned = base.targets.get(date) ?? staticTargets.get(date) ?? 0;
+      return { date, kind: 'plan', target: live.targets.get(date) ?? planned, planned };
     });
-    return {
-      cells,
-      bookedMin: cells.reduce((sum, cell) => sum + (cell?.target ?? 0), 0),
-      salesMin: week.filter(isPlanDay).length >= config.minSalesWeekDays ? 1 : 0,
-    };
+    return { cells, bookedMin: cells.reduce((sum, cell) => sum + (cell?.target ?? 0), 0), salesMin: qualifies[w] ? 1 : 0 };
   });
 
-  return { weeks, rebaseFrom: rebase?.from, totals: { sales, held, booked, payout: held * MEETING_PAY + sales * OWN_SALE_PAY, planDays } };
+  return {
+    weeks,
+    totals: {
+      sales,
+      held: snapshot.heldNeeded,
+      booked: snapshot.done + snapshot.remaining,
+      payout: snapshot.heldNeeded * MEETING_PAY + (snapshot.salesDone + snapshot.futureSales) * OWN_SALE_PAY,
+      planDays,
+    },
+  };
 }
 
 /** Refleksja liczy się jako zamykająca dzień od tylu znaków. */
@@ -151,26 +208,23 @@ export interface PlanProgress {
   /** Dni z zapisaną refleksją i ile dni planu już minęło lub trwa (z rezerwą, jeśli ją wpisano). */
   reflectedDays: number;
   elapsedPlanDays: number;
-  /** Brakujące umówienia względem minimum dni roboczych sprzed dzisiaj (weekend i nadwyżki je zmniejszają). */
-  backlog: number;
+  /** Dziś to dzień roboczy z minimum; sobota i niedziela nie mają celu. */
+  todayIsPlanDay: boolean;
+  /** Minimum na dziś z uwzględnieniem wszystkiego, co przed dzisiaj, oraz to samo minimum z pierwotnego planu. */
   todayTarget: number;
-  todayNeeded: number;
-  todayBlocks: number;
+  todayPlanned: number;
+  todayDone: number;
+  todayLeft: number;
 }
 
 export function summarizeProgress(plan: MonthPlan, actuals: Record<string, DayActual>, today: string): PlanProgress {
   const days = plan.weeks.flatMap((week) => week.cells).filter((cell): cell is PlanDay => cell !== null);
-  const sum = (pick: (a: DayActual) => number, before?: string) => Object.entries(actuals)
-    .filter(([date]) => date >= days[0].date && (before === undefined || date < before))
+  const sum = (pick: (a: DayActual) => number) => Object.entries(actuals)
+    .filter(([date]) => date >= days[0].date)
     .reduce((total, [, actual]) => total + pick(actual), 0);
-  const from = plan.rebaseFrom ?? days[0].date;
-  const plannedBefore = days.filter((day) => day.kind === 'plan' && day.date >= from && day.date < today).reduce((total, day) => total + day.target, 0);
-  const doneSinceFrom = Object.entries(actuals)
-    .filter(([date]) => date >= from && date < today)
-    .reduce((total, [, actual]) => total + actual.appointments, 0);
-  const backlog = Math.max(0, plannedBefore - doneSinceFrom);
-  const todayTarget = days.find((day) => day.date === today && day.kind === 'plan')?.target ?? 0;
-  const todayNeeded = todayTarget + backlog;
+  const todayDay = days.find((day) => day.date === today && day.kind === 'plan');
+  const todayTarget = todayDay?.target ?? 0;
+  const todayDone = actuals[today]?.appointments ?? 0;
   const salesDone = sum((a) => a.salesClosed);
   const elapsedPlanDays = days.filter((day) => day.kind === 'plan' && day.date <= today).length;
   const reflectedDays = Object.entries(actuals).filter(([date, actual]) => date >= days[0].date && isReflected(actual)).length;
@@ -186,9 +240,10 @@ export function summarizeProgress(plan: MonthPlan, actuals: Record<string, DayAc
     learningMinutesDone: sum((a) => a.learningMinutes),
     reflectedDays,
     elapsedPlanDays,
-    backlog,
+    todayIsPlanDay: todayDay !== undefined,
     todayTarget,
-    todayNeeded,
-    todayBlocks: Math.ceil(todayNeeded / MEETINGS_PER_BLOCK),
+    todayPlanned: todayDay?.planned ?? 0,
+    todayDone,
+    todayLeft: Math.max(0, todayTarget - todayDone),
   };
 }

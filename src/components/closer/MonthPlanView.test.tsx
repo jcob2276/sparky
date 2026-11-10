@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { buildMonthPlan, EMPTY_DAY, summarizeProgress, type DayActual } from '../../lib/closer/monthPlan';
 import { MonthPlanView } from './MonthPlanView';
 
-const plan = buildMonthPlan({ startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3 });
+const config = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3 };
 
 function renderPlan(today: string, actuals: Record<string, DayActual>) {
+  const plan = buildMonthPlan(config, actuals, today);
   return render(
     <MonthPlanView
       plan={plan}
@@ -30,10 +31,11 @@ describe('MonthPlanView', () => {
     expect(screen.getAllByLabelText(/rezerwa/)).toHaveLength(8);
   });
 
-  it('dolicza zaległość do dzisiejszego minimum, pokazuje sprzedaż i close rate', () => {
-    renderPlan('2026-11-03', { '2026-11-02': { ...EMPTY_DAY, appointments: 2, salesCalls: 4, salesClosed: 1 } });
+  it('przelicza dzisiejsze minimum po zaległościach, pokazuje sprzedaż i close rate', () => {
+    renderPlan('2026-11-05', { '2026-11-02': { ...EMPTY_DAY, appointments: 2, salesCalls: 4, salesClosed: 1 } });
     expect(screen.getByLabelText('2.11, minimum 6, umówiono 2, sales calli 4, sprzedaży 1')).toBeInTheDocument();
-    expect(screen.getByText(/w tym 4 zaległe/)).toBeInTheDocument();
+    expect(screen.getByText('zostało 7 · +1 ponad plan')).toBeInTheDocument();
+    expect(screen.queryByText(/60 min/)).not.toBeInTheDocument();
     expect(screen.getByText('1 z 4 · mała próba')).toBeInTheDocument();
     expect(screen.getAllByText('25%').length).toBeGreaterThan(0);
   });
