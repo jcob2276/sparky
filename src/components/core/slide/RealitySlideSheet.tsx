@@ -28,7 +28,7 @@ function Form({ slide, saving, onSave }: Pick<RealitySlideSheetProps, 'slide' | 
       <div>
         <label htmlFor="slide-statement" className="mb-1 block text-xs font-semibold text-text-secondary">Jak w nim żyję</label>
         <ControlTextarea id="slide-statement" rows={4} value={draft.statement} maxLength={SLIDE_LIMITS.statement}
-          onChange={e => setDraft(d => ({ ...d, statement: e.target.value }))} className="w-full p-3" />
+          onChange={e => setDraft(d => ({ ...d, statement: e.target.value }))} className="w-full border border-border-custom bg-surface-solid p-3 text-text-primary" />
       </div>
       <div className="space-y-2">
         <p className="text-xs font-semibold text-text-secondary">Kroki procesu (czynności, które mogę wykonać)</p>

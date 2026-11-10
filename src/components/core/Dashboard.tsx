@@ -23,6 +23,7 @@ import { DashboardNavBar } from './DashboardNavBar';
 import { DashboardModals } from './DashboardModals';
 import { DashboardFastCaptureMenu } from './DashboardFastCapture';
 import VisionHeroCard from './VisionHeroCard';
+import RealitySlideCard from './slide/RealitySlideCard';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 const SearchModal = lazy(() => import('./SearchModal'));
@@ -169,6 +170,7 @@ function DashboardContent() {
           >
             {showLock ? (
               <div className="p-5 pb-8 space-y-5 overflow-y-auto h-full">
+                <RealitySlideCard />
                 <VisionHeroCard />
                 {weeklyReviewNudge}
                 <PowerList
