@@ -51,8 +51,8 @@ it('reloads saved order and visibility for the owning account only', async () =>
   await saveTodayLayout('alice', saved);
   const alice = await fetchTodayLayout('alice');
   const bob = await fetchTodayLayout('bob');
-  expect(alice.sections.slice(0, 2)).toEqual(saved.sections);
-  expect(bob.sections[0]).toEqual({ id: 'vision', visible: true });
+  expect(alice.sections.slice(1, 3)).toEqual(saved.sections);
+  expect(bob.sections[0]).toEqual({ id: 'slide', visible: true });
 });
 
 it('rejects read and write failures instead of reporting a saved default', async () => {
@@ -75,5 +75,5 @@ it('keeps a newly saved layout when an earlier background read finishes later', 
   await waitFor(() => expect(releaseRead).not.toBeNull());
   await act(async () => { await result.current.save({ version: 1, sections: [{ id: 'agenda', visible: true }] }); });
   await act(async () => { releaseRead!(); await pending; });
-  expect(result.current.query.data?.sections[0].id).toBe('agenda');
+  expect(result.current.query.data?.sections[1].id).toBe('agenda');
 });

@@ -17,7 +17,9 @@ describe('today layout preferences', () => {
       { id: 'food', visible: 'false' },
     ];
     const result = parseTodayLayout(JSON.stringify({ version: 1, sections }));
-    expect(result.sections.slice(0, 2)).toEqual(sections.slice(0, 2));
+    // Karta „slajd" dodana później trafia na początek; reszta zachowuje zapisaną kolejność.
+    expect(result.sections[0].id).toBe('slide');
+    expect(result.sections.slice(1, 3)).toEqual(sections.slice(0, 2));
     expect(result.sections.map(section => section.id)).toHaveLength(DEFAULT_TODAY_LAYOUT.sections.length);
     expect(result.sections.find(section => section.id === 'food')?.visible).toBe(true);
     expect(sections).toHaveLength(5);

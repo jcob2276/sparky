@@ -199,3 +199,8 @@ export const financeKeys = {
   quotes: (tickers: string[]) => [...financeKeys.all, 'quotes', ...tickers] as const,
   priceHistory: (tickers: string[]) => [...financeKeys.all, 'price-history', ...tickers] as const,
 };
+
+// ── SLAJD (deklaracja „dokąd zmierzam") ──
+export const realitySlideKeys = {
+  active: (userId: string) => ['realitySlide', userId, 'active'] as const,
+};

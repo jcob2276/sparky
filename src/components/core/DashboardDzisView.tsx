@@ -16,6 +16,7 @@ import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import TodayRunwayCard from './TodayRunwayCard';
 import VisionHeroCard from './VisionHeroCard';
+import RealitySlideCard from './slide/RealitySlideCard';
 import { TodayLayoutEditor } from './TodayLayoutEditor';
 
 export interface DashboardDzisViewProps {
@@ -59,7 +60,7 @@ type LayoutChunk =
 function chunkVisibleSections(visible: VisibleSection[]): LayoutChunk[] {
   const chunks: LayoutChunk[] = [];
   for (const section of visible) {
-    if (section.id === 'vision' || section.id === 'goals') {
+    if (section.id === 'slide' || section.id === 'vision' || section.id === 'goals') {
       chunks.push({ type: 'full', section });
     } else {
       const last = chunks[chunks.length - 1];
@@ -75,6 +76,7 @@ function chunkVisibleSections(visible: VisibleSection[]): LayoutChunk[] {
 
 export function DashboardDzisView(props: DashboardDzisViewProps) {
   const sections: Record<TodaySectionId, ReactNode> = {
+    slide: <RealitySlideCard />,
     vision: <VisionHeroCard />,
     goals: <ThreeSpheresGoalsCard />,
     plan: <div className="space-y-5">

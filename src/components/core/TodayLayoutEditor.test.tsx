@@ -17,11 +17,11 @@ describe('editing the Today screen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zapisz układ' }));
     await waitFor(() => expect(stored).not.toBeNull());
     expect(stored!.sections.find(section => section.id === 'vision')?.visible).toBe(false);
-    expect(stored!.sections.map(section => section.id)).toEqual(['vision', 'goals', 'plan', 'recovery', 'agenda', 'food', 'snapshot']);
+    expect(stored!.sections.map(section => section.id)).toEqual(['slide', 'vision', 'goals', 'plan', 'recovery', 'agenda', 'food', 'snapshot']);
     fireEvent.click(screen.getByRole('button', { name: 'Przywróć domyślny układ' }));
-    expect(stored!.sections[0].visible).toBe(false);
+    expect(stored!.sections[1].visible).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: 'Zapisz układ' }));
-    await waitFor(() => expect(stored!.sections[0].visible).toBe(true));
+    await waitFor(() => expect(stored!.sections[1].visible).toBe(true));
   });
 
   it('cancels without saving', () => {

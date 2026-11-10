@@ -1,4 +1,5 @@
 export const TODAY_SECTIONS = [
+  { id: 'slide', label: 'Slajd: dokąd zmierzam' },
   { id: 'vision', label: 'Wizja i sprint' },
   { id: 'goals', label: 'Cele trzech sfer' },
   { id: 'plan', label: 'Pięć zwycięstw' },
@@ -38,7 +39,10 @@ export function parseTodayLayout(value: unknown): TodayLayout {
     }
   }
   for (const section of defaults().sections) {
-    if (!sections.some(saved => saved.id === section.id)) sections.push(section);
+    if (sections.some(saved => saved.id === section.id)) continue;
+    // Slajd jest zawsze pierwszy, także w układach zapisanych przed jego dodaniem.
+    if (section.id === 'slide') sections.unshift(section);
+    else sections.push(section);
   }
   return { version: 1, sections };
 }
