@@ -5170,6 +5170,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reality_slides: {
+        Row: {
+          created_at: string
+          id: string
+          process_steps: string[]
+          retired_at: string | null
+          statement: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          process_steps?: string[]
+          retired_at?: string | null
+          statement?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          process_steps?: string[]
+          retired_at?: string | null
+          statement?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       relations: {
         Row: {
           created_at: string
@@ -7572,36 +7602,6 @@ export type Database = {
         }
         Relationships: []
       }
-      reality_slides: {
-        Row: {
-          created_at: string
-          id: string
-          process_steps: string[]
-          retired_at: string | null
-          statement: string
-          title: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          process_steps?: string[]
-          retired_at?: string | null
-          statement?: string
-          title: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          process_steps?: string[]
-          retired_at?: string | null
-          statement?: string
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       vision_board_items: {
         Row: {
           color: string
@@ -8577,10 +8577,6 @@ export type Database = {
         Returns: undefined
       }
       revoke_my_session: { Args: { p_session_id: string }; Returns: boolean }
-      set_reality_slide: {
-        Args: { p_process_steps: string[]; p_statement: string; p_title: string }
-        Returns: Database["public"]["Tables"]["reality_slides"]["Row"]
-      }
       save_food_correction: {
         Args: {
           p_corrected_grams: number
@@ -8692,6 +8688,28 @@ export type Database = {
         Returns: undefined
       }
       set_food_reference_embeddings: { Args: { items: Json }; Returns: number }
+      set_reality_slide: {
+        Args: {
+          p_process_steps: string[]
+          p_statement: string
+          p_title: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          process_steps: string[]
+          retired_at: string | null
+          statement: string
+          title: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reality_slides"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       sprint_info_for_date: {
