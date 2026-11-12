@@ -37,6 +37,10 @@ Worker pobiera okna po 7 dni przez `sync?service=oura-hr-raw`. Uwierzytelnia was
 (`/etc/sparky-worker.env` na VPS i sekret funkcji w Supabase), nie klucz serwisowy; token Oury nie opuszcza Supabase.
 Zapis jest idempotentny, wiec ponowienie po bledzie jest bezpieczne. Odczyt: `sudo -u sparky-worker sqlite3 /var/lib/sparky-archive/archive.db`.
 
+Przy wdrożeniu workera kopiuj razem `sparky-worker.py`, `finance_prices.py` i `finance_snapshots.py`
+do `/opt/sparky-worker/`, a potem restartuj usługę. Snapshot ma datę obserwacji Warsaw;
+brak ceny dowolnej aktywnej pozycji blokuje zapis niepełnej sumy.
+
 Nowy typ = nowa funkcja z dekoratorem `@handler("nazwa")` w `sparky-worker.py`, potem `scp` + `systemctl restart sparky-worker`.
 
 ## Migracje bazy zwiazane z VPS

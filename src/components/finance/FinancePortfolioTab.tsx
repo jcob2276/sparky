@@ -1,3 +1,4 @@
+import { FinanceHoldingHistory } from './FinanceHoldingHistory';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { HoldingInput, PortfolioTotals, ValuedHolding } from '@vanguard/domain';
@@ -14,7 +15,7 @@ import { FinanceEmpty } from './financeUi';
 import { FinanceHoldingForm } from './FinanceHoldingForm';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceAllocationCard } from './FinanceAllocationCard';
-import { FinancePortfolioChart } from './FinancePortfolioChart';
+import { FinanceRecordedPortfolio } from './FinanceRecordedPortfolio';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 import { formatWarsawDate } from '../../lib/date';
 
@@ -123,7 +124,9 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
     <div className="space-y-8">
       <Summary totals={totals} brokerCashPln={brokerCashPln} />
 
-      <FinancePortfolioChart holdings={holdings} />
+      <FinanceRecordedPortfolio holdings={holdings} />
+
+      <FinanceHoldingHistory />
 
       <FinanceAllocationCard accounts={fundingAccounts ?? []} holdings={holdings} />
 

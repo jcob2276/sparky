@@ -1920,6 +1920,69 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_holding_events: {
+        Row: {
+          amount_pln: number | null
+          avg_cost_after: number | null
+          avg_cost_before: number | null
+          avg_cost_original_after: number | null
+          avg_cost_original_before: number | null
+          cost_currency: string | null
+          cost_currency_after: string | null
+          cost_currency_before: string | null
+          funding_account_id: string | null
+          holding_id: string
+          id: string
+          kind: string
+          name: string
+          quantity_after: number
+          quantity_before: number
+          recorded_at: string
+          ticker: string
+          user_id: string
+        }
+        Insert: {
+          amount_pln?: number | null
+          avg_cost_after?: number | null
+          avg_cost_before?: number | null
+          avg_cost_original_after?: number | null
+          avg_cost_original_before?: number | null
+          cost_currency?: string | null
+          cost_currency_after?: string | null
+          cost_currency_before?: string | null
+          funding_account_id?: string | null
+          holding_id: string
+          id?: string
+          kind: string
+          name: string
+          quantity_after: number
+          quantity_before: number
+          recorded_at?: string
+          ticker: string
+          user_id: string
+        }
+        Update: {
+          amount_pln?: number | null
+          avg_cost_after?: number | null
+          avg_cost_before?: number | null
+          avg_cost_original_after?: number | null
+          avg_cost_original_before?: number | null
+          cost_currency?: string | null
+          cost_currency_after?: string | null
+          cost_currency_before?: string | null
+          funding_account_id?: string | null
+          holding_id?: string
+          id?: string
+          kind?: string
+          name?: string
+          quantity_after?: number
+          quantity_before?: number
+          recorded_at?: string
+          ticker?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       finance_holdings: {
         Row: {
           asset_class: string

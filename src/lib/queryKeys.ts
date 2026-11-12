@@ -198,6 +198,7 @@ export const financeKeys = {
   bank: (userId: string) => [...financeKeys.all, 'bank', userId] as const,
   categoryBudgets: (userId: string) => [...financeKeys.all, 'category-budgets', userId] as const,
   quotes: (tickers: string[]) => [...financeKeys.all, 'quotes', ...tickers] as const,
+  holdingEvents: (userId: string) => [...financeKeys.all, 'holding-events', userId] as const,
   priceHistory: (tickers: string[]) => [...financeKeys.all, 'price-history', ...tickers] as const,
 };
 

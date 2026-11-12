@@ -236,3 +236,28 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   aktywnych), a listy „Skąd wpływa” i „Najwięksi odbiorcy” naprawione (Button centrował i nadpisywał układ, teraz `Pressable`).
   Pulpit: natywny checkbox „Uwzględnij oszczędności” zastąpiony nowym prymitywem `ui/Switch` (rola switch). Poprawiłem też
   trzy testy szybkiego wpisu po Twojej zmianie przycisku („Dodaj wydatek · kwota”, kategoria jako zaznaczona pigułka).
+
+## Bieżąca realizacja: historia operacji portfela
+
+Zatwierdzony kierunek: osobiste centrum finansów z obliczeniami na VPS.
+Pierwszy przekrój: trwały dziennik operacji, widoczny w Portfelu; zakup przez
+istniejący RPC zapisuje ilość, cenę i wartość zakupu atomowo. Bez przypisywania
+historycznych dat bieżącym pozycjom. Korekty ilości są korektami, nie wpłatami.
+
+Plan wykonania (writing-plans):
+- [x] Test SQL: otwarcie, zakup, korekta, usunięcie, waluty i izolacja właściciela.
+- [x] Migracje z dziennikiem, triggerem i rozszerzeniem istniejącego RPC są wdrożone.
+- [x] Typy, API z paginacją i widoczna historia operacji w Portfelu.
+- [x] Testy SQL i Pythona, typy, lint, build oraz odczyt kontrolny wdrożonej bazy.
+- [x] Końcowy pełny Vitest.
+- [ ] Wdrożenie i odczyt kontrolny workera po odzyskaniu dostępu Tailscale.
+
+Lokalny Portfel rekonstruuje ilości ze zdarzeń i cen VPS, osobno od modelu
+dzisiejszego składu wstecz. Zmiana wartości pomniejszona o zakupy nie jest całkowitym
+zwrotem: nie obejmuje dywidend, prowizji ani gotówki brokera; korekty blokują wynik.
+Nowy worker pomija niepełną wycenę, zapisuje dzień obserwacji i zeruje snapshot po
+usunięciu ostatniej pozycji. Kopiować wszystkie moduły zgodnie z runbookiem VPS.
+Wdrożenie workera czeka na ponowną autoryzację Tailscale SSH; podgląd obu motywów
+sprawdzono lokalnie na danych testowych. Frontend pozostaje lokalny.
+Następne etapy: import historii brokerskiej, sprzedaże i pełna atrybucja przepływów. Stan początkowy bez dat zakupów nie jest
+historią transakcji i nie pozwala liczyć historycznego zwrotu.

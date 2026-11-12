@@ -128,6 +128,7 @@ export function useHoldingMutations(userId: string | undefined) {
   const refresh = () => {
     if (userId) {
       void qc.invalidateQueries({ queryKey: financeKeys.holdings(userId) });
+      void qc.invalidateQueries({ queryKey: financeKeys.holdingEvents(userId) });
       void qc.invalidateQueries({ queryKey: financeKeys.bundle(userId) });
     }
   };

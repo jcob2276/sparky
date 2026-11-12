@@ -61,6 +61,11 @@ vi.mock('../../lib/finance/cashEntryApi', () => ({
   useCashEntryMutation: () => ({ isPending: false, mutateAsync: async () => undefined }),
 }));
 
+vi.mock('../../lib/finance/holdingEventsApi', () => ({
+  useHoldingEvents: () => ({ data: { pages: [[]] }, isLoading: false, isError: false, hasNextPage: false }),
+  useAllHoldingEvents: () => ({ data: [], isLoading: false, isError: false }),
+}));
+
 vi.mock('../../lib/finance/portfolioHistoryApi', () => ({
   usePortfolioPrices: () => ({ data: undefined, isLoading: false, isError: true }),
 }));
