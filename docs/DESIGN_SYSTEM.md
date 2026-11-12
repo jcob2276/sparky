@@ -7,7 +7,7 @@ Czytaj implementację przed użyciem; nie utrzymuj drugiej tabeli wartości/prop
 ## Zasady kompozycji
 
 - Functional iOS: neutralny canvas, systemowa typografia, grouped lists, wyraźna hierarchia.
-- Najwyżej jedna nasycona powierzchnia `hero` prowadzi widok. Elementy jednej domeny
+- Najwyżej jedna nasycona powierzchnia `hero` prowadzi widok. Wyjątek: kafelki smart-list w to-do (`todo-tile`) mają kolor roli na całej powierzchni, jak w Przypomnieniach Apple. Elementy jednej domeny
   współdzielą powierzchnię i separator; unikaj kart w kartach.
 - Zwykła karta różnicuje treść przez border/tło. Blur i cień unoszenia należą do rzeczywiście
   pływających warstw: modal, sheet, popover, FAB, toast, sticky navigation.
@@ -16,6 +16,23 @@ Czytaj implementację przed użyciem; nie utrzymuj drugiej tabeli wartości/prop
 - Kontrolki definiują raz default/hover/pressed/focus/selected/loading/disabled/error.
 - Ikony `lucide-react` mają spójny obrys i rozmiar odpowiedni do tekstu; nie mieszaj filled/outline na jednym poziomie.
 - Używaj `variant`, zamiast mnożyć booleany opisujące wygląd.
+
+## Język iOS: szkło, grupy, przełączniki
+
+Jeden zestaw dla to-do, notatek i finansów; definicje w [src/index.css](../src/index.css), blok „Język iOS”.
+Nie twórz drugiej kopii materiału pod własnym prefiksem (`todo-`, `keep-`, `finance-`).
+
+| Potrzeba | Użyj |
+|---|---|
+| Pływające okno, menu kontekstowe, popover | `ios-glass` (+ `ios-glass-pop` animacja otwarcia, `ios-glass-scrim`, `ios-glass-scroll`); `data-mode="popover"`/`"sheet"`, `data-side` ustawia strzałkę, `--arrow` jej przesunięcie |
+| Materiał szkła poza `ios-glass` (np. własny panel) | zmienne `--ios-glass-bg`, `--ios-glass-filter`, `--ios-glass-border`, `--ios-glass-shadow` |
+| Grupa wierszy na szarym tle | `ios-group`; wewnętrzne ustawienia `ios-glass-group` + `ios-glass-divider` |
+| Nagłówek nad grupą | `ios-section-title` |
+| Wiersz z przełącznikiem | `ios-switch` + `ios-switch-knob` (`data-on`), w to-do przez `TodoSwitchRow` |
+
+Zasady: szkło tylko dla warstw pływających; przy `prefers-reduced-transparency` i `prefers-reduced-motion` materiał
+i animacje upraszczają się w samych klasach, komponent nic nie sprawdza. Pole wpisywane w wierszu nie ma ramki ani
+poświaty fokusu; zapis jest cichy, a komunikat pojawia się tylko przy wolnym lub nieudanym zapisie.
 
 ## Tokeny według roli
 

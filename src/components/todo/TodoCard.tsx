@@ -5,13 +5,14 @@
  * @composes TodoCardExpandedPanel (renderowany gdy expanded=true)
  * @usedBy TodoCardConnected (jedyny konsument)
  */
-import React, { useId } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { splitEmoji, relativeDate } from './todoUtils';
 import TodoCardExpandedPanel from './TodoCardExpandedPanel';
+import TodoDetailsPopover from './TodoDetailsPopover';
 import TodoCardCollapsedRow from './TodoCardCollapsedRow';
 import { useTodoCardAttachments } from './useTodoCardAttachments';
 import { useTodoCardSwipe } from './useTodoCardSwipe';
-import { playTodoExit } from './todoExitAnimation';
+import { completionGraceMs, playTodoExit } from './todoExitAnimation';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
 export interface TodoCardProps {
@@ -49,6 +50,8 @@ export interface TodoCardProps {
   onAiBreakdown: () => Promise<string[]>;
   onSetTitle: (title: string) => void;
   onSetNotes?: (notes: string | null) => void;
+  onSetLocation?: (name: string | null) => void;
+  onSetImportant?: (important: boolean) => void;
   childTasks?: TodoItemRow[];
   onAddChildTask?: (title: string) => void;
   onToggleChildTask?: (child: TodoItemRow) => void;
@@ -84,33 +87,62 @@ export default function TodoCard({
   onSetReminder,
   onSetTags,
   onSetNotes,
+  onSetLocation,
+  onSetImportant,
+  onSetTitle,
   childTasks = [],
   onAddChildTask,
   onToggleChildTask,
 }: TodoCardProps) {
   const { attachments, uploadingFile, fileInputRef, handleFileUpload, handleDeleteAttachment } = useTodoCardAttachments(expanded, item.id, item.user_id);
 
+  // Ticking fills the circle at once, the row lingers briefly (second tap undoes), then it leaves the list.
+  const [pendingDone, setPendingDone] = useState(false);
+  const graceTimer = useRef<number | null>(null);
+  const latestToggle = useRef(onToggle);
+  useEffect(() => { latestToggle.current = onToggle; });
+  // Leaving the screen mid-grace must still commit the completion the user asked for.
+  useEffect(() => () => {
+    if (graceTimer.current === null) return;
+    window.clearTimeout(graceTimer.current);
+    latestToggle.current();
+  }, []);
+
   const swipe = useTodoCardSwipe({
-    // Completing plays the exit animation first; reopening a done task is instant.
     onToggle: () => {
       if (item.status === 'done') { onToggle(); return; }
-      void playTodoExit(item.id).then(onToggle);
+      if (graceTimer.current !== null) {
+        window.clearTimeout(graceTimer.current);
+        graceTimer.current = null;
+        setPendingDone(false);
+        return;
+      }
+      const commit = () => {
+        graceTimer.current = null;
+        void playTodoExit(item.id).then(() => { onToggle(); setPendingDone(false); });
+      };
+      const grace = completionGraceMs();
+      if (grace === 0) { commit(); return; }
+      setPendingDone(true);
+      graceTimer.current = window.setTimeout(commit, grace);
     },
     item,
     onDragStart,
   });
 
   const { setRowEl } = swipe;
+  const wrapRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
   const totalSubtaskCount = childTasks.length;
   const doneSubtaskCount = childTasks.filter((c) => c.status === 'done').length;
-  const isDone = item.status === 'done';
+  const isDone = item.status === 'done' || pendingDone;
 
   const { icon, label } = splitEmoji(item.title);
   const dateInfo = relativeDate(item.due_date, today);
 
   return (
     <div
+      ref={wrapRef}
       data-no-swipe-nav="true"
       className={`todo-swipe-wrap todo-card-enter group relative ${isDragging ? 'todo-is-dragging' : ''}`}
     >
@@ -122,7 +154,7 @@ export default function TodoCard({
         }}
         onClick={e => e.stopPropagation()}
         ref={setRowEl}
-        className="todo-focus-card todo-swipe-row"
+        className={`todo-focus-card todo-swipe-row ${expanded ? 'is-details-open' : ''}`}
       >
         <TodoCardCollapsedRow
           item={item}
@@ -154,36 +186,40 @@ export default function TodoCard({
           swipe={swipe}
           onShowContextMenu={onShowContextMenu}
         />
-
-        {/* Expanded Panel */}
-        {expanded && (
-          <div id={panelId} className="todo-focus-expanded">
-            <TodoCardExpandedPanel
-                item={item}
-                onSetNotes={onSetNotes}
-                onSetSchedule={onSetSchedule}
-                onSetRecurrence={onSetRecurrence}
-                onSetDeadline={onSetDeadline}
-                onSetPriority={onSetPriority}
-                onSetReminder={onSetReminder}
-                onSetTags={onSetTags}
-                onMoveSection={onMoveSection}
-                onDrop={onDrop}
-                onToggleExpand={onToggleExpand}
-                sections={sections}
-                today={today}
-                childTasks={childTasks}
-                onAddChildTask={onAddChildTask}
-                onToggleChildTask={onToggleChildTask}
-                attachments={attachments}
-                uploadingFile={uploadingFile}
-                fileInputRef={fileInputRef}
-                handleFileUpload={handleFileUpload}
-                handleDeleteAttachment={handleDeleteAttachment}
-              />
-          </div>
-        )}
       </div>
+
+      {expanded && (
+        <TodoDetailsPopover anchorRef={wrapRef} label={`Szczegóły: ${item.title}`} onClose={() => onToggleExpand(item.id)}>
+          <div id={panelId} className="contents">
+            <TodoCardExpandedPanel
+              item={item}
+              onSetTitle={onSetTitle}
+              onSetNotes={onSetNotes}
+              onSetLocation={onSetLocation}
+              onSetImportant={onSetImportant}
+              onSetSchedule={onSetSchedule}
+              onSetRecurrence={onSetRecurrence}
+              onSetDeadline={onSetDeadline}
+              onSetPriority={onSetPriority}
+              onSetReminder={onSetReminder}
+              onSetTags={onSetTags}
+              onMoveSection={onMoveSection}
+              onDrop={onDrop}
+              onToggleExpand={onToggleExpand}
+              sections={sections}
+              today={today}
+              childTasks={childTasks}
+              onAddChildTask={onAddChildTask}
+              onToggleChildTask={onToggleChildTask}
+              attachments={attachments}
+              uploadingFile={uploadingFile}
+              fileInputRef={fileInputRef}
+              handleFileUpload={handleFileUpload}
+              handleDeleteAttachment={handleDeleteAttachment}
+            />
+          </div>
+        </TodoDetailsPopover>
+      )}
     </div>
   );
 }

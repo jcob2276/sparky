@@ -19,13 +19,7 @@ interface AppleRemindersSmartGridProps {
   completedCount: number;
 }
 
-const TONES = {
-  primary: { chip: 'bg-primary/15 text-primary', count: 'text-primary' },
-  danger: { chip: 'bg-danger/15 text-danger', count: 'text-danger' },
-  'text-secondary': { chip: 'bg-surface-2 text-text-secondary', count: 'text-text-primary' },
-  warning: { chip: 'bg-warning/15 text-warning', count: 'text-warning' },
-  success: { chip: 'bg-success/15 text-success', count: 'text-success' },
-} as const;
+type Tone = 'primary' | 'danger' | 'neutral' | 'warning' | 'success';
 
 export function AppleRemindersSmartGrid({
   navDest,
@@ -42,35 +36,35 @@ export function AppleRemindersSmartGrid({
       title: 'Dzisiaj',
       count: todayCount,
       icon: Calendar,
-      tone: 'primary' as keyof typeof TONES,
+      tone: 'primary' as Tone,
     },
     {
       id: 'upcoming' as TodoNavDest,
       title: 'Zaplanowane',
       count: upcomingCount,
       icon: Clock,
-      tone: 'danger' as keyof typeof TONES,
+      tone: 'danger' as Tone,
     },
     {
       id: 'all' as TodoNavDest,
       title: 'Wszystkie',
       count: allCount,
       icon: Inbox,
-      tone: 'text-secondary' as keyof typeof TONES,
+      tone: 'neutral' as Tone,
     },
     {
       id: 'flagged' as TodoNavDest,
       title: 'Z flagą',
       count: flaggedCount,
       icon: Flag,
-      tone: 'warning' as keyof typeof TONES,
+      tone: 'warning' as Tone,
     },
     {
       id: 'completed' as TodoNavDest,
       title: 'Ukończone',
       count: completedCount,
       icon: CheckCircle2,
-      tone: 'success' as keyof typeof TONES,
+      tone: 'success' as Tone,
     },
   ];
 
@@ -79,7 +73,6 @@ export function AppleRemindersSmartGrid({
       {cards.map((card) => {
         const isActive = navDest === card.id;
         const Icon = card.icon;
-        const tone = TONES[card.tone];
 
         return (
           <Pressable
@@ -87,23 +80,18 @@ export function AppleRemindersSmartGrid({
             onClick={() => onSelectNavDest(isActive ? 'overview' : card.id)}
             aria-label={`${card.title}: ${card.count} zadań`}
             aria-pressed={isActive}
-            className={`todo-instant min-w-0 flex flex-col items-start gap-2 lg:flex-row lg:items-center lg:gap-3 px-3 py-3 rounded-lg border cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
-              isActive
-                ? 'border-primary/50 bg-primary/15 shadow-sm ring-2 ring-primary/20'
-                : 'border-transparent bg-surface-solid shadow-xs hover:shadow-sm'
-            }`}
+            data-tone={card.tone}
+            className="todo-tile todo-instant min-w-0 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-2 rounded-xl px-3 py-3 cursor-pointer text-left focus-visible:shadow-focus focus-visible:outline-none"
           >
-            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-primary text-on-accent' : tone.chip}`}>
-              <Icon size={14} strokeWidth={2.5} />
+            <div className="todo-tile-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+              <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
             </div>
-            <div className="min-w-0 flex flex-col leading-none justify-center">
-              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${isActive ? 'text-primary' : tone.count}`}>
-                {card.count}
-              </span>
-              <span className="text-xs font-medium text-text-secondary tracking-tight leading-tight break-words mt-0.5">
-                {card.title}
-              </span>
-            </div>
+            <span className="justify-self-end text-3xl font-semibold leading-none tabular-nums tracking-tight">
+              {card.count}
+            </span>
+            <span className="col-span-2 min-w-0 truncate text-sm font-semibold leading-tight tracking-tight opacity-90">
+              {card.title}
+            </span>
           </Pressable>
         );
       })}

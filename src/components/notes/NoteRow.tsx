@@ -6,7 +6,7 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { Check, LockKeyhole, Pin } from 'lucide-react';
 import { useRef } from 'react';
-import { Note, getColor, relativeDate, getPlainText } from './keepUtils';
+import { Note, getColor, noteListDate, getPlainText } from './keepUtils';
 import { useHaptics } from '../../hooks/useHaptics';
 import { stripMarkdown } from './markdownLite';
 import { highlightText, snippetAround } from './searchSnippet';
@@ -15,7 +15,7 @@ interface NoteRowProps {
   note: Note;
   isActive: boolean;
   onClick: () => void;
-  onLongPress: () => void;
+  onLongPress: (point?: { x: number; y: number }) => void;
   isSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
@@ -40,7 +40,7 @@ export default function NoteRow({
     ? plainText.slice(trimmedTitle.length).trim()
     : plainText;
   const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? snippetAround(bodyText, search, 180) : trimmedTitle ? '' : 'Brak dodatkowej treści';
-  const dateStr = relativeDate(note.updated_at || note.created_at);
+  const dateStr = noteListDate(note.updated_at || note.created_at);
   const color = getColor(note.color);
   const { light } = useHaptics();
   const cancelLongPress = () => {
@@ -48,12 +48,13 @@ export default function NoteRow({
     pressTimer.current = null;
   };
 
-  const startLongPress = () => {
+  const startLongPress = (event: React.PointerEvent) => {
     longPressed.current = false;
+    const point = { x: event.clientX, y: event.clientY };
     pressTimer.current = window.setTimeout(() => {
       longPressed.current = true;
       light();
-      onLongPress();
+      onLongPress(point);
     }, 500);
   };
 
@@ -75,14 +76,14 @@ export default function NoteRow({
       onContextMenu={event => {
         event.preventDefault();
         cancelLongPress();
-        onLongPress();
+        onLongPress({ x: event.clientX, y: event.clientY });
       }}
-      className={`note-list-row relative flex w-full select-none flex-col gap-1 px-4 py-3.5 text-left transition-colors ${
+      className={`note-list-row relative mx-1.5 flex w-[calc(100%-0.75rem)] select-none flex-col gap-0.5 rounded-xl px-3 py-2.5 text-left transition-colors ${
         isSelected
           ? 'bg-primary/10 ring-1 ring-inset ring-primary/25'
           : isActive
-          ? 'bg-primary/10 text-text-primary'
-          : 'bg-transparent text-text-primary hover:bg-surface-solid/50'
+          ? 'bg-text-primary/[0.09] text-text-primary'
+          : 'bg-transparent text-text-primary hover:bg-text-primary/[0.04]'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -98,7 +99,7 @@ export default function NoteRow({
               {isSelected && <Check size={11} strokeWidth={3} />}
             </div>
           )}
-          <span className="block flex-1 line-clamp-3 break-words [overflow-wrap:anywhere] text-sm font-semibold leading-snug tracking-[var(--tracking-note-title)] text-text-primary">
+          <span className="block flex-1 truncate text-sm font-semibold leading-snug tracking-[var(--tracking-note-title)] text-text-primary">
             {highlightText(note.title.trim(), search) || 'Bez tytułu'}
           </span>
         </div>
@@ -116,28 +117,14 @@ export default function NoteRow({
         </div>
       </div>
 
-      <div className="flex items-baseline gap-1.5 text-xs leading-relaxed text-text-muted">
-        <span className="shrink-0 font-medium text-text-secondary">{dateStr}</span>
-        {snippet && <span aria-hidden="true" className="shrink-0 opacity-60">·</span>}
-        {snippet && <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{highlightText(snippet, search)}</span>}
+      <div className="flex items-baseline gap-2 text-xs leading-snug text-text-muted">
+        <span className="shrink-0 text-text-secondary">{dateStr}</span>
+        {snippet && <span className="min-w-0 flex-1 truncate">{highlightText(snippet, search)}</span>}
       </div>
-
-      {note.tags.length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-1.5 leading-none">
-          {note.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="rounded-md bg-primary/8 px-1.5 py-1 text-2xs font-medium lowercase text-primary/80">
-              #{tag.toLowerCase()}
-            </span>
-          ))}
-          {note.tags.length > 3 && (
-            <span className="px-1 py-1 text-2xs font-medium text-text-muted">+{note.tags.length - 3}</span>
-          )}
-        </div>
-      )}
 
       {note.color !== 'default' && !isActive && (
         <span
-          className="absolute bottom-3 right-2 h-1.5 w-1.5 rounded-full"
+          className="absolute bottom-2.5 right-3 h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: color.dot }}
         />
       )}

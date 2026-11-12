@@ -1,3 +1,4 @@
+import { highlightBackground, readHighlightColor } from '../highlightColors';
 import { useState, useRef, RefObject } from 'react';
 import { ActiveState } from '../richEditorTypes';
 import { promptDialog } from '../../../lib/notify';
@@ -42,17 +43,20 @@ export function useRichEditorFormatting({
     }
 
     savedSelectionRef.current = { range: range.cloneRange() };
-    setActiveState({
+    const block = document.queryCommandValue('formatBlock');
+    const next: ActiveState = {
       bold: document.queryCommandState('bold'),
       italic: document.queryCommandState('italic'),
-      h1: document.queryCommandValue('formatBlock') === 'h1',
-      h2: document.queryCommandValue('formatBlock') === 'h2',
+      h1: block === 'h1',
+      h2: block === 'h2',
       list: document.queryCommandState('insertUnorderedList'),
       numList: document.queryCommandState('insertOrderedList'),
       underline: document.queryCommandState('underline'),
       strikethrough: document.queryCommandState('strikeThrough'),
-      blockquote: document.queryCommandValue('formatBlock') === 'blockquote',
-    });
+      blockquote: block === 'blockquote',
+    };
+    // A new object every time would re-render the editor and its bar on each caret move.
+    setActiveState(prev => (Object.keys(next) as Array<keyof ActiveState>).every(key => prev[key] === next[key]) ? prev : next);
 
     if (selection.isCollapsed) {
       setToolbarRange(null);
@@ -250,13 +254,10 @@ export function useRichEditorFormatting({
       document.execCommand('strikeThrough', false);
       handleInput();
       handleSelection();
-    } else if (action === 'highlight') {
+    } else if (action === 'highlight' || action.startsWith('highlight:')) {
       restoreSelection();
-      document.execCommand(
-        'hiliteColor',
-        false,
-        getComputedStyle(document.documentElement).getPropertyValue('--color-theme-hex-fef08a').trim()
-      );
+      // "highlight:<colour id>" picks a colour; plain "highlight" reuses the last one chosen.
+      document.execCommand('hiliteColor', false, highlightBackground(action.split(':')[1] ?? readHighlightColor()));
       handleInput();
       handleSelection();
     } else if (action === 'blockquote') {

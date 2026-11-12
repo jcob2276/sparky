@@ -47,6 +47,7 @@ describe('useTodoActions - Recurring tasks linkage', () => {
       category: 'deep-work',
       duration_minutes: 60,
       is_important: true,
+      location_name: null,
       parent_task_id: null,
       is_milestone: false,
       sort_order: 1,

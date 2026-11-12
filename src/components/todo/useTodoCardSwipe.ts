@@ -12,7 +12,7 @@ interface UseTodoCardSwipeOptions {
 const SWIPE_LOCK_PX = 12;
 const SWIPE_ARM_PX = 88;
 const SWIPE_MAX_PX = 132;
-const SWIPE_IGNORE = 'input, textarea, select, [data-no-view-swipe], .todo-focus-expanded';
+const SWIPE_IGNORE = 'input, textarea, select, [data-no-view-swipe]';
 
 interface SwipeState {
   x: number;

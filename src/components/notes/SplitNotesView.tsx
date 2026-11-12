@@ -10,7 +10,7 @@ import SplitListResizer from './SplitListResizer';
 import { Bot, StickyNote } from 'lucide-react';
 import { Note } from './keepUtils';
 import InlineEditor from './InlineEditor';
-import NoteQuickActions from './NoteQuickActions';
+import NoteActionMenuHost, { type NoteActionMenuState } from './NoteActionMenuHost';
 import { confirmDialog, notify, promptDialog } from '../../lib/notify';
 import type { NoteFolder } from '../../lib/noteFoldersApi';
 import MasonryGrid from './MasonryGrid';
@@ -64,7 +64,7 @@ export default function SplitNotesView({
   busy, allTags, onCreate: _onCreate, onExportChecklists, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onLockNote,
   collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts, search,
 }: SplitNotesViewProps) {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768), [actionNote, setActionNote] = useState<Note | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768), [actionMenu, setActionMenu] = useState<NoteActionMenuState | null>(null);
   const { listWidth, startResize, commitListWidth, bounds } = useResizableListWidth();
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -133,7 +133,7 @@ export default function SplitNotesView({
               collectionView={collectionView}
               activeNoteId={activeNoteId}
               onSelectNote={id => onSelectNote(id)}
-              onLongPress={setActionNote}
+              onLongPress={(note, point) => setActionMenu({ note, point })}
               gridProps={gridProps}
               onTogglePin={onTogglePin}
               onMove={note => { void requestMove(note); }}
@@ -184,20 +184,9 @@ export default function SplitNotesView({
           )}
         </section>
       )}
-      {actionNote && (
-        <NoteQuickActions
-          note={actionNote}
-          onClose={() => setActionNote(null)}
-          onTogglePin={() => { onTogglePin(actionNote); setActionNote(null); }}
-          onArchive={() => {
-            onUpdate(actionNote.id, { is_archived: true });
-            setActionNote(null);
-          }}
-          onDelete={async () => {
-            if (await confirmDialog('Przenieść notatkę do Kosza?')) onDelete(actionNote.id);
-            setActionNote(null);
-          }}
-        />
+      {actionMenu && (
+        <NoteActionMenuHost menu={actionMenu} onClose={() => setActionMenu(null)} onTogglePin={onTogglePin} onUpdate={onUpdate}
+          onDelete={onDelete} onMove={note => { void requestMove(note); }} onLockNote={onLockNote} onShareNote={onShareNote} />
       )}
       {bulk && bulk.selectedIds.size > 0 && (
         <KeepBulkActionBar

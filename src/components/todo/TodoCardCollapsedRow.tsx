@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { CalendarDays, Check, Clock, Repeat2 } from 'lucide-react';
+import { CalendarDays, Check, Clock, MapPin, Repeat2 } from 'lucide-react';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { getPlainText } from '../../lib/noteText';
 import { formatShortDateWarsaw } from '../../lib/date';
@@ -99,7 +99,7 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
             onClick={e => e.stopPropagation()}
             className="min-w-0 w-full rounded-lg border border-primary/40 bg-surface-solid px-2 py-2 text-base text-text-primary focus-visible:shadow-focus" />
         ) : (
-          <Pressable title={item.title} onClick={e => { e.stopPropagation(); onTitlePress(); }}
+          <Pressable onClick={e => { e.stopPropagation(); onTitlePress(); }}
             className={`todo-instant todo-focus-title cursor-text min-h-11 min-w-0 flex-1 rounded-lg text-left text-base font-semibold leading-snug tracking-tight focus-visible:shadow-focus ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
             {label}
           </Pressable>
@@ -111,6 +111,7 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
           {sectionName && <span title={sectionName}>{sectionName}</span>}
           {dreamTitle && <span title={dreamTitle}>{dreamTitle}</span>}
           {!sectionName && (item.tags || []).length > 0 && <span>{(item.tags || []).slice(0, 2).join(' · ')}</span>}
+          {item.location_name && <span className="inline-flex items-center gap-1" title={item.location_name}><MapPin size={13} aria-hidden="true" />{item.location_name}</span>}
           {totalSubtaskCount > 0 && <span>{doneSubtaskCount}/{totalSubtaskCount} podzadań</span>}
           {item.duration_minutes != null && item.duration_minutes > 0 && !isDone && <span className="inline-flex items-center gap-1"><Clock size={13} aria-hidden="true" />{item.duration_minutes} min</span>}
           {item.recurrence && <span><Repeat2 size={13} aria-hidden="true" />{RECURRENCE_LABELS[item.recurrence]}</span>}

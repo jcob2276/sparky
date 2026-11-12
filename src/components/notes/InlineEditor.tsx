@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useFocusEmptyEditor } from './hooks/useFocusEmptyEditor';
 import { ChevronLeft, X } from 'lucide-react';
 import TitledRichEditor from './TitledRichEditor';
-import { getColor, Note, getPlainText, relativeDate } from './keepUtils';
+import { getColor, Note, getPlainText, noteFullDate } from './keepUtils';
 import { invokeEdge } from '../../lib/supabase';
 import { notify, confirmDialog } from '../../lib/notify';
 import NoteFolderPicker from './NoteFolderPicker';
@@ -143,8 +143,8 @@ export default function InlineEditor({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
-        <div className="text-2xs text-text-muted font-medium text-center block">{relativeDate(note.updated_at || note.created_at)}</div>
-        <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block h-4 shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
+        <div className="text-2xs text-text-muted font-medium text-center block">{noteFullDate(note.updated_at || note.created_at)}</div>
+        <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
         {aiResult && (
           <div className="bg-text-primary/5 border border-border-custom/10 p-3 rounded-lg text-xs relative flex flex-col gap-1 leading-relaxed mb-2">
             <div className="flex items-center justify-between text-xs opacity-[var(--opacity-70)] font-semibold">

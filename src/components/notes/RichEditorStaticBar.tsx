@@ -5,25 +5,11 @@
  */
 import { Pressable } from '../ui/ControlPrimitives';
 import { useRef, useEffect, useState, type ReactNode } from 'react';
-import {
-  Underline, Strikethrough, Quote, CheckSquare, Table2, Image, Highlighter,
-  Heading2, List, ListOrdered, Indent, Outdent, Undo, Redo, Link2, Eraser,
-} from 'lucide-react';
-
-interface ActiveState {
-  bold: boolean;
-  italic: boolean;
-  h1: boolean;
-  h2: boolean;
-  list: boolean;
-  numList: boolean;
-  underline: boolean;
-  strikethrough: boolean;
-  blockquote: boolean;
-}
+import RichEditorFormatPopover, { type FormatState } from './RichEditorFormatPopover';
+import { CheckSquare, Table2, Image, Indent, Outdent, Undo, Redo, Link2 } from 'lucide-react';
 
 interface Props {
-  activeState: ActiveState;
+  activeState: FormatState;
   showStaticBar: boolean;
   onAction: (action: string) => void;
 }
@@ -34,44 +20,34 @@ interface BarButton {
   action: string;
   title: string;
   icon: ReactNode;
-  active?: keyof ActiveState;
+  active?: keyof FormatState;
 }
 
 const ICON = { size: 20, strokeWidth: 1.5 } as const;
 const ICON_SM = { size: 18, strokeWidth: 2 } as const;
 
-// Kolejność = priorytet na wąskim ekranie: najczęstsze narzędzia są widoczne bez przewijania.
+// Jak w Apple Notes: krótki pasek, a style tekstu siedzą w popoverze pod "Aa".
 const GROUPS: BarButton[][] = [
   [
     { action: 'todo', title: 'Lista zadań', icon: <CheckSquare {...ICON} /> },
-    { action: 'bullet', title: 'Lista punktowana', icon: <List {...ICON} />, active: 'list' },
-    { action: 'number', title: 'Lista numerowana', icon: <ListOrdered {...ICON} />, active: 'numList' },
-    { action: 'bold', title: 'Pogrubienie', active: 'bold', icon: <span style={{ ...LABEL_STYLE, fontWeight: 'var(--ds-inline-style-800)' }}>B</span> },
-    { action: 'italic', title: 'Kursywa', active: 'italic', icon: <span style={{ ...LABEL_STYLE, fontStyle: 'italic', fontWeight: 'var(--ds-inline-style-600)' }}>I</span> },
-    { action: 'h1', title: 'Nagłówek H1', active: 'h1', icon: <span style={{ fontWeight: 'var(--ds-inline-style-800)', fontSize: 'var(--ds-inline-style-11)', letterSpacing: 'var(--ds-inline-style-0-02em)', lineHeight: 'var(--ds-inline-style-1)' }}>H1</span> },
-    { action: 'undo', title: 'Cofnij', icon: <Undo {...ICON_SM} /> },
-    { action: 'redo', title: 'Ponów', icon: <Redo {...ICON_SM} /> },
-  ],
-  [
-    { action: 'underline', title: 'Podkreślenie', icon: <Underline {...ICON_SM} />, active: 'underline' },
-    { action: 'strikethrough', title: 'Przekreślenie', icon: <Strikethrough {...ICON_SM} />, active: 'strikethrough' },
-    { action: 'h2', title: 'Nagłówek H2', icon: <Heading2 {...ICON_SM} />, active: 'h2' },
-    { action: 'blockquote', title: 'Cytat', icon: <Quote {...ICON_SM} />, active: 'blockquote' },
-    { action: 'highlight', title: 'Zakreślacz', icon: <Highlighter {...ICON_SM} /> },
-    { action: 'clear', title: 'Wyczyść formatowanie', icon: <Eraser {...ICON_SM} /> },
-  ],
-  [
-    { action: 'link', title: 'Dodaj link', icon: <Link2 {...ICON_SM} /> },
-    { action: 'image', title: 'Dodaj zdjęcie', icon: <Image {...ICON} /> },
     { action: 'table', title: 'Tabela', icon: <Table2 {...ICON} /> },
+    { action: 'image', title: 'Dodaj zdjęcie', icon: <Image {...ICON} /> },
+    { action: 'link', title: 'Dodaj link', icon: <Link2 {...ICON_SM} /> },
+  ],
+  [
     { action: 'outdent', title: 'Zmniejsz wcięcie', icon: <Outdent {...ICON} /> },
     { action: 'indent', title: 'Zwiększ wcięcie', icon: <Indent {...ICON} /> },
+  ],
+  [
+    { action: 'undo', title: 'Cofnij', icon: <Undo {...ICON_SM} /> },
+    { action: 'redo', title: 'Ponów', icon: <Redo {...ICON_SM} /> },
   ],
 ];
 
 export default function RichEditorStaticBar({ activeState, showStaticBar, onAction }: Props) {
   const staticBarRef = useRef<HTMLDivElement>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [formatAnchor, setFormatAnchor] = useState<DOMRect | null>(null);
 
   // Cień przy prawej krawędzi pokazuje, że pasek da się przewinąć.
   const updateHasMore = () => {
@@ -110,6 +86,19 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
 
   return (
     <div className={`keep-static-bar ${hasMore ? 'has-more' : ''}`} ref={staticBarRef} onScroll={updateHasMore}>
+      <Pressable
+        type="button"
+        data-format-trigger=""
+        onMouseDown={e => { e.preventDefault(); const rect = e.currentTarget.getBoundingClientRect(); setFormatAnchor(current => (current ? null : rect)); }}
+        className={`keep-static-btn ${formatAnchor ? 'active' : ''}`}
+        title="Format tekstu"
+        aria-label="Format tekstu"
+        aria-haspopup="dialog"
+        aria-expanded={Boolean(formatAnchor)}
+      >
+        <span style={LABEL_STYLE}>Aa</span>
+      </Pressable>
+      <div className="keep-static-sep" />
       {GROUPS.map((group, index) => (
         <div key={index} className="contents">
           {index > 0 && <div className="keep-static-sep" />}
@@ -127,6 +116,7 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
           ))}
         </div>
       ))}
+      {formatAnchor && <RichEditorFormatPopover anchor={formatAnchor} state={activeState} onAction={onAction} onClose={() => setFormatAnchor(null)} />}
     </div>
   );
 }

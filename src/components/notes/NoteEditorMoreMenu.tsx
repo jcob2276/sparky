@@ -41,32 +41,43 @@ export default function NoteEditorMoreMenu(props: Props) {
       {open && (
         <>
           <Pressable className="ios-popover-dismiss-layer" onClick={() => setOpen(false)} aria-label="Zamknij menu" />
-          <div className="ios-anchored-popover keep-more-menu absolute right-0 top-9 z-[var(--z-overlay)] w-56 overflow-hidden rounded-lg border border-border-custom bg-surface-solid p-1 shadow-xl">
-            <MenuItem icon={<Pin size={14} />} label={props.pinned ? 'Odepnij' : 'Przypnij'} onClick={() => run(props.onPin)} />
-            <MenuItem icon={<Archive size={14} />} label="Archiwizuj" onClick={() => run(props.onArchive)} />
-            <MenuItem icon={<Sparkles size={14} />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />
-            <MenuItem icon={<ListTodo size={14} />} label="Wyciągnij zadania" onClick={() => run(props.onExtractTasks)} />
-            {props.onExport && <MenuItem icon={<Download size={14} />} label="Eksportuj Markdown" onClick={() => run(props.onExport!)} />}
-            {props.onExportPdf && <MenuItem icon={<FileText size={14} />} label="Eksportuj PDF" onClick={() => run(props.onExportPdf!)} />}
-            {props.onShare && <MenuItem icon={<Share2 size={14} />} label="Udostępnij kopię" onClick={() => run(props.onShare!)} />}
-            {props.onLock && <MenuItem icon={<Lock size={14} />} label="Zablokuj" onClick={() => run(props.onLock!)} />}
-            <div className="flex gap-1 border-y border-border-custom/20 p-2">
+          <div role="menu" aria-label="Czynności notatki" style={{ transformOrigin: 'top right' }}
+            className="ios-glass ios-glass-pop keep-more-menu absolute right-0 top-10 w-64 overflow-hidden !rounded-2xl py-1.5">
+            <MenuItem icon={<Pin size={16} />} label={props.pinned ? 'Odepnij notatkę' : 'Przypnij notatkę'} onClick={() => run(props.onPin)} />
+            {props.onLock && <MenuItem icon={<Lock size={16} />} label="Zablokuj notatkę" onClick={() => run(props.onLock!)} />}
+            <Divider />
+            <MenuItem icon={<Sparkles size={16} />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />
+            <MenuItem icon={<ListTodo size={16} />} label="Wyciągnij zadania" onClick={() => run(props.onExtractTasks)} />
+            {(props.onShare || props.onExport || props.onExportPdf) && <Divider />}
+            {props.onShare && <MenuItem icon={<Share2 size={16} />} label="Udostępnij kopię" onClick={() => run(props.onShare!)} />}
+            {props.onExport && <MenuItem icon={<Download size={16} />} label="Eksportuj Markdown" onClick={() => run(props.onExport!)} />}
+            {props.onExportPdf && <MenuItem icon={<FileText size={16} />} label="Eksportuj PDF" onClick={() => run(props.onExportPdf!)} />}
+            <Divider />
+            <div className="flex items-center gap-2 px-4 py-2.5" role="group" aria-label="Kolor notatki">
               {COLORS.map(color => (
                 <Pressable
                   key={color.id}
-                  className={`h-6 w-6 rounded-full border ${props.color === color.id ? 'ring-2 ring-primary' : ''}`}
+                  haptic="none"
+                  className={`h-6 w-6 rounded-full border border-border-custom/40 ${props.color === color.id ? 'ring-2 ring-primary ring-offset-1' : ''}`}
                   style={{ backgroundColor: color.dot }}
                   onClick={() => props.onColor(color.id)}
                   title={color.label}
+                  aria-label={color.label}
                 />
               ))}
             </div>
-            <MenuItem danger icon={<Trash2 size={14} />} label="Przenieś do Kosza" onClick={() => run(props.onDelete)} />
+            <Divider />
+            <MenuItem icon={<Archive size={16} />} label="Archiwizuj" onClick={() => run(props.onArchive)} />
+            <MenuItem danger icon={<Trash2 size={16} />} label="Usuń notatkę" onClick={() => run(props.onDelete)} />
           </div>
         </>
       )}
     </div>
   );
+}
+
+function Divider() {
+  return <div className="ios-glass-divider" role="separator" />;
 }
 
 function MenuItem({ icon, label, onClick, danger = false }: {
@@ -77,11 +88,12 @@ function MenuItem({ icon, label, onClick, danger = false }: {
 }) {
   return (
     <Pressable
-      variant="ghost"
-      className={`flex w-full items-center justify-start gap-2 rounded-lg px-3 py-2 text-xs ${danger ? 'text-danger' : ''}`}
+      role="menuitem"
+      haptic="none"
+      className={`todo-instant flex min-h-11 w-full items-center gap-3 px-4 text-left text-sm hover:bg-text-primary/[0.06] ${danger ? 'text-danger' : 'text-text-primary'}`}
       onClick={onClick}
     >
-      {icon}{label}
+      <span className="flex w-5 shrink-0 justify-center">{icon}</span>{label}
     </Pressable>
   );
 }

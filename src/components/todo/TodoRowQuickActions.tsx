@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CalendarDays, ChevronDown, Flag, FolderInput, GripVertical, MoreHorizontal, Trash2 } from 'lucide-react';
+import { CalendarDays, Info, Flag, FolderInput, GripVertical, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import TodoAnchoredPopover, { type PopoverAnchor } from './TodoAnchoredPopover';
 import { DatePresetsPanel, MovePanel, PriorityPanel } from './TodoRowPickers';
@@ -108,14 +108,14 @@ export default function TodoRowQuickActions({
       <Pressable haptic="none" className={`${BAR_BUTTON} ${QUIET}`} data-tip={expanded ? 'Zwiń szczegóły · Enter' : 'Szczegóły · Enter'}
         aria-label={`${expanded ? 'Zwiń' : 'Rozwiń'} szczegóły: ${item.title}`} aria-expanded={expanded} aria-controls={panelId}
         onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}>
-        <ChevronDown size={17} className={`todo-chevron ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <Info size={17} className={expanded ? 'text-primary' : ''} aria-hidden="true" />
       </Pressable>
       <div data-no-view-swipe onTouchStart={grip.onGripTouchStart} onTouchEnd={grip.onGripTouchEnd}
         onTouchMove={grip.onGripTouchMove} onMouseDown={grip.onGripMouseDown}
         className="todo-focus-grip todo-qa text-text-secondary" data-tip="Przeciągnij do sekcji" aria-hidden="true">
         <GripVertical size={16} aria-hidden="true" />
       </div>
-      <Pressable haptic="none" className={`${BAR_BUTTON} ${QUIET}`} data-tip="Więcej opcji" aria-label="Więcej opcji"
+      <Pressable haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-touch`} data-tip="Więcej opcji" aria-label="Więcej opcji"
         onClick={(e) => {
           e.stopPropagation();
           const rect = e.currentTarget.getBoundingClientRect();

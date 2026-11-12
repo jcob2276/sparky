@@ -2,6 +2,7 @@ import { Pressable } from '../../ui/ControlPrimitives';
 import { useEffect, useRef, useState } from 'react';
 import { useTodoContext } from '../context/TodoContext';
 import TodoQuickCapture from '../TodoQuickCapture';
+import TodoInlineCapture from '../TodoInlineCapture';
 import type { AddTodoOptions } from './useTodoQuickCapture';
 
 import { TODO_QUICK_ADD_EVENT } from './useTodoKeyboard';
@@ -14,6 +15,8 @@ export function useTodoQuickAdd() {
 
   const [activeAddSectionId, setActiveAddSectionId] = useState<string | null>(null);
   const [scanTextOpen, setScanTextOpen] = useState(false);
+  // The add row is inline; "Więcej" swaps it for the full form (modal) with the same draft.
+  const [fullForm, setFullForm] = useState(false);
 
   const openQuickAdd = (sectionId: string) => {
     if (isExpanded) {
@@ -63,8 +66,32 @@ export function useTodoQuickAdd() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const closeCapture = () => {
+    setIsExpanded(false);
+    setActiveAddSectionId(null);
+    setFullForm(false);
+  };
+
   const renderInlineQuickCapture = (sectionId: string) => {
     if (activeAddSectionId !== sectionId) return null;
+    if (!fullForm) {
+      return (
+        <TodoInlineCapture
+          captureRef={quickCaptureRef}
+          form={form}
+          setForm={setForm}
+          parsedInput={parsedInput}
+          today={today}
+          busy={busy}
+          addItem={(options?: AddTodoOptions) => {
+            addItem({ ...options, sections });
+            if (!options?.keepOpen) closeCapture();
+          }}
+          onCancel={closeCapture}
+          onMore={() => setFullForm(true)}
+        />
+      );
+    }
     return (
       <div className="pt-2">
         <TodoQuickCapture
@@ -73,13 +100,12 @@ export function useTodoQuickAdd() {
           setForm={setForm}
           isExpanded={isExpanded}
           setIsExpanded={(val: boolean) => {
-            setIsExpanded(val);
-            if (!val) setActiveAddSectionId(null);
+            if (val) setIsExpanded(true); else closeCapture();
           }}
           busy={busy}
           addItem={(options?: AddTodoOptions) => {
             addItem({ ...options, sections });
-            if (!options?.keepOpen) setActiveAddSectionId(null);
+            if (!options?.keepOpen) closeCapture();
           }}
           sections={sections}
           parsedInput={parsedInput}
@@ -87,7 +113,7 @@ export function useTodoQuickAdd() {
           onOpenScanText={() => setScanTextOpen(true)}
           onBrainDump={async (text) => {
             const count = await addBrainDump(text, sections);
-            if (count > 0) setActiveAddSectionId(null);
+            if (count > 0) closeCapture();
             return count;
           }}
         />

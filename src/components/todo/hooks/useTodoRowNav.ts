@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { useTodoContext } from '../context/TodoContext';
-import { confirmAndDeleteTodoItem } from '../todoDeleteAction';
+import { deleteTodoItemWithUndo } from '../todoDeleteAction';
 import { playTodoExit } from '../todoExitAnimation';
 import { dispatchTodoRowCommand, focusTodoRow } from '../todoRowCommands';
 import { isShortcutBlocked } from './useTodoShell';
@@ -79,7 +79,7 @@ export function useTodoRowNav(rootRef: RefObject<HTMLElement | null>, onHelp: ()
       else if (key === 'm') run(() => dispatchTodoRowCommand(id, 'move'));
       else if (key === 'Delete') {
         run(() => {
-          void confirmAndDeleteTodoItem(item, latest.current.setItems, latest.current.setError)
+          void deleteTodoItemWithUndo(item, latest.current.setItems, latest.current.setError)
             .then(() => focusTodoRow(document.querySelector(`[data-todo-id="${CSS.escape(id)}"]`) ? id : neighbour?.dataset.todoId));
         });
       }

@@ -12,6 +12,24 @@ export function relativeDate(iso: string): string {
   return d.toLocaleDateString('pl-PL', { timeZone: TIMEZONE, day: 'numeric', month: 'short' });
 }
 
+/** Date in a list row, like Apple Notes: time today, "Wczoraj", weekday within the week, otherwise a numeric date. */
+export function noteListDate(iso: string): string {
+  const d = new Date(iso);
+  const diffDays = differenceInDays(new Date(getTodayWarsaw() + 'T00:00:00'), new Date(formatWarsawDate(d) + 'T00:00:00'));
+  if (diffDays === 0) return d.toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' });
+  if (diffDays === 1) return 'Wczoraj';
+  if (diffDays > 1 && diffDays < 7) return d.toLocaleDateString('pl-PL', { timeZone: TIMEZONE, weekday: 'long' });
+  return d.toLocaleDateString('pl-PL', { timeZone: TIMEZONE, day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/** Full timestamp shown above an open note: "11 listopada 2026 o 11:22". */
+export function noteFullDate(iso: string): string {
+  const d = new Date(iso);
+  const day = d.toLocaleDateString('pl-PL', { timeZone: TIMEZONE, day: 'numeric', month: 'long', year: 'numeric' });
+  const time = d.toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' });
+  return `${day} o ${time}`;
+}
+
 const normalizeSearchText = (value: string) => (
   value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pl-PL')
 );

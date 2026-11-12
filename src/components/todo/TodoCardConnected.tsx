@@ -12,7 +12,7 @@ import { updateTodoItem, setTodoStatus } from '../../lib/todo/todo';
 import { applyOptimisticPatch } from './todoOptimistic';
 import type { Database } from '../../lib/database.types';
 import { combineDateTimeWarsawISO, warsawTimeOfDay } from '../../lib/date';
-import { confirmAndDeleteTodoItem } from './todoDeleteAction';
+import { deleteTodoItemWithUndo } from './todoDeleteAction';
 import { notify } from '../../lib/notify';
 import { registerReversibleAction, undoAction } from '../../lib/actionHistory';
 
@@ -88,7 +88,18 @@ function useTodoCardHandlers(item: TodoItemRow) {
     applyOptimisticPatch(setItems, item, patch, () => updateTodoItem(item.id, { notes: newNotes || null } as Partial<TodoItemRow>), setError);
   }, [item, setItems, setError]);
 
+  const onSetImportant = useCallback((is_important: boolean) => {
+    applyOptimisticPatch(setItems, item, { is_important }, () => updateTodoItem(item.id, { is_important }), setError);
+  }, [item, setItems, setError]);
+
+  const onSetLocation = useCallback((name: string | null) => {
+    const location_name = name?.trim().slice(0, 200) || null;
+    applyOptimisticPatch(setItems, item, { location_name }, () => updateTodoItem(item.id, { location_name }), setError);
+  }, [item, setItems, setError]);
+
   return {
+    onSetImportant,
+    onSetLocation,
     onSetPriority,
     onMoveSection,
     onMoveToToday,
@@ -176,7 +187,7 @@ export default function TodoCardConnected({
       expanded={expandedId === item.id}
       onToggleExpand={toggleExpand}
       onToggle={() => handleComplete(item)}
-      onDelete={() => void confirmAndDeleteTodoItem(item, setItems, setError)}
+      onDelete={() => void deleteTodoItemWithUndo(item, setItems, setError)}
       isLinkedToPlan={linkedPlanIds.has(item.id)}
       sections={sections}
       isEditing={editingId === item.id}
@@ -209,6 +220,8 @@ export default function TodoCardConnected({
       onAiBreakdown={onAiBreakdown}
       onSetTitle={handlers.onSetTitle}
       onSetNotes={handlers.onSetNotes}
+      onSetLocation={handlers.onSetLocation}
+      onSetImportant={handlers.onSetImportant}
       onAddChildTask={onAddChildTask}
     />
     </div>

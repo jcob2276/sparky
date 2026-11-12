@@ -45,7 +45,7 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
             />
           ) : (
             <div className="todo-focus-grid" data-drop-label="Upuść, aby przenieść do skrzynki">
-              {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
+              {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} hideSectionName />)}
             </div>
           )}
           <div className="pt-2 px-1">

@@ -1,3 +1,4 @@
+import { sanitizePastedHtml } from './pasteSanitizer';
 import { useCallback, useEffect, useRef } from 'react';
 import { ControlInput } from '../ui/ControlPrimitives';
 import FloatingToolbar from './FloatingToolbar';
@@ -40,9 +41,13 @@ export default function RichEditor({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { data: attachments } = useNoteAttachments(noteId ?? '');
 
+  // What the editor last reported upward: while typing, the DOM already holds it, so re-rendering it is wasted work.
+  const lastEmittedRef = useRef<string | null>(null);
   const handleInput = useCallback(() => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      lastEmittedRef.current = html;
+      onChange(html);
     }
   }, [onChange]);
 
@@ -74,6 +79,7 @@ export default function RichEditor({
   useEffect(() => {
     // Markdown renderujemy tylko przy otwarciu notatki — nigdy w trakcie pisania (kursor by skakał).
     const typing = document.activeElement === editorRef.current;
+    if (typing && value === lastEmittedRef.current) return; // our own keystroke coming back: skip the innerHTML read and compare
     const html = typing ? value : toDisplayHtml(value);
     if (editorRef.current && editorRef.current.innerHTML !== html) {
       editorRef.current.innerHTML = html;
@@ -153,11 +159,22 @@ export default function RichEditor({
           triggers.checkTriggers();
         }}
         onMouseUp={formatting.handleSelection}
-        onKeyUp={() => {
-          formatting.handleSelection();
-          triggers.checkTriggers();
+        onKeyUp={(event) => {
+          // Typed characters already went through onInput; only navigation keys move the caret into other formatting.
+          if (event.key.length > 1) {
+            formatting.handleSelection();
+            triggers.checkTriggers();
+          }
         }}
         onClick={handleEditorClick}
+        onPaste={(event) => {
+          // Pasted files (images) keep their own handling; HTML loses the source's fonts, colours and backgrounds.
+          if (event.clipboardData.files.length > 0) return;
+          const html = event.clipboardData.getData('text/html');
+          if (!html) return;
+          event.preventDefault();
+          formatting.insertHTML(sanitizePastedHtml(html));
+        }}
         onKeyDown={handleKeyDown}
         className={`keep-rich-editor ${className}`}
         style={style}

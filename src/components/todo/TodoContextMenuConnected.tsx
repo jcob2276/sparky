@@ -8,7 +8,7 @@ import { useTodoContext } from './context/TodoContext';
 import ContextMenu from './ContextMenu';
 import { applyOptimisticPatch } from './todoOptimistic';
 import { createTodoItem, updateTodoItem } from '../../lib/todo/todo';
-import { confirmAndDeleteTodoItem } from './todoDeleteAction';
+import { deleteTodoItemWithUndo } from './todoDeleteAction';
 
 export default function TodoContextMenuConnected() {
   const {
@@ -29,7 +29,7 @@ export default function TodoContextMenuConnected() {
       onDelete={() => {
         const cm = contextMenu;
         setContextMenu(null);
-        void confirmAndDeleteTodoItem(cm.item, setItems, setError);
+        void deleteTodoItemWithUndo(cm.item, setItems, setError);
       }}
       onSetDueDate={(dateStr) => {
         const cm = contextMenu;

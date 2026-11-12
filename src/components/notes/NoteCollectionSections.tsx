@@ -10,7 +10,7 @@ interface NoteCollectionSectionsProps {
   collectionView: 'list' | 'gallery';
   activeNoteId: string | null;
   onSelectNote: (id: string) => void;
-  onLongPress: (note: Note) => void;
+  onLongPress: (note: Note, point?: { x: number; y: number }) => void;
   gridProps?: Omit<Parameters<typeof MasonryGrid>[0], 'notes'>;
   onTogglePin?: (note: Note) => void;
   onMove?: (note: Note) => void;
@@ -40,7 +40,7 @@ export default function NoteCollectionSections({
     <div className={collectionView === 'gallery' ? 'keep-note-sections gallery' : 'keep-note-sections'}>
       {sections.map(section => (
         <section key={section.key} className="keep-note-section" aria-labelledby={`note-section-${section.key}`}>
-          <h2 id={`note-section-${section.key}`} className="keep-note-section-title">
+          <h2 id={`note-section-${section.key}`} className="keep-note-section-title ios-section-title">
             {section.key === 'pinned' && <Pin size={12} fill="currentColor" aria-hidden="true" />}
             {section.label}
           </h2>
@@ -66,7 +66,7 @@ export default function NoteCollectionSections({
                       note={note}
                       isActive={activeNoteId === note.id}
                       onClick={() => onSelectNote(note.id)}
-                      onLongPress={() => onLongPress(note)}
+                      onLongPress={(point) => onLongPress(note, point)}
                       isSelectMode={isSelectMode}
                       isSelected={selectedIds?.has(note.id)}
                       onToggleSelect={() => onToggleSelectId?.(note.id)}

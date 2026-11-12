@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { updateTodoItem } from '../../lib/todo/todo';
 import type { TodoItemUpdate } from '../../lib/todo/todo';
-import { Check } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
 
 interface Item {
@@ -26,8 +26,6 @@ const QUADRANTS = [
     sub: 'Pilne + Ważne',
     urgent: true,
     important: true,
-    color: 'border-danger/30 bg-danger/5',
-    badge: 'bg-danger/15 text-danger',
     dot: 'bg-danger',
   },
   {
@@ -36,8 +34,6 @@ const QUADRANTS = [
     sub: 'Niepilne + Ważne',
     urgent: false,
     important: true,
-    color: 'border-info/30 bg-info/5',
-    badge: 'bg-info/15 text-info',
     dot: 'bg-info',
   },
   {
@@ -46,8 +42,6 @@ const QUADRANTS = [
     sub: 'Pilne + Nieważne',
     urgent: true,
     important: false,
-    color: 'border-warning/30 bg-warning/5',
-    badge: 'bg-warning/15 text-warning',
     dot: 'bg-warning',
   },
   {
@@ -56,8 +50,6 @@ const QUADRANTS = [
     sub: 'Niepilne + Nieważne',
     urgent: false,
     important: false,
-    color: 'border-border-custom bg-surface/30',
-    badge: 'bg-surface-solid text-text-muted',
     dot: 'bg-text-muted',
   },
 ];
@@ -109,13 +101,14 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
 
   return (
     <div className="p-4 pb-24">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-[var(--ds-maxw-700px)] mx-auto">
+      <div className="mx-auto grid max-w-[var(--ds-maxw-700px)] grid-cols-1 gap-5 sm:grid-cols-2">
         {QUADRANTS.map((q) => {
           const qItems = open.filter((i) => quadrantOf(i) === q.key);
           return (
-            <div
+            <section
               key={q.key}
-              className={`rounded-lg border p-3 sm:min-h-[var(--ds-h-180px)] ui-interactive duration-[var(--motion-medium)] ${q.color} ${dragOverQ === q.key ? 'scale-[var(--ds-arbitrary-1-01)] border-primary/50 shadow-md ring-2 ring-primary/10' : ''}`}
+              aria-label={`${q.label}: ${q.sub}`}
+              className={`ui-interactive duration-[var(--motion-medium)] ${dragOverQ === q.key ? 'rounded-xl ring-2 ring-primary/30' : ''}`}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragOverQ(q.key);
@@ -129,74 +122,72 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
                 if (item) moveToQuadrant(item, q);
               }}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-xs font-semibold text-text-primary tracking-tight">{q.label}</p>
-                  <p className="text-2xs text-text-muted font-medium mt-0.5">{q.sub}</p>
-                </div>
-                {qItems.length > 0 && (
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${q.badge}`}>
-                    {qItems.length}
-                  </span>
-                )}
-              </div>
+              <header className="flex items-center gap-2 px-1 pb-2">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${q.dot}`} aria-hidden="true" />
+                <h3 className="text-sm font-semibold tracking-tight text-text-primary">{q.label}</h3>
+                <span className="text-xs text-text-muted">{q.sub}</span>
+                {qItems.length > 0 && <span className="ml-auto text-sm tabular-nums text-text-secondary">{qItems.length}</span>}
+              </header>
 
-              {/* Tasks */}
-              <div className="space-y-1.5">
-                {qItems.map((item) => (
-                  <div
-                    key={item.id}
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="group flex items-start gap-2 rounded-lg bg-background/60 border border-border-custom/40 px-3 py-2.5 sm:cursor-grab sm:active:cursor-grabbing hover:border-border-custom transition-colors hover:bg-surface-solid"
-                  >
-                    <Pressable
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        completeTask(item.id);
-                      }}
-                      className="todo-tap-target shrink-0 cursor-pointer btn-press"
-                      aria-label={`Oznacz jako wykonane: ${item.title}`}
+              {qItems.length === 0 ? (
+                <p className="px-1 py-2 text-xs text-text-muted">Brak zadań</p>
+              ) : (
+                <div className="todo-focus-grid">
+                  {qItems.map((item) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
+                      className="group flex min-h-11 items-center gap-1 pl-1 pr-1 sm:cursor-grab sm:active:cursor-grabbing"
                     >
-                      <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
-                        <Check size={8} className="opacity-0 group-hover:opacity-70 text-success" />
-                      </div>
-                    </Pressable>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-text-primary leading-snug sm:text-xs sm:line-clamp-2">{item.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {item.due_date && (
-                          <span className="text-2xs text-text-muted">{item.due_date}</span>
-                        )}
-                        {item.duration_minutes && (
-                          <span className="text-2xs text-warning font-semibold">
-                            {item.duration_minutes < 60
-                              ? `${item.duration_minutes}min`
-                              : `${Math.floor(item.duration_minutes / 60)}h${item.duration_minutes % 60 ? item.duration_minutes % 60 + 'min' : ''}`}
-                          </span>
-                        )}
-                      </div>
-                      <ControlSelect
-                        value={quadrantOf(item)}
-                        onChange={(e) => {
-                          const target = QUADRANTS.find((x) => x.key === e.target.value);
-                          if (target) moveToQuadrant(item, target);
+                      <Pressable
+                        haptic="none"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          completeTask(item.id);
                         }}
-                        aria-label={`Przenieś zadanie: ${item.title}`}
-                        className="mt-2 h-11 w-full rounded-lg border border-border-custom bg-surface-solid px-2 text-base text-text-secondary sm:hidden"
+                        className="todo-instant flex h-11 w-11 shrink-0 items-center justify-center rounded-lg focus-visible:shadow-focus"
+                        role="checkbox"
+                        aria-checked={false}
+                        aria-label={`Oznacz jako wykonane: ${item.title}`}
                       >
-                        {QUADRANTS.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
-                      </ControlSelect>
+                        <span className="todo-focus-check" />
+                      </Pressable>
+                      <div className="min-w-0 flex-1 py-2">
+                        <p className="text-[length:var(--todo-row-title-size)] font-[number:var(--todo-row-title-weight)] leading-snug text-text-primary">{item.title}</p>
+                        {(item.due_date || item.duration_minutes) && (
+                          <p className="mt-0.5 flex items-center gap-2 text-xs text-text-secondary">
+                            {item.due_date && <span>{item.due_date}</span>}
+                            {item.duration_minutes && (
+                              <span>
+                                {item.duration_minutes < 60
+                                  ? `${item.duration_minutes} min`
+                                  : `${Math.floor(item.duration_minutes / 60)} h${item.duration_minutes % 60 ? ` ${item.duration_minutes % 60} min` : ''}`}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      {/* Touch: a native picker behind an icon; desktop moves tasks by drag. */}
+                      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center text-text-secondary sm:hidden">
+                        <ArrowRightLeft size={16} aria-hidden="true" />
+                        <ControlSelect
+                          value={quadrantOf(item)}
+                          onChange={(e) => {
+                            const target = QUADRANTS.find((x) => x.key === e.target.value);
+                            if (target) moveToQuadrant(item, target);
+                          }}
+                          aria-label={`Przenieś zadanie: ${item.title}`}
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        >
+                          {QUADRANTS.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+                        </ControlSelect>
+                      </span>
                     </div>
-                  </div>
-                ))}
-
-                {qItems.length === 0 && (
-                  <p className="text-xs text-text-muted/50 text-center py-4">Brak zadań</p>
-                )}
-              </div>
-            </div>
+                  ))}
+                </div>
+              )}
+            </section>
           );
         })}
       </div>

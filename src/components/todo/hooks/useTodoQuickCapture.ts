@@ -3,7 +3,8 @@ import type { Database } from '../../../lib/database.types';
 import { usePersistentDraft } from '../../../hooks/usePersistentDraft';
 import { matchSectionByTag, parseTodoQuickInput } from '../../../lib/todo/todoParser';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
-import { createTodoItem } from '../../../lib/todo/todo';
+import { createTodoItem, updateTodoItem, uploadAttachment } from '../../../lib/todo/todo';
+import { notify } from '../../../lib/notify';
 import { parseTodoBraindump } from '../../../lib/todo/braindumpApi';
 
 type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
@@ -21,6 +22,10 @@ export interface AddTodoOptions {
   keepOpen?: boolean;
   /** Sections used to resolve a typed `#sekcja` into a section. */
   sections?: ReadonlyArray<{ id: string; name: string }>;
+  /** Place typed in the add row; saved on the new task right after it is created. */
+  location?: string;
+  /** Photo taken in the add row; attached to the new task once it exists. */
+  photo?: File;
 }
 
 const EMPTY_FORM = {
@@ -94,6 +99,7 @@ export function useTodoQuickCapture({
         ? combineDateTimeWarsawISO(due_date, scheduledTimeHHMM)
         : null;
     const reminder_at = form.reminder_at || (scheduled_time ? scheduled_time : null);
+    const location = options.location?.trim().slice(0, 200) || null;
     // Optimistic insert
     const tempId = `__temp_${Date.now()}_${tempCounter++}`;
     const optimistic: TodoItemRow = {
@@ -124,6 +130,7 @@ export function useTodoQuickCapture({
       duration_minutes,
       is_important: false,
       category: null,
+      location_name: location,
     };
 
     setItems((prev) => [optimistic, ...prev]);
@@ -145,9 +152,19 @@ export function useTodoQuickCapture({
       scheduled_time: scheduled_time || undefined,
       reminder_at: reminder_at || undefined,
     })
-      .then((newItem) => {
-        setItems((prev) => prev.map((i) => (i.id === tempId ? newItem : i)));
-        if (!due_date && priority === 'normal') classifyInBackground(newItem);
+      .then(async (newItem) => {
+        let created = newItem;
+        if (location) {
+          try {
+            await updateTodoItem(newItem.id, { location_name: location });
+            created = { ...newItem, location_name: location };
+          } catch { notify('Nie udało się zapisać miejsca.', 'error'); }
+        }
+        setItems((prev) => prev.map((i) => (i.id === tempId ? created : i)));
+        if (options.photo) {
+          uploadAttachment(userId, newItem.id, options.photo).catch(() => notify('Nie udało się wgrać zdjęcia.', 'error'));
+        }
+        if (!due_date && priority === 'normal') classifyInBackground(created);
       })
       .catch((err: unknown) => {
         setItems((prev) => prev.filter((i) => i.id !== tempId));

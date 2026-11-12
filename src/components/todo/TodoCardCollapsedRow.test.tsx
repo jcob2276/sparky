@@ -12,7 +12,7 @@ const props = (): ComponentProps<typeof TodoCardCollapsedRow> => ({
     deadline_date: null, due_date: null, duration_minutes: null, is_important: false,
     is_milestone: false, parent_task_id: null, project_id: null, recurrence: null,
     recurrence_origin_id: null, reminder_at: null, reminder_sent: false,
-    scheduled_time: null, section_id: null, sort_order: 0 } satisfies TodoItemRow,
+    scheduled_time: null, section_id: null, sort_order: 0, location_name: null } satisfies TodoItemRow,
   busy: false, isDone: true, icon: null, label: 'Test', dateInfo: null,
   today: '2026-10-08', isEditing: false, editingTitle: '', expanded: false,
   onEditChange: vi.fn(), onEditSave: vi.fn(), onTitlePress: vi.fn(), onToggleExpand: vi.fn(), onDelete: vi.fn(), panelId: 'details',

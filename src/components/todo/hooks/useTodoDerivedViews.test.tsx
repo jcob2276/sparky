@@ -10,7 +10,7 @@ const task = (patch: Partial<TodoItemRow>): TodoItemRow => ({
   due_date: null, duration_minutes: null, is_important: false, is_milestone: false,
   parent_task_id: null, project_id: null, recurrence: null, recurrence_origin_id: null,
   reminder_at: null, reminder_sent: false, scheduled_time: null, section_id: 'studies',
-  sort_order: 0, ...patch,
+  sort_order: 0, location_name: null, ...patch,
 });
 const subject = task({ id: 'subject', title: 'Kryptografia kwantowa', category: 'study_subject' });
 const section: TodoSectionRow = {

@@ -2524,13 +2524,12 @@ a,
 @media (hover: hover) and (pointer: fine) {
   .todo-focus-card:hover { background: color-mix(in srgb, var(--text-primary) 4%, transparent); }
 }
-.todo-focus-card:has(.todo-focus-expanded) { background: color-mix(in srgb, var(--text-primary) 5%, transparent); padding-bottom: 0.5rem; }
 .todo-focus-top { grid-area: right; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
 .todo-focus-date { display: inline-flex; gap: 0.25rem; align-items: center; font-size: 0.75rem; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .todo-focus-priority { flex-shrink: 0; color: var(--text-secondary); font-size: 0.6875rem; font-weight: 600; }
 .todo-focus-important { padding: 0.125rem 0.5rem; border-radius: 999px; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 12%, transparent); }
 .todo-focus-title-row { grid-area: title; display: flex; align-items: center; justify-content: flex-start; gap: 0.25rem; min-width: 0; }
-.todo-focus-title-row > button:last-child, .todo-focus-title-row > input { font-weight: 500; font-size: 0.9375rem; }
+.todo-focus-title-row > button:last-child, .todo-focus-title-row > input { font-weight: var(--todo-row-title-weight); font-size: var(--todo-row-title-size); letter-spacing: 0; }
 .todo-focus-check {
   width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center;
   border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-secondary) 55%, transparent);
@@ -2540,7 +2539,7 @@ a,
   .todo-focus-card:hover .todo-focus-check:not(.is-done) { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
 }
 .todo-focus-check.is-done { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); animation: todo-check-pop 160ms var(--ease-out); }
-.todo-focus-note { grid-area: note; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
+.todo-focus-note { grid-area: note; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
 .todo-focus-footer { display: contents; }
 .todo-focus-meta { grid-area: meta; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.35; }
 .todo-focus-meta:empty { display: none; }
@@ -2548,17 +2547,25 @@ a,
 .todo-focus-actions { grid-area: act; display: flex; align-items: center; }
 .todo-focus-grip { cursor: grab; }
 .todo-focus-grip:active { cursor: grabbing; }
-.todo-focus-expanded { grid-area: exp; margin-top: 0.25rem; padding: 0 0.25rem 0 2.5rem; }
-.todo-focus-details { min-width: 0; display: flex; flex-direction: column; gap: 1rem; padding-top: 0.75rem; border-top: 1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
 @media (hover: hover) and (pointer: fine) {
   /* Desktop: akcje wysuwają się na prawą krawędź wiersza, nie zajmują miejsca. */
   .todo-focus-actions {
+    grid-area: auto; /* bez tego containing block to wiersz `act` siatki (0 px) i pasek ląduje pod tytułem */
     position: absolute; right: 0.375rem; top: 50%; translate: 0 -50%; height: 2.25rem; padding: 0 0.125rem;
     border-radius: 0.625rem; border: 1px solid color-mix(in srgb, var(--border-custom) 70%, transparent);
     background: var(--surface-solid, var(--surface)); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
   .todo-focus-actions > *, .todo-focus-actions > button { width: 2rem !important; height: 2rem !important; }
   .todo-focus-card:hover .todo-focus-top, .todo-focus-card:focus-within .todo-focus-top { visibility: hidden; }
+}
+/* Myszka: pasek to (i) i szybkie akcje; menu "więcej" (trzy kropki) zostaje tylko na dotyku, na desktopie to prawy przycisk i Del. */
+@media (hover: hover) and (pointer: fine) {
+  .todo-focus-actions .todo-qa-touch { display: none; }
+}
+/* Okno węższe niż pełny desktop: pasek akcji to tylko szczegóły / więcej, bez ramki i cienia - nie zasłania tytułu ani sąsiedniego wiersza. */
+@media (hover: hover) and (pointer: fine) and (max-width: 64rem) {
+  .todo-focus-actions .todo-qa-fine, .todo-focus-actions .todo-focus-grip { display: none; }
+  .todo-focus-actions { border: 0; box-shadow: none; padding: 0; }
 }
 @keyframes todo-check-pop { 0% { scale: 0.8; } 100% { scale: 1; } }
 /* Fade + slide first (GPU), then collapse the row so the list closes the gap without a jump. */
@@ -2622,6 +2629,9 @@ a,
   --todo-tip-weight: 500;
   --todo-tip-leading: 1.2;
   --todo-row-radius: 0.75rem;
+  --todo-row-title-size: 0.875rem;
+  --todo-row-title-weight: 400;
+  --todo-row-note-size: 0.8125rem;
   --todo-pill-radius: 999px;
   --todo-focus-ring: 2px;
   --todo-drag-opacity: 0.35;
@@ -2653,6 +2663,102 @@ a,
   --todo-scrim-light: 20%;
   --todo-scrim-strong: 40%;
 }
+/* Wiersz z otwartym oknem szczegółów jest podświetlony, jak w Przypomnieniach. */
+.todo-focus-card.is-details-open { background: color-mix(in srgb, var(--primary) 9%, transparent); }
+@media (hover: hover) and (pointer: fine) { .todo-focus-card.is-details-open .todo-focus-actions { opacity: 1; } }
+
+/* ===== Język iOS: jeden materiał szkła, jedna powierzchnia grupy i jeden nagłówek sekcji (to-do, notatki, finanse). ===== */
+:root {
+  --ios-glass-bg: linear-gradient(150deg, color-mix(in srgb, var(--surface-solid) 78%, transparent), color-mix(in srgb, var(--surface-solid) 60%, transparent));
+  --ios-glass-filter: blur(var(--blur-2xl)) saturate(190%);
+  --ios-glass-border: 1px solid color-mix(in srgb, var(--on-accent) 38%, transparent);
+  --ios-glass-shadow:
+    0 28px 70px -14px rgba(0,0,0,0.38), 0 2px 8px rgba(0,0,0,0.08),
+    inset 0 1px 0 color-mix(in srgb, var(--on-accent) 60%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--on-accent) 12%, transparent);
+}
+/* Cienka kreska nad wierszem w grupie (iOS: wcięta, bez kreski nad pierwszym). */
+.ios-row-divider { border-top: 1px solid color-mix(in srgb, var(--border-custom) 20%, transparent); }
+/* Nagłówek sekcji nad grupą wierszy. */
+.ios-section-title { font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+/* Zaokrąglona grupa wierszy na szarym tle (iOS grouped list). */
+.ios-group { overflow: hidden; border-radius: 1rem; background: var(--surface-solid); box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-custom) 25%, transparent); }
+
+/* Liquid glass: okna szczegółów, menu kontekstowe i popovery (strzałka na szerokim ekranie, arkusz na telefonie). */
+.ios-glass {
+  z-index: var(--todo-z-pop);
+  color: var(--text-primary);
+  background: var(--ios-glass-bg);
+  -webkit-backdrop-filter: var(--ios-glass-filter);
+  backdrop-filter: var(--ios-glass-filter);
+  border: var(--ios-glass-border);
+  border-radius: 1.75rem;
+  box-shadow: var(--ios-glass-shadow);
+}
+.ios-glass[data-mode="popover"] { max-height: min(40rem, calc(100dvh - 16px)); }
+.ios-glass[data-mode="sheet"] { inset: auto 0.5rem max(0.5rem, env(safe-area-inset-bottom)) 0.5rem; margin-inline: auto; max-width: 32rem; max-height: 86dvh; }
+.ios-glass-scroll { max-height: inherit; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1rem 1rem; border-radius: inherit; display: flex; flex-direction: column; gap: 0.75rem; }
+.ios-glass-pop { --arrow: 50%; }
+.ios-glass-scrim { position: fixed; inset: 0; z-index: calc(var(--todo-z-pop) - 1); background: color-mix(in srgb, var(--text-primary) 20%, transparent); }
+.ios-glass-group { background: color-mix(in srgb, var(--text-primary) 7%, transparent); border-radius: 1.125rem; }
+.ios-glass-group > .ios-glass-divider, .ios-glass-divider { margin-inline: 0.75rem; border-top: 1px solid color-mix(in srgb, var(--text-primary) 9%, transparent); }
+/* Strzałka wskazuje wiersz, z którego okno wyrosło. */
+.ios-glass[data-mode="popover"]::before {
+  content: ''; position: absolute;
+  background: color-mix(in srgb, var(--surface-solid) 70%, transparent);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(190%); backdrop-filter: blur(var(--blur-xl)) saturate(190%);
+}
+.ios-glass[data-side="right"]::before, .ios-glass[data-side="left"]::before { width: 10px; height: 20px; top: calc(var(--arrow) - 10px); }
+.ios-glass[data-side="right"]::before { left: -9px; clip-path: polygon(0 50%, 100% 0, 100% 100%); }
+.ios-glass[data-side="left"]::before { right: -9px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.ios-glass[data-side="below"]::before, .ios-glass[data-side="above"]::before { width: 20px; height: 10px; left: calc(var(--arrow) - 10px); }
+.ios-glass[data-side="below"]::before { top: -9px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.ios-glass[data-side="above"]::before { bottom: -9px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+/* Otwarcie: okno wyrasta z miejsca strzałki, z lekkim przeskokiem (sprężyna), jak w iOS. */
+.ios-glass-pop {
+  opacity: 1; transform: none;
+  transition: opacity 240ms var(--ease-out), transform 460ms cubic-bezier(0.2, 1.12, 0.3, 1);
+  @starting-style { opacity: 0; transform: scale(0.86); }
+}
+.ios-glass-pop[data-mode="popover"][data-side="right"] { transform-origin: left var(--arrow); }
+.ios-glass-pop[data-mode="popover"][data-side="left"] { transform-origin: right var(--arrow); }
+.ios-glass-pop[data-mode="popover"][data-side="below"] { transform-origin: var(--arrow) top; }
+.ios-glass-pop[data-mode="popover"][data-side="above"] { transform-origin: var(--arrow) bottom; }
+.ios-glass-pop[data-mode="sheet"] { transform-origin: bottom center; @starting-style { opacity: 0; transform: translateY(2.5rem) scale(0.96); } }
+.ios-glass-scrim { animation: ios-scrim-in 220ms var(--ease-out); }
+@keyframes ios-scrim-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ios-glass-pop { transition: none; @starting-style { opacity: 1; transform: none; } }
+  .ios-glass-scrim { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ios-glass { background: var(--surface-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* Przełącznik w stylu iOS. */
+.ios-switch { position: relative; width: 2.75rem; height: 1.6875rem; border-radius: 999px; background: color-mix(in srgb, var(--text-primary) 18%, transparent); transition: background-color 220ms var(--ease-out); }
+.ios-switch[data-on="true"] { background: var(--color-success); }
+.ios-switch-knob { position: absolute; top: 2px; left: 2px; width: 1.4375rem; height: 1.4375rem; border-radius: 50%; background: var(--on-accent); box-shadow: 0 2px 5px rgba(0,0,0,0.25); transition: translate 300ms cubic-bezier(0.2, 1.2, 0.3, 1); }
+.ios-switch[data-on="true"] .ios-switch-knob { translate: 1.0625rem 0; }
+@media (prefers-reduced-motion: reduce) { .ios-switch, .ios-switch-knob { transition: none; } }
+
+/* Pole nowego zadania jest częścią wiersza listy: bez ramki i poświaty fokusu (kursor wystarcza). */
+.todo-inline-input.ui-control:focus-visible { box-shadow: none; }
+
+/* Kafelki smart-list (styl Przypomnień): kolor roli na całej powierzchni, biały tekst, jasna ikona. */
+.todo-tile {
+  --tile: var(--primary);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--tile) 80%, white), var(--tile));
+  color: var(--on-accent);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+.todo-tile[data-tone="primary"] { --tile: var(--primary); }
+.todo-tile[data-tone="danger"] { --tile: var(--color-danger); }
+.todo-tile[data-tone="warning"] { --tile: var(--color-warning); }
+.todo-tile[data-tone="success"] { --tile: var(--color-success); }
+.todo-tile[data-tone="neutral"] { --tile: var(--text-secondary); }
+.todo-tile-icon { background: var(--on-accent); color: var(--tile); }
+.todo-tile[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--tile); }
 /* --- Karty: wejście, swipe-to-complete (mobile) --- */
 .todo-card-enter {
   opacity: 1;
@@ -2711,7 +2817,6 @@ a,
     transition: opacity var(--todo-dur-base) var(--ease-out) var(--todo-dur-tip-delay), transform var(--todo-dur-base) var(--ease-out) var(--todo-dur-tip-delay);
   }
   .todo-qa[data-tip]:hover::after, .todo-qa[data-tip]:focus-visible::after { opacity: 1; transform: none; }
-  .todo-focus-card:has(.todo-focus-expanded) .todo-focus-actions { opacity: 1; }
 }
 
 /* --- Fokus klawiaturowy wiersza (j/k) --- */
@@ -2814,14 +2919,15 @@ a,
 
 /* Wąskie ekrany i dotyk: tytuł dostaje całą szerokość, data/priorytet schodzą do osobnej linii. */
 .todo-focus-title-row > button:last-child { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
-.todo-focus-card:has(.todo-focus-expanded) .todo-focus-title-row > button:last-child { -webkit-line-clamp: unset; display: block; }
 .todo-focus-top:empty { display: none; }
 @media (max-width: 40rem), (pointer: coarse) {
   .todo-focus-card {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "title title" "right act" "note note" "meta meta" "exp exp";
   }
-  .todo-focus-top { justify-content: flex-start; margin-left: 2.875rem; }
+  .todo-focus-top { justify-content: flex-start; margin-left: 2.875rem; margin-bottom: 0.5rem; }
+  /* Wielolinijkowy tytuł dostaje oddech, żeby chip pod nim go nie dociskał. */
+  .todo-focus-title-row > button:last-child { padding-block: 0.5rem; }
   .todo-focus-top:empty { display: block; }
 }
 
@@ -3342,4 +3448,11 @@ progress,
     -webkit-backdrop-filter: none !important;
   }
   .ui-floating-layer, .ui-floating-nav { background: var(--surface-solid); }
+}
+
+/* Kolory zakreślacza (jak w Notatkach Apple): pastelowe tło tekstu i nasycona próbka w menu. */
+:root {
+  --note-hl-violet: #e9d5ff; --note-hl-pink: #fecdd3; --note-hl-orange: #fed7aa; --note-hl-mint: #a7f3d0; --note-hl-blue: #bfdbfe;
+  --note-hl-dot-violet: #a855f7; --note-hl-dot-pink: #f43f5e; --note-hl-dot-orange: #f97316; --note-hl-dot-mint: #14b8a6; --note-hl-dot-blue: #3b82f6;
+  --note-text-on-highlight: #1c1c1e;
 }

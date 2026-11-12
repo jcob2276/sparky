@@ -1,7 +1,6 @@
 import { updateTodoItem } from '../../lib/todo/todo';
 import { PRIORITY, PRIORITY_ORDER } from './todoUtils';
-import { Card } from '../ui/Card';
-import { Check } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
 
 interface Item {
@@ -30,9 +29,9 @@ interface Props {
 export default function KanbanView({ items, sections, setItems, today }: Props) {
   const open = items.filter((i) => i.status === 'open');
 
-  const columns: Array<{ id: string | null; title: string; icon: string }> = [
-    { id: null, title: 'Skrzynka', icon: '📥' },
-    ...sections.map((s) => ({ id: s.id, title: s.name, icon: '📂' })),
+  const columns: Array<{ id: string | null; title: string }> = [
+    { id: null, title: 'Skrzynka' },
+    ...sections.map((s) => ({ id: s.id, title: s.name })),
   ];
 
   function moveToSection(item: Item, sectionId: string | null) {
@@ -64,23 +63,24 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
     const overdue = item.due_date < today;
     const isToday = item.due_date === today;
     return (
-      <span className={`text-2xs font-bold ${overdue ? 'text-danger' : isToday ? 'text-warning' : 'text-text-muted'}`}>
+      <span className={`text-xs ${overdue ? 'text-danger' : isToday ? 'text-warning' : 'text-text-secondary'}`}>
         {isToday ? 'Dziś' : overdue ? `⚠ ${item.due_date}` : item.due_date}
       </span>
     );
   };
 
   return (
-    <div className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 pb-20 pt-4 gap-3 sm:snap-none">
+    <div className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 pb-20 pt-4 gap-4 sm:snap-none">
       {columns.map((col) => {
         const colItems = open
           .filter((i) => i.section_id === col.id)
           .sort((a, b) => PRIORITY_ORDER.indexOf(b.priority) - PRIORITY_ORDER.indexOf(a.priority));
 
         return (
-          <div
+          <section
             key={String(col.id)}
-            className="flex-shrink-0 todo-kanban-col snap-start flex flex-col rounded-lg bg-surface/40 border border-border-custom/40"
+            aria-label={col.title}
+            className="flex-shrink-0 todo-kanban-col snap-start flex flex-col"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -89,80 +89,69 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
               if (item) moveToSection(item, col.id);
             }}
           >
-            {/* Column header */}
-            <div className="flex items-center justify-between px-3 py-2.5 border-b border-border-custom/30">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm">{col.icon}</span>
-                <span className="text-sm font-bold text-text-primary">{col.title}</span>
-              </div>
-              {colItems.length > 0 && (
-                <span className="text-xs font-semibold text-text-muted bg-surface-solid px-1.5 py-0.5 rounded-full">
-                  {colItems.length}
-                </span>
-              )}
-            </div>
+            <header className="flex items-center justify-between px-1 pb-2">
+              <h3 className="min-w-0 truncate text-sm font-semibold tracking-tight text-text-primary">{col.title}</h3>
+              {colItems.length > 0 && <span className="text-sm tabular-nums text-text-secondary">{colItems.length}</span>}
+            </header>
 
-            {/* Cards */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-2">
-              {colItems.map((item) => {
-                const pMeta = PRIORITY[item.priority as keyof typeof PRIORITY];
-                return (
-                  <div
-                    key={item.id}
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="rounded-lg border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom ui-interactive group hover:bg-surface-solid"
-                  >
-                    <div className="flex items-start gap-2">
-                      <Pressable
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          completeTask(item.id);
-                        }}
-                        className="todo-tap-target shrink-0 cursor-pointer btn-press"
-                        aria-label={`Oznacz jako wykonane: ${item.title}`}
+            <div className="flex-1 overflow-y-auto">
+              {colItems.length === 0 ? (
+                <p className="px-1 py-2 text-xs text-text-muted"><span className="hidden sm:inline">Przeciągnij tutaj</span><span className="sm:hidden">Brak zadań</span></p>
+              ) : (
+                <div className="todo-focus-grid">
+                  {colItems.map((item) => {
+                    const pMeta = PRIORITY[item.priority as keyof typeof PRIORITY];
+                    const flagged = item.priority === 'urgent' || item.priority === 'high';
+                    const meta = [item.duration_minutes ? (item.duration_minutes < 60 ? `${item.duration_minutes} min` : `${Math.floor(item.duration_minutes / 60)} h`) : null].filter(Boolean);
+                    return (
+                      <div
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
+                        className="group flex min-h-11 items-center gap-1 pl-1 pr-1 sm:cursor-grab sm:active:cursor-grabbing"
                       >
-                        <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
-                          <Check size={8} className="opacity-0 group-hover:opacity-70 text-success" />
+                        <Pressable
+                          haptic="none"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            completeTask(item.id);
+                          }}
+                          className="todo-instant flex h-11 w-11 shrink-0 items-center justify-center rounded-lg focus-visible:shadow-focus"
+                          role="checkbox"
+                          aria-checked={false}
+                          aria-label={`Oznacz jako wykonane: ${item.title}`}
+                        >
+                          <span className="todo-focus-check" />
+                        </Pressable>
+                        <div className="min-w-0 flex-1 py-2">
+                          <p className="line-clamp-3 text-[length:var(--todo-row-title-size)] font-[number:var(--todo-row-title-weight)] leading-snug text-text-primary">{item.title}</p>
+                          {(flagged || meta.length > 0 || item.due_date) && (
+                            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-secondary">
+                              {flagged && <span className="font-medium text-warning">{pMeta?.label ?? item.priority}</span>}
+                              {meta.map((m) => <span key={m}>{m}</span>)}
+                              {dueBadge(item)}
+                            </p>
+                          )}
                         </div>
-                      </Pressable>
-                      <p className="text-xs font-semibold text-text-primary leading-snug line-clamp-3 flex-1">{item.title}</p>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pl-5">
-                      <span className={`text-2xs font-semibold px-1.5 py-0.5 rounded-full ${pMeta?.chip ?? 'bg-surface-solid text-text-muted'}`}>
-                        {pMeta?.label ?? item.priority}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        {item.duration_minutes && (
-                          <span className="text-2xs text-warning font-semibold">
-                            {item.duration_minutes < 60
-                              ? `${item.duration_minutes}m`
-                              : `${Math.floor(item.duration_minutes / 60)}h`}
-                          </span>
-                        )}
-                        {dueBadge(item)}
+                        {/* Touch devices have no HTML5 drag: a native picker behind an icon moves the task. */}
+                        <span className="relative flex h-11 w-11 shrink-0 items-center justify-center text-text-secondary sm:hidden">
+                          <ArrowRightLeft size={16} aria-hidden="true" />
+                          <ControlSelect
+                            value={item.section_id ?? ''}
+                            onChange={(e) => moveToSection(item, e.target.value || null)}
+                            aria-label={`Przenieś zadanie: ${item.title}`}
+                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          >
+                            {columns.map((c) => <option key={String(c.id)} value={c.id ?? ''}>{c.title}</option>)}
+                          </ControlSelect>
+                        </span>
                       </div>
-                    </div>
-                    {/* Touch devices have no HTML5 drag — offer an explicit move control. */}
-                    <ControlSelect
-                      value={item.section_id ?? ''}
-                      onChange={(e) => moveToSection(item, e.target.value || null)}
-                      aria-label={`Przenieś zadanie: ${item.title}`}
-                      className="mt-2 h-11 w-full rounded-lg border border-border-custom bg-surface-solid px-2 text-base text-text-secondary sm:hidden"
-                    >
-                      {columns.map((c) => <option key={String(c.id)} value={c.id ?? ''}>{c.title}</option>)}
-                    </ControlSelect>
-                  </div>
-                );
-              })}
-
-              {colItems.length === 0 && (
-                <Card variant="surface" padding="1rem" style={{ boxShadow: 'none' }} className="!bg-transparent !rounded-lg border border-dashed border-border-custom/20 text-center">
-                  <p className="text-2xs text-text-muted/60"><span className="hidden sm:inline">Przeciągnij tutaj</span><span className="sm:hidden">Brak zadań</span></p>
-                </Card>
+                    );
+                  })}
+                </div>
               )}
             </div>
-          </div>
+          </section>
         );
       })}
     </div>

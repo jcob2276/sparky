@@ -10,6 +10,8 @@ interface WorkspaceHeaderProps {
   title: ReactNode;
   subtitle?: string;
   onBack: () => void;
+  /** Accessible name of the back button; defaults to "Wróć". */
+  backLabel?: string;
   leading?: ReactNode;
   center?: ReactNode;
   actions?: ReactNode;
@@ -19,7 +21,7 @@ interface WorkspaceHeaderProps {
   hideNavigationOnMobile?: boolean;
 }
 
-export function WorkspaceHeader({ title, subtitle, onBack, leading, center, actions, tabs, navigation, secondaryRow, hideNavigationOnMobile }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ title, subtitle, onBack, backLabel = 'Wróć', leading, center, actions, tabs, navigation, secondaryRow, hideNavigationOnMobile }: WorkspaceHeaderProps) {
   const shouldHideNavOnMobile = hideNavigationOnMobile || Boolean(tabs?.hideOnMobile);
   return (
     <>
@@ -28,7 +30,7 @@ export function WorkspaceHeader({ title, subtitle, onBack, leading, center, acti
         description={subtitle}
         leading={
           <>
-            <Pressable variant="ghost" size="sm" onClick={onBack} className="shrink-0" aria-label="Wróć">
+            <Pressable variant="ghost" size="sm" onClick={onBack} className="shrink-0" aria-label={backLabel}>
               <ChevronLeft size={20} strokeWidth={2.5} />
             </Pressable>
             {leading}
