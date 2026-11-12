@@ -16,6 +16,10 @@ describe('balance forecast', () => {
     expect(f.payments[0].date).toBe('2026-12-05');
     expect(f.firstNegative?.date).toBe('2026-12-05');
   });
+  it('keeps monthly payments on the calendar anniversary across February', () => {
+    const f = forecastBalance(500, '2026-01-31', 90, [rec({ nextExpected: '2026-01-31' })]);
+    expect(f.payments.map(p => p.date)).toEqual(['2026-01-31', '2026-02-28', '2026-03-31', '2026-04-30']);
+  });
   it('detects a price hike on the last charge', () => {
     expect(detectPriceHikes([rec({ lastAmount: 60 }), rec({ name: 'Stabilna' })])).toEqual([{ name: 'Netflix', from: 50, to: 60, pct: 0.2 }]);
   });

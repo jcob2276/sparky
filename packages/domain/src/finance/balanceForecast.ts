@@ -24,10 +24,17 @@ export function forecastBalance(startBalance: number, today: string, horizonDays
   const end = start + horizonDays;
   const payments: ForecastPayment[] = [];
   for (const item of recurring) {
-    const step = item.cadence === 'weekly' ? 7 : 30;
-    let day = toDay(item.nextExpected);
-    while (day < start) day += step;
-    for (; day <= end; day += step) payments.push({ date: fromDay(day), name: item.name, amount: item.lastAmount || item.typicalAmount });
+    const anchor = new Date(`${item.nextExpected}T00:00:00Z`);
+    const occurrence = (cycle: number) => {
+      if (item.cadence === 'weekly') return toDay(item.nextExpected) + cycle * 7;
+      const month = anchor.getUTCMonth() + cycle;
+      const lastDay = new Date(Date.UTC(anchor.getUTCFullYear(), month + 1, 0)).getUTCDate();
+      return Date.UTC(anchor.getUTCFullYear(), month, Math.min(anchor.getUTCDate(), lastDay)) / DAY_MS;
+    };
+    let cycle = 0;
+    let day = occurrence(cycle);
+    while (day < start) day = occurrence(++cycle);
+    for (; day <= end; day = occurrence(++cycle)) payments.push({ date: fromDay(day), name: item.name, amount: item.lastAmount || item.typicalAmount });
   }
   payments.sort((a, b) => a.date.localeCompare(b.date));
   const points: ForecastPoint[] = [];

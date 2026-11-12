@@ -1,3 +1,4 @@
+import { FinanceSpendingTools } from './FinanceSpendingTools';
 import { useState } from 'react';
 import type { PortfolioTotals, ValuedHolding } from '@vanguard/domain';
 import type { FinanceBundle } from '../../lib/financeApi';
@@ -51,6 +52,7 @@ export function FinanceHome({
         onNavigate={onNavigate}
       />
       <FinanceMonthCard metrics={metrics} onOpenFlows={() => onNavigate('flows')} />
+      <FinanceSpendingTools transactions={data.transactions} metrics={metrics} />
       <FinanceBankCard mode="overview" financeAccounts={data.accounts} onOpenDetails={() => onNavigate('flows')} onManageAccounts={() => onNavigate('accounts')} />
 
       <section className="space-y-2" aria-label="Cele">

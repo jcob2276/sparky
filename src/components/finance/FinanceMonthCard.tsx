@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, ChevronRight, PiggyBank, RotateCcw, type LucideIcon } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ChevronRight, RotateCcw, type LucideIcon } from 'lucide-react';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { buildBudgetProgress } from '../../lib/finance/financeTodayInsights';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -12,7 +12,7 @@ interface Props {
   onOpenFlows: () => void;
 }
 
-function Row({ icon: Icon, tone, label, amount, caption, progress }: { icon: LucideIcon; tone: string; label: string; amount: number; caption?: string; progress?: number }) {
+function Row({ icon: Icon, tone, label, amount, caption }: { icon: LucideIcon; tone: string; label: string; amount: number; caption?: string }) {
   return (
     <div className="min-h-12 px-4 py-2.5">
       <div className="flex items-center gap-3">
@@ -23,11 +23,6 @@ function Row({ icon: Icon, tone, label, amount, caption, progress }: { icon: Luc
         </span>
         <Money value={amount} className="text-base font-semibold text-text-primary" />
       </div>
-      {progress != null && (
-        <div className="ml-11 mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
-          <div className="h-full rounded-full bg-success transition-[width] duration-[var(--motion-slow)] ease-[var(--ease-out)]" style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
-        </div>
-      )}
     </div>
   );
 }
@@ -39,7 +34,6 @@ function Row({ icon: Icon, tone, label, amount, caption, progress }: { icon: Luc
 export function FinanceMonthCard({ metrics, onOpenFlows }: Props) {
   const progress = buildBudgetProgress({ effectiveExpenses: metrics.effectiveExpenses, spentThisMonth: metrics.spentThisMonth });
   const context = buildTodayContext(metrics);
-  const saved = metrics.earnedThisMonth - metrics.spentThisMonth + metrics.refundsThisMonth;
   const barPct = progress && progress.plan > 0 ? Math.min(100, (progress.spent / progress.plan) * 100) : 0;
 
   return (
@@ -65,7 +59,7 @@ export function FinanceMonthCard({ metrics, onOpenFlows }: Props) {
                 <div className="h-2 overflow-hidden rounded-full bg-surface-2">
                   <div className={`h-full rounded-full transition-[width] duration-[var(--motion-slow)] ease-[var(--ease-out)] ${progress.overBudget ? 'bg-warning' : 'bg-primary'}`} style={{ width: `${barPct}%` }} />
                 </div>
-                <div className="flex items-baseline justify-between text-xs text-text-muted">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs text-text-muted">
                   <span>Wydane <strong className="tabular-nums text-text-primary">{formatPln(progress.spent)}</strong> z {formatPln(progress.plan)}</span>
                   <span className={progress.overBudget ? 'font-medium text-warning' : 'text-text-secondary'}>
                     {progress.overBudget ? `+${formatPln(progress.spent - progress.plan)} ponad plan` : `Zostało ${formatPln(progress.remaining)}`}
@@ -85,9 +79,7 @@ export function FinanceMonthCard({ metrics, onOpenFlows }: Props) {
           </Pressable>
         )}
         <div className="ios-glass-divider" role="separator" />
-        <Row icon={ArrowDownLeft} tone="bg-success/15 text-success" label="Wpływy" amount={metrics.earnedThisMonth}
-          caption={metrics.effectiveIncome > 0 ? `z ${formatPln(metrics.effectiveIncome)} planowanych` : undefined}
-          progress={metrics.effectiveIncome > 0 ? (metrics.earnedThisMonth / metrics.effectiveIncome) * 100 : undefined} />
+        <Row icon={ArrowDownLeft} tone="bg-success/15 text-success" label="Wpływy" amount={metrics.earnedThisMonth} />
         <div className="ios-glass-divider" role="separator" />
         <Row icon={ArrowUpRight} tone="bg-danger/15 text-danger" label="Wydatki" amount={metrics.spentThisMonth} />
         {metrics.refundsThisMonth > 0 && (
@@ -96,9 +88,6 @@ export function FinanceMonthCard({ metrics, onOpenFlows }: Props) {
             <Row icon={RotateCcw} tone="bg-surface-2 text-text-secondary" label="Zwroty" amount={metrics.refundsThisMonth} />
           </>
         )}
-        <div className="ios-glass-divider" role="separator" />
-        <Row icon={PiggyBank} tone="bg-primary/15 text-primary" label="Do odłożenia" amount={saved}
-          caption={metrics.netWorthTarget > 0 && saved > 0 ? `${((saved / metrics.netWorthTarget) * 100).toFixed(1).replace('.', ',')}% celu ${formatPln(metrics.netWorthTarget)}` : 'Wpływy − wydatki + zwroty'} />
       </div>
     </section>
   );

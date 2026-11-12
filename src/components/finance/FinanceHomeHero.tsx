@@ -44,7 +44,7 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts }
   const line = changeLine(portfolio.dayChangePln, portfolio.dayChangePct);
 
   return (
-    <section className="space-y-6 text-center" aria-label={label}>
+    <section className="rounded-3xl bg-surface-1 px-4 py-6 text-center sm:px-6 sm:py-8 space-y-6" aria-label={label}>
       <Tabs className="mx-auto max-w-md" tabs={SEGMENTS} active={segment} onChange={key => setSegment(key as Segment)} />
 
       <div className="space-y-1.5">

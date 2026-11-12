@@ -34,7 +34,7 @@ const shift = (iso: string, days: number) => new Date(Date.parse(`${iso}T00:00:0
  */
 export function computeFinanceAlerts(input: FinanceAlertInput): FinanceAlert[] {
   const { today, budgets } = input;
-  const booked = input.transactions.filter(tx => tx.currency === 'PLN' && (tx.status == null || tx.status === 'BOOK'));
+  const booked = input.transactions.filter(tx => tx.currency === 'PLN' && tx.booking_date != null && tx.booking_date <= today && (tx.status == null || tx.status === 'BOOK'));
   const month = today.slice(0, 7);
   const monthRows = booked.filter(tx => tx.booking_date?.startsWith(month));
 

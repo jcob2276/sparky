@@ -17,6 +17,9 @@ describe('computeFinanceAlerts', () => {
     const alerts = computeFinanceAlerts({ ...base, accounts: [{ currency: 'PLN', balance: 20 }], transactions: rows });
     expect(alerts.map(a => a.id)).toEqual(['negative', 'hike-Netflix']);
   });
+  it('ignores future transactions in budgets and categorization alerts', () => {
+    expect(computeFinanceAlerts({ ...base, transactions: [tx('2026-11-20', -500, 'Sklep', null)], budgets: { do_sprawdzenia: 100 } })).toEqual([]);
+  });
   it('ignores pending transactions and is empty when nothing needs attention', () => {
     expect(computeFinanceAlerts({ ...base, budgets: { zakupy: 200 }, transactions: [{ ...tx('2026-11-03', -300, 'Sklep'), status: 'PDNG' }] })).toEqual([]);
   });
