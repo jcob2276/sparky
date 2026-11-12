@@ -6,6 +6,8 @@ import { formatWarsawDate } from '../../lib/date';
 interface FinanceHoldingsHeatmapProps {
   holdings: ValuedHolding[];
   loading: boolean;
+  /** Without its own section title: the map sits under a Lista / Mapa switch. */
+  bare?: boolean;
 }
 
 const FULL_INTENSITY_PCT = 2;
@@ -26,15 +28,15 @@ function tileColor(change: number | null): string {
   return `color-mix(in srgb, ${token} ${Math.round(18 + strength * 42)}%, var(--color-surface-1))`;
 }
 
-export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHeatmapProps) {
+export function FinanceHoldingsHeatmap({ holdings, loading, bare = false }: FinanceHoldingsHeatmapProps) {
   const rects = useMemo(
     () => layoutTreemap(holdings.map((item) => ({ id: item.id, value: item.valuePln })), 100, 100),
     [holdings],
   );
   const byId = useMemo(() => new Map(holdings.map((item) => [item.id, item])), [holdings]);
 
-  return (
-    <FinanceSection title="Mapa portfela" subtitle="Wielkość: wartość pozycji. Kolor: zmiana ostatniej sesji; dla krypto — zmiana dzienna.">
+  const body = (
+    <>
       {holdings.length === 0 ? (
         <FinanceEmpty>Dodaj pozycje, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
       ) : (
@@ -72,6 +74,12 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
           })}
         </div>
       )}
+    </>
+  );
+  if (bare) return <div className="ios-group">{body}</div>;
+  return (
+    <FinanceSection title="Mapa portfela" subtitle="Wielkość: wartość pozycji. Kolor: zmiana ostatniej sesji; dla krypto — zmiana dzienna.">
+      {body}
     </FinanceSection>
   );
 }

@@ -1,12 +1,24 @@
 import { useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { useBankActions, useBankData } from '../../lib/finance/bankApi';
+import { useBankActions, useBankData, type BankTransaction } from '../../lib/finance/bankApi';
 import { bankHealth } from '../../lib/finance/bankStatus';
+import { getTodayWarsaw } from '../../lib/date';
+import { isBankBooked } from '../../lib/finance/bankAnalytics';
 import { notify } from '../../lib/notify';
 import { FinanceBankView } from './FinanceBankView';
 import { useFinanceBundle, type FinanceAccount } from '../../lib/financeApi';
 import { useFinanceBankLink, useResolveBankEntry } from '../../lib/finance/bankLinksApi';
+import { BankAlerts } from './bank/BankAlerts';
+import { useBankAlerts } from './bank/useBankAlerts';
+import { BankEnvelopes } from './bank/BankEnvelopes';
+import { useCategoryBudgets, useSetCategoryBudget } from '../../lib/finance/categoryBudgetsApi';
+import { summarizeSpending } from '../../lib/finance/bankSpending';
 import { BankManualReconciliation } from './bank/BankManualReconciliation';
+
+const monthSpending = (rows: BankTransaction[]) => {
+  const month = getTodayWarsaw().slice(0, 7);
+  return summarizeSpending(rows.filter(tx => tx.currency === 'PLN' && tx.booking_date?.startsWith(month) && isBankBooked(tx)));
+};
 
 /** Po powrocie z banku funkcja bank-sync przekierowuje na ?bank=connected|denied. */
 function readBankReturn(): 'connected' | 'denied' | null {
@@ -32,6 +44,9 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
   const link = useFinanceBankLink(userId);
   const bundle = useFinanceBundle(userId);
   const resolve = useResolveBankEntry(userId);
+  const budgets = useCategoryBudgets(userId);
+  const setBudget = useSetCategoryBudget(userId);
+  const alerts = useBankAlerts(query.data, budgets.data ?? {});
   const { mutate: runSync } = sync;
 
   useEffect(() => {
@@ -54,7 +69,7 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
       missingAccounts={query.isLoading ? [] : financeAccounts.filter(account => account.bank_account_id && !query.data?.accounts.some(bank => bank.id === account.bank_account_id))}
       onRemoveMissingAccount={onRemoveMissingAccount}
       data={query.data}
-      error={query.error?.message}
+      error={query.data ? undefined : query.error?.message}
       financeAccounts={financeAccounts}
       linking={link.isPending}
       onLink={(bank, financeAccountId, unlink) => link.mutate({ bank, financeAccountId, unlink }, { onError: onError('Nie udało się powiązać konta') })}
@@ -73,7 +88,7 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
           },
         );
       }}
-      onConnect={() => connect.mutate(undefined, { onError: onError('Nie udało się rozpocząć połączenia z bankiem') })}
+      onConnect={bank => connect.mutate(bank, { onError: onError('Nie udało się rozpocząć połączenia z bankiem') })}
       onSync={() => { if (query.error) void query.refetch(); else sync.mutate(undefined, {
         onError: onError('Synchronizacja z bankiem nie powiodła się'), onSuccess: message => notify(message, 'info'),
       }); }}
@@ -82,6 +97,10 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
         catch (err: unknown) { onError('Nie udało się zapisać kategorii')(err); return false; }
       }}
     />
+    {mode === 'overview' && query.data && query.data.accounts.length > 0 && (
+      <div className="mt-6 space-y-6"><BankAlerts alerts={alerts} /><BankEnvelopes spending={monthSpending(query.data.transactions)} budgets={budgets.data ?? {}} currency="PLN"
+        onSet={(category, limit) => setBudget.mutate({ category, limit }, { onError: onError('Nie udało się zapisać limitu') })} /></div>
+    )}
     {mode === 'accounts' && <BankManualReconciliation accounts={financeAccounts} manual={bundle.data?.transactions ?? []} bank={query.data?.transactions ?? []} pending={resolve.isPending}
       onResolve={(id, bankTransactionId) => resolve.mutate({ id, bankTransactionId }, { onError: onError('Nie udało się uzgodnić wpisu') })} />}
   </>);

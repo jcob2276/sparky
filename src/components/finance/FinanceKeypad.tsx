@@ -18,7 +18,7 @@ export function FinanceKeypad({ onKey }: { onKey: (key: KeypadKey) => void }) {
           type="button"
           onClick={() => onKey(key)}
           aria-label={key === 'back' ? 'Usuń cyfrę' : key === ',' ? 'Przecinek' : key}
-          className="flex h-11 items-center justify-center rounded-2xl bg-surface-2/50 text-2xl font-medium tabular-nums text-text-primary transition-[transform,background-color] duration-[var(--motion-instant)] active:scale-[var(--scale-pressed-strong)] hover:bg-surface-2"
+          className="flex h-12 items-center justify-center rounded-2xl bg-surface-2/50 text-3xl font-normal tabular-nums text-text-primary transition-[transform,background-color] duration-[var(--motion-instant)] active:scale-[var(--scale-pressed-strong)] hover:bg-surface-2"
         >
           {key === 'back' ? <Delete size={22} aria-hidden="true" /> : key}
         </Pressable>

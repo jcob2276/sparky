@@ -188,6 +188,10 @@ verify_jwt = false
 import_map = "./functions/import_map.json"
 verify_jwt = false
 
+[functions.widget-finance]
+import_map = "./functions/import_map.json"
+verify_jwt = false
+
 [functions.week-insight]
 import_map = "./functions/import_map.json"
 verify_jwt = false

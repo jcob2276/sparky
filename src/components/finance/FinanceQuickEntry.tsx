@@ -110,23 +110,25 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
         })}
       </div>
 
-      <div className="text-center" aria-live="polite">
-        <p className={`break-all text-5xl font-semibold tabular-nums tracking-[var(--tracking-display)] ${amount ? 'text-text-primary' : 'text-text-muted'}`}>
-          {kind === 'expense' && value > 0 ? '−' : ''}{amount || '0'}<span className="ml-2 text-2xl font-medium text-text-muted">zł</span>
+      <div className="py-1 text-center" aria-live="polite">
+        <p className={`break-all text-6xl font-bold leading-none tracking-[var(--tracking-display)] ${amount ? 'text-text-primary' : 'text-text-muted'}`}>
+          <span className="tabular-nums">{kind === 'expense' && value > 0 ? '−' : ''}{(amount || '0').split(',')[0]}</span>
+          {(amount || '').includes(',') && <span className="tabular-nums text-text-secondary">,{amount.split(',')[1]}</span>}
+          <span className="ml-2 text-2xl font-medium text-text-muted">zł</span>
         </p>
-        <p className="mt-1 text-sm text-text-secondary">{value > 0 ? category : 'Wpisz kwotę na klawiaturze'}</p>
+        <p className="mt-2 text-sm text-text-secondary">{value > 0 ? category : 'Wpisz kwotę na klawiaturze'}</p>
       </div>
 
-      <div>
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2" role="group" aria-label="Kategoria">
-          {categoriesFor(kind).map(item => {
-            const Icon = CATEGORY_ICONS[item] ?? MoreHorizontal;
-            return <Pressable key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)}
-              className={`flex min-h-16 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl px-4 py-2 text-xs font-medium ${category === item ? 'bg-text-primary text-background' : 'bg-surface-2/60 text-text-secondary hover:bg-surface-2'}`}>
-              <Icon size={20} aria-hidden="true" />{item}
-            </Pressable>;
-          })}
-        </div>
+      <div className="grid grid-cols-4 gap-2" role="group" aria-label="Kategoria">
+        {categoriesFor(kind).map(item => {
+          const Icon = CATEGORY_ICONS[item] ?? MoreHorizontal;
+          const selected = category === item;
+          return <Pressable key={item} type="button" aria-pressed={selected} onClick={() => setCategory(item)}
+            className={`flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs font-medium leading-tight ${selected ? 'bg-primary/12 text-primary ring-1 ring-primary/40' : 'bg-surface-2/60 text-text-secondary hover:bg-surface-2'}`}>
+            <Icon size={20} aria-hidden="true" />
+            <span className="w-full truncate text-center">{item}</span>
+          </Pressable>;
+        })}
       </div>
 
       <div className="space-y-1">

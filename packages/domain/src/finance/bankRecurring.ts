@@ -14,6 +14,8 @@ export interface RecurringPayment {
   cadence: 'weekly' | 'monthly';
   count: number;
   typicalAmount: number;
+  /** Kwota ostatniego obciążenia; różni się od typowej, gdy cena się zmieniła. */
+  lastAmount: number;
   lastDate: string;
   nextExpected: string;
   /** Przybliżony koszt miesięczny (tygodniowe ×4,33). */
@@ -81,6 +83,7 @@ export function detectRecurring(rows: readonly RecurringInput[]): RecurringPayme
       cadence: cadence.cadence,
       count: items.length,
       typicalAmount: Math.round(typical * 100) / 100,
+      lastAmount: Math.round(items[items.length - 1].amount * 100) / 100,
       lastDate: fromDay(last),
       nextExpected: fromDay(last + Math.round(cadence.interval)),
       monthlyCost: Math.round((cadence.cadence === 'weekly' ? typical * 4.33 : typical) * 100) / 100,

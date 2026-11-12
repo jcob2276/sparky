@@ -60,6 +60,7 @@ public class WidgetBridgePlugin extends Plugin {
     public void refreshFoodWidgets(PluginCall call) {
         VanguardFoodWidgetProvider.updateAll(getContext());
         TasksWidgetProvider.updateAll(getContext());
+        FinanceWidgetProvider.updateAll(getContext());
         call.resolve();
     }
 

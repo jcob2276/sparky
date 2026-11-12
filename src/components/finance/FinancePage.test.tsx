@@ -48,6 +48,10 @@ vi.mock('../../lib/finance/bankApi', () => ({
   useBankActions: () => ({ connect: {}, sync: { mutate: vi.fn() }, assignCategory: {}, toggleVisibility: {} }),
 }));
 
+vi.mock('../../lib/finance/categoryBudgetsApi', () => ({
+  useCategoryBudgets: () => ({ data: {} }),
+  useSetCategoryBudget: () => ({ mutate: vi.fn() }),
+}));
 vi.mock('../../lib/finance/bankLinksApi', () => ({
   useFinanceBankLink: () => ({}),
   useResolveBankEntry: () => ({}),
@@ -134,6 +138,6 @@ describe('FinancePage', () => {
     expect(screen.getByRole('button', { name: 'Edytuj Gotówka fizyczna' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wróć do finansów' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Finanse' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Wróć do Sparky' })).toHaveAttribute('href', '/dzis');
+    expect(screen.getByRole('button', { name: 'Wróć do Sparky' })).toBeInTheDocument();
   });
 });

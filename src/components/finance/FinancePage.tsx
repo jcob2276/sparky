@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { useFinanceMutations } from '../../lib/financeApi';
 import { useCashEntryMutation, type CashEntryInput } from '../../lib/finance/cashEntryApi';
@@ -10,6 +10,7 @@ import { useNetWorthSnapshotSync } from '../../lib/finance/netWorthSnapshots';
 import { notify } from '../../lib/notify';
 import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
+import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { FinanceSkeleton } from './FinanceSkeleton';
 import { Pressable } from '../ui/ControlPrimitives';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
@@ -37,8 +38,8 @@ const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
 
 function FinancePage() {
   const userId = useStore((s) => s.session?.user?.id);
-  const initial = (useStore((s) => s.session?.user?.email) ?? 'S').charAt(0).toUpperCase();
-  const { bundleQuery, bankError, holdingsQuery, quotesQuery, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
+  const goToday = useNavigate();
+  const { bundleQuery, bankLoading, quotesSettled, bankError, notice, refetchBank, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
@@ -73,7 +74,6 @@ function FinancePage() {
 
   const currentMonth = `${getTodayWarsaw().slice(0, 7)}-01`;
   const storedSnapshot = data?.snapshots.find((item) => item.snapshot_month.startsWith(currentMonth.slice(0, 7)));
-  const quotesSettled = !holdingsQuery.isLoading && !quotesQuery.isLoading;
   useNetWorthSnapshotSync(
     userId,
     metrics && quotesSettled ? { netWorth: metrics.netWorth, liquid: metrics.liquid, investments: metrics.investments } : null,
@@ -96,45 +96,32 @@ function FinancePage() {
     <div className="relative min-h-screen bg-background text-text-primary">
       {(tab === 'dashboard' || tab === 'portfolio') && <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />}
 
-      <header className="relative z-[var(--z-sticky)]">
-        <div className="mx-auto flex max-w-[var(--content-default)] items-center gap-3 px-[var(--space-4)] pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-[var(--space-8)]">
-          {tab === 'accounts' ? <Pressable
-            type="button"
-            onClick={() => navigate(returnTab)}
-            aria-label="Wróć do finansów"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
-          >
-            <ArrowLeft size={18} aria-hidden="true" />
-          </Pressable> : <Link
-            to="/dzis"
-            aria-label="Wróć do Sparky"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-sm font-bold text-text-primary ring-1 ring-text-primary/15 transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
-          >
-            {initial}
-          </Link>}
-          <h1 className="flex-1 text-center text-base font-semibold">{TITLES[tab]}</h1>
-          <Pressable
-            type="button"
-            onClick={() => navigate('accounts')}
-            aria-label="Ustawienia finansów"
-            aria-current={tab === 'accounts' ? 'page' : undefined}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
-          >
+      <WorkspaceHeader
+        title={TITLES[tab]}
+        onBack={() => (tab === 'accounts' ? navigate(returnTab) : goToday('/dzis'))}
+        backLabel={tab === 'accounts' ? 'Wróć do finansów' : 'Wróć do Sparky'}
+        actions={(
+          <Pressable type="button" onClick={() => navigate('accounts')} aria-label="Ustawienia finansów" aria-current={tab === 'accounts' ? 'page' : undefined}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-primary">
             <Settings size={18} aria-hidden="true" />
           </Pressable>
-        </div>
-      </header>
+        )}
+      />
 
       <ContentContainer width={WIDTH_BY_TAB[tab]} className="relative space-y-6 pb-32 pt-2">
-        {bundleQuery.isLoading && (
-          <FinanceSkeleton />
-        )}
+        {(bundleQuery.isLoading || bankLoading) && <FinanceSkeleton />}
         {bundleQuery.error && (
           <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
             {(bundleQuery.error as Error).message}
           </p>
         )}
-        {bankError && <p role="alert" className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{bankError}</p>}
+        {bankError && (
+          <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl bg-surface-1 px-4 py-3 text-sm text-text-secondary ring-1 ring-border-custom/25">
+            <span>{bankError}</span>
+            <Pressable type="button" onClick={() => void refetchBank()} className="shrink-0 font-medium text-primary">Spróbuj ponownie</Pressable>
+          </div>
+        )}
+        {notice && <p role="status" className="rounded-2xl bg-surface-1 px-4 py-3 text-sm text-text-secondary ring-1 ring-border-custom/25">{notice}</p>}
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
         {data && !metrics && tab === 'flows' && <div className="space-y-6">
@@ -162,7 +149,6 @@ function FinancePage() {
                 holdingMutations={holdingMutations}
                 run={run}
                 saveProfilePatch={saveProfilePatch}
-                onQuickEntry={(kind) => setQuickEntry({ open: true, kind })}
                 onNavigate={navigate}
               />
             </motion.div>

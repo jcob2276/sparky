@@ -27,6 +27,19 @@ export interface BankData {
   transactions: BankTransaction[];
   transactionCount: number;
 }
+export interface BankChoice { name: string; country: string }
+
+/** Banki dostępne przez agregatora (Enable Banking) w danym kraju; pobierane dopiero przy otwarciu wyboru banku. */
+export function useAvailableBanks(enabled: boolean, country = 'PL') {
+  return useQuery({
+    queryKey: [...financeKeys.all, 'available-banks', country] as const, enabled, staleTime: 24 * 60 * 60_000,
+    queryFn: async (): Promise<BankChoice[]> => {
+      const res = await invokeEdge('bank-sync', { body: { action: 'banks', country } });
+      return Array.isArray(res.banks) ? res.banks.filter((b: unknown): b is BankChoice => !!b && typeof b === 'object' && 'name' in b && typeof b.name === 'string' && 'country' in b && typeof b.country === 'string') : [];
+    },
+  });
+}
+
 export interface BankCategoryAssignment { transactionId: string; category: string | null; remember: boolean; forgetRule?: boolean }
 
 const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, counterparty_iban, remittance, category, category_source, status:raw->>status';
@@ -74,8 +87,8 @@ export function useBankActions(userId: string | undefined) {
     await Promise.all([queryClient.invalidateQueries({ queryKey: financeKeys.bank(userId ?? '') }),
       queryClient.invalidateQueries({ queryKey: financeKeys.bundle(userId ?? '') })]);
   };
-  const connect = useMutation({ mutationFn: async () => {
-    const res = await invokeEdge('bank-sync', { body: { action: 'start' } });
+  const connect = useMutation({ mutationFn: async (aspsp?: BankChoice) => {
+    const res = await invokeEdge('bank-sync', { body: { action: 'start', ...(aspsp ? { aspsp } : {}) } });
     if (typeof res.url !== 'string') throw new Error('Bank nie zwrócił adresu zgody');
     return res.url;
   }, onSuccess: url => { window.location.assign(url); } });

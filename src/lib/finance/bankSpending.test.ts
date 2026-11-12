@@ -44,3 +44,12 @@ describe('bankCategoryLabel', () => {
     expect(bankCategoryLabel('xyz')).toBe('Do sprawdzenia');
   });
 });
+
+import { spendingChanges as changesFor } from './bankSpending';
+describe('spendingChanges', () => {
+  const row = (category: 'zakupy' | 'transport' | 'dom', total: number) => ({ category, label: category, total, share: 0 });
+  it('lists only big swings, largest first, including categories that disappeared', () => {
+    const out = changesFor([row('zakupy', 300), row('transport', 105)], [row('zakupy', 100), row('transport', 100), row('dom', 80)]);
+    expect(out.map(r => [r.category, r.delta])).toEqual([['zakupy', 200], ['dom', -80]]);
+  });
+});

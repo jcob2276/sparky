@@ -45,11 +45,11 @@ export function FinancePortfolioChart({ holdings }: { holdings: ValuedHolding[] 
   const color = rising ? 'var(--color-success)' : 'var(--color-danger)';
 
   return (
-    <section className="space-y-3" aria-label="Wartość pozycji w czasie">
-      <div>
-        <p className="text-sm text-text-muted">Zmiana w wybranym okresie</p>
+    <section className="ios-group space-y-3 p-4" aria-label="Wartość pozycji w czasie">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-sm text-text-muted">Zmiana w okresie {range}</p>
         {change && (
-          <p className={`text-lg font-semibold tabular-nums ${rising ? 'text-success' : 'text-danger'}`}>
+          <p className={`text-base font-semibold tabular-nums ${rising ? 'text-success' : 'text-danger'}`}>
             {signed(change.change)}{pctText(change.pct)}
           </p>
         )}

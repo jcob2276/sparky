@@ -1812,6 +1812,24 @@ export type Database = {
           },
         ]
       }
+      finance_alert_log: {
+        Row: {
+          alert_key: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_key: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_key?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       finance_bills: {
         Row: {
           amount: number
@@ -1841,6 +1859,27 @@ export type Database = {
           is_active?: boolean
           name?: string
           reminder_days?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      finance_category_budgets: {
+        Row: {
+          category: string
+          monthly_limit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          monthly_limit: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          monthly_limit?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -5673,6 +5712,7 @@ export type Database = {
           id: string
           is_important: boolean
           is_milestone: boolean
+          location_name: string | null
           notes: string | null
           parent_task_id: string | null
           priority: string
@@ -5702,6 +5742,7 @@ export type Database = {
           id?: string
           is_important?: boolean
           is_milestone?: boolean
+          location_name?: string | null
           notes?: string | null
           parent_task_id?: string | null
           priority?: string
@@ -5731,6 +5772,7 @@ export type Database = {
           id?: string
           is_important?: boolean
           is_milestone?: boolean
+          location_name?: string | null
           notes?: string | null
           parent_task_id?: string | null
           priority?: string

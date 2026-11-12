@@ -1,25 +1,14 @@
 import { formatPln } from '../../lib/finance/formatMoney';
+import { formatMonthLabel } from './financeNarrative';
 import type { CashflowMonthSummary } from '@vanguard/domain';
-import type { FinanceMetrics } from './useFinanceMetrics';
 import {
   FinanceEmpty,
   FinanceList,
-  FinanceProse,
   FinanceRow,
   FinanceSection,
 } from './financeUi';
-import {
-  buildTodayContext,
-  buildTodayHeadline,
-  formatMonthLabel,
-} from './financeNarrative';
-import {
-  buildBudgetProgress,
-} from '../../lib/finance/financeTodayInsights';
-import { FinanceBudgetProgress } from './FinanceBudgetProgress';
 
 interface FinanceTodayViewProps {
-  metrics: FinanceMetrics;
   monthKey: string;
   cashflow: CashflowMonthSummary;
   todayDay: number;
@@ -77,30 +66,7 @@ function MonthAhead({
   );
 }
 
-export function FinanceTodayView({
-  metrics,
-  monthKey,
-  cashflow,
-  todayDay,
-}: FinanceTodayViewProps) {
-  const headline = buildTodayHeadline(metrics);
-  const context = buildTodayContext(metrics);
-  const monthLabel = formatMonthLabel(monthKey);
-  const budgetProgress = buildBudgetProgress({
-    effectiveExpenses: metrics.effectiveExpenses,
-    spentThisMonth: metrics.spentThisMonth,
-  });
-
-  return (
-    <div className="space-y-8">
-      <header className="space-y-3 pt-1">
-        <p className="text-sm text-text-muted">Na dziś zostaje około</p>
-        <p className="text-3xl font-semibold tabular-nums tracking-[var(--tracking-tight)] text-text-primary">{headline}</p>
-        <FinanceProse>{context}</FinanceProse>
-      </header>
-
-      {metrics.hasBudget && budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
-      <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />
-    </div>
-  );
+/** Planning segment: what is still ahead this month. The "left today" summary lives on Pulpit and is not repeated here. */
+export function FinanceTodayView({ monthKey, cashflow, todayDay }: FinanceTodayViewProps) {
+  return <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />;
 }

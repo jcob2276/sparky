@@ -142,25 +142,26 @@ export async function diagnoseBank(db: SupabaseClient, psuInfo: PsuInfo | null =
 }
 
 /** Wymagane przez bank nagłówki PSU (z Enable Banking, w pamięci instancji). Zwraca {} gdy czegoś brakuje: zapytanie zostaje „w tle”. */
-let requiredPsuCache: string[] | null = null;
-async function psuHeadersForBank(info: PsuInfo): Promise<PsuHeaders> {
+const requiredPsuCache = new Map<string, string[]>();
+async function psuHeadersForBank(info: PsuInfo, bank: string, country: string): Promise<PsuHeaders> {
+  const key = `${country}:${bank}`;
   try {
-    requiredPsuCache ??= (await ebAspsp('Bank Pekao', 'PL'))?.required_psu_headers ?? [];
+    if (!requiredPsuCache.has(key)) requiredPsuCache.set(key, (await ebAspsp(bank, country))?.required_psu_headers ?? []);
   } catch (err) {
     console.error('[bank-sync] nie pobrano wymaganych nagłówków PSU', err instanceof Error ? err.message : err);
     return {};
   }
-  return buildPsuHeaders(info, requiredPsuCache) ?? {};
+  return buildPsuHeaders(info, requiredPsuCache.get(key) ?? []) ?? {};
 }
 
 export async function syncUser(db: SupabaseClient, userId: string | null, manual = false, psuInfo: PsuInfo | null = null): Promise<Array<Record<string, unknown>>> {
-  let q = db.from('bank_connections').select('id, user_id, last_synced_at').eq('status', 'active');
+  let q = db.from('bank_connections').select('id, user_id, last_synced_at, aspsp_name, aspsp_country').eq('status', 'active');
   if (userId) q = q.eq('user_id', userId);
-  const connections: Array<{ id: string; user_id: string; last_synced_at: string | null }> = await safeExecute(q);
+  const connections: Array<{ id: string; user_id: string; last_synced_at: string | null; aspsp_name: string | null; aspsp_country: string | null }> = await safeExecute(q);
   const report: Array<Record<string, unknown>> = [];
   // Ręczna synchronizacja = użytkownik przy aplikacji: wysyłamy jego nagłówki PSU, więc bank nie liczy jej do limitu zapytań w tle.
-  const psuHeaders: PsuHeaders = manual && psuInfo ? await psuHeadersForBank(psuInfo) : {};
   for (const c of connections) {
+    const psuHeaders: PsuHeaders = manual && psuInfo ? await psuHeadersForBank(psuInfo, c.aspsp_name ?? 'Bank Pekao', c.aspsp_country ?? 'PL') : {};
     if (manual && c.last_synced_at && Date.now() - Date.parse(c.last_synced_at) < MANUAL_COOLDOWN_MS) {
       report.push({ ok: true, skipped: 'cooldown' });
       continue;

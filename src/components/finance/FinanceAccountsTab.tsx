@@ -142,7 +142,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
       <FinanceBankCard mode="accounts" financeAccounts={accounts} onRemoveMissingAccount={(account) => void remove(account)} />
       <FinanceSection
         title="Gotówka i pozostałe środki"
-        subtitle={`${debts.length ? `Długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}. ` : ''}Gotówka, środki u brokera i konta bez synchronizacji.`}
+        footer={`${debts.length ? `Długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}. ` : ''}Gotówka, środki u brokera i konta bez synchronizacji.`}
       >
         {manual.length === 0 ? (
           <FinanceEmpty>Tu dodasz gotówkę, dodatkowe środki lub zobowiązanie.</FinanceEmpty>

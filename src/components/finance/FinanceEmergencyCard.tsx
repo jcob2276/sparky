@@ -1,16 +1,17 @@
 import { formatPln } from '../../lib/finance/formatMoney';
-import { FinanceEmpty, FinanceSection } from './financeUi';
+import { FinanceEmpty } from './financeUi';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
 export function FinanceEmergencyCard({ metrics }: { metrics: FinanceMetrics }) {
   const { emergency, liquid } = metrics;
 
   return (
-    <FinanceSection title="Poduszka finansowa">
+    <section aria-label="Poduszka finansowa">
+      <h3 className="px-5 pt-5 text-base font-semibold">Poduszka finansowa</h3>
       {emergency.months == null ? (
         <FinanceEmpty>Wpisz miesięczne wydatki w Przepływach, żeby policzyć poduszkę.</FinanceEmpty>
       ) : (
-        <div className="space-y-2 px-4 py-4">
+        <div className="space-y-2 px-5 pb-5 pt-2">
           <div className="flex items-baseline justify-between gap-3">
             <p className="text-2xl font-semibold tabular-nums tracking-[var(--tracking-tight)] text-text-primary">
               {emergency.months.toFixed(1).replace('.', ',')} mies.
@@ -37,6 +38,6 @@ export function FinanceEmergencyCard({ metrics }: { metrics: FinanceMetrics }) {
           </p>
         </div>
       )}
-    </FinanceSection>
+    </section>
   );
 }

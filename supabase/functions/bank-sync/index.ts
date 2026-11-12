@@ -1,6 +1,6 @@
 /**
  * @function bank-sync
- * @trigger POST z aplikacji (start, sync, categorize, set_category) + GET callback z banku (przekierowanie po zgodzie) + cron sync (service role)
+ * @trigger POST z aplikacji (start, banks, sync, categorize, set_category) + GET callback z banku (przekierowanie po zgodzie) + cron sync (service role)
  * @role Open banking PSD2 (Enable Banking, tylko odczyt): zgoda w banku, rachunki, salda i pelna historia transakcji
  * @reads bank_connections, bank_connection_secrets, bank_accounts, bank_transactions, bank_category_rules
  * @writes bank_connections, bank_connection_secrets, bank_accounts, bank_transactions, bank_category_rules
@@ -8,7 +8,7 @@
  * @status active
  */
 import { HttpError, serveJson } from '../_shared/http.ts';
-import type { PsuInfo } from '../_shared/enableBanking.ts';
+import { ebListAspsps, type PsuInfo } from '../_shared/enableBanking.ts';
 import { resolveUserScope } from '../_shared/supabase.ts';
 import { completeConnection, failConnection, startConnection } from './handlers/connect.ts';
 import { diagnoseBank, syncUser } from './handlers/sync.ts';
@@ -49,7 +49,12 @@ Deno.serve(serveJson(async (req, ctx) => {
   switch (body.action) {
     case 'start': {
       if (!scope.userId) throw new HttpError(400, 'Brak userId');
-      return await startConnection(db, scope.userId);
+      return await startConnection(db, scope.userId, body.aspsp && typeof body.aspsp === 'object' ? body.aspsp : undefined);
+    }
+    case 'banks': {
+      if (!scope.userId) throw new HttpError(400, 'Brak userId');
+      const country = typeof body.country === 'string' && /^[A-Z]{2}$/.test(body.country) ? body.country : 'PL';
+      return { banks: (await ebListAspsps(country)).map((b) => ({ name: b.name, country: b.country })) };
     }
     case 'sync': {
       // Użytkownik w aplikacji: jego nagłówki PSU idą do banku (zapytanie „online”). Klucz serwisowy (cron) działa „w tle”,
@@ -67,6 +72,6 @@ Deno.serve(serveJson(async (req, ctx) => {
     case 'set_category':
       return await setCategory(db, scope.userId, body);
     default:
-      throw new HttpError(400, 'Nieznana akcja (start | sync | categorize | set_category)');
+      throw new HttpError(400, 'Nieznana akcja (start | banks | sync | categorize | set_category)');
   }
 }, { auth: 'none' }));

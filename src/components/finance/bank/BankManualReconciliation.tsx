@@ -30,7 +30,7 @@ export function BankManualReconciliation({ accounts, manual, bank, pending, onRe
   const byFinance = new Map(accounts.flatMap(a => a.bank_account_id ? [[a.id, a.bank_account_id] as const] : []));
   const waiting = manual.filter(tx => tx.account_id && byFinance.has(tx.account_id) && !tx.bank_reconciled && !tx.bank_transaction_id);
   if (!waiting.length) return null;
-  return <FinanceSection title="Uzgodnij ręczne wpisy" subtitle="Wybierz, które pozycje są już w imporcie, a które są dodatkowe. Do tego czasu wspólne sumy Finansów czekają na uzgodnienie.">
+  return <FinanceSection title="Uzgodnij ręczne wpisy" footer="Wybierz, które pozycje są już w imporcie, a które są dodatkowe. Do tego czasu wspólne sumy Finansów czekają na uzgodnienie.">
     <FinanceList>{waiting.map(entry => <Entry key={entry.id} entry={entry} pending={pending} onResolve={onResolve}
       candidates={bank.filter(tx => tx.account_id === byFinance.get(entry.account_id!) && tx.currency === 'PLN' && isBankBooked(tx)
         && Math.round(tx.amount * 100) === Math.round(entry.amount * 100) && tx.booking_date

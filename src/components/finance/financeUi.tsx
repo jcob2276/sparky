@@ -7,20 +7,23 @@ const financeAmountClass = 'tabular-nums tracking-[var(--tracking-tight)]';
 export function FinanceSection({
   title,
   subtitle,
+  footer,
   children,
   className = '',
 }: {
   title?: string;
   subtitle?: string;
+  /** Small gray note under the group, like the footers in iOS Settings. */
+  footer?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section className={className}>
       {(title || subtitle) && (
-        <header className="mb-2.5 px-0.5">
+        <header className="mb-2 px-1">
           {title && (
-            <h2 className="text-sm font-medium text-text-muted">
+            <h2 className="ios-section-title">
               {title}
             </h2>
           )}
@@ -29,9 +32,10 @@ export function FinanceSection({
           )}
         </header>
       )}
-      <div className="overflow-hidden rounded-lg bg-surface-1/70 ring-1 ring-border-custom/25">
+      <div className="ios-group">
         {children}
       </div>
+      {footer && <div className="mt-2 space-y-1 px-4 text-xs leading-relaxed text-text-muted">{footer}</div>}
     </section>
   );
 }
@@ -74,11 +78,5 @@ export function FinanceRow({
 export function FinanceEmpty({ children }: { children: ReactNode }) {
   return (
     <p className="px-4 py-4 text-center text-sm leading-relaxed text-text-muted">{children}</p>
-  );
-}
-
-export function FinanceProse({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <p className={`text-base leading-[var(--line-height-reading)] text-text-secondary ${className}`}>{children}</p>
   );
 }

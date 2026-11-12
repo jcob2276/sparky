@@ -2,8 +2,8 @@
  * @function vanguard-push-reminder
  * @trigger pg_cron co minutę
  * @role Niezawodne, serwerowe przypomnienia: Web Push (PWA) + FCM (Capacitor APK).
- * @reads todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages, vanguard_calendar, vanguard_stream
- * @writes todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages
+ * @reads bank_accounts, bank_transactions, finance_category_budgets, finance_alert_log, todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages, vanguard_calendar, vanguard_stream
+ * @writes finance_alert_log, todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages
  * @consumer Service Worker (PWA) / FCM (Android APK)
  * @status active
  */
@@ -21,6 +21,7 @@ import {
 } from "@vanguard/domain";
 import { dispatchDueOutboundMessages } from "./outbound.ts";
 import { processAmbientSignals } from "./ambient.ts";
+import { processFinanceAlerts } from "./financeAlerts.ts";
 
 const CONTACT_EMAIL = "mailto:newsletter.jakub@gmail.com";
 /** Morning window start (Warsaw) for life-admin obligation pushes. */
@@ -262,6 +263,13 @@ Deno.serve(serveJson(async (_req, ctx) => {
   }
 
 
+  let sentFinance = 0;
+  try {
+    sentFinance = await processFinanceAlerts(supabase, warsawDate, warsawMinutes, sendToUser);
+  } catch (error: unknown) {
+    console.error("[push-reminder] finance alerts failed", error);
+  }
+
   const ambientResults = await processAmbientSignals(supabase, now);
   const sentOutbound = await dispatchDueOutboundMessages(supabase, nowIso);
 
@@ -270,6 +278,7 @@ Deno.serve(serveJson(async (_req, ctx) => {
     sent_supplements: sentSupplements,
     sent_obligations: sentObligations,
     sent_outbound: sentOutbound,
+    sent_finance_alerts: sentFinance,
     ambient_briefs: ambientResults.meeting_briefs,
     ambient_interventions: ambientResults.pattern_interventions,
     fcm_configured: fcmReady,

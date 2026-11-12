@@ -36,6 +36,8 @@ describe('bank view', () => {
   });
   it('keeps account management separate from transaction analysis', () => {
     const view = render(<FinanceBankView {...props} mode="accounts" />);
+    expect(screen.queryByText(/Aktualizacja transakcji:/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Rachunek …1234: szczegóły' }));
     expect(screen.getByText(/Aktualizacja transakcji:/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Szukaj transakcji')).not.toBeInTheDocument();
     view.rerender(<FinanceBankView {...props} />);

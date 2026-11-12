@@ -20,12 +20,11 @@ interface FinanceTabContentProps {
   holdingMutations: HoldingMutations;
   run: (fn: () => Promise<void>) => Promise<void>;
   saveProfilePatch: (patch: Record<string, number>) => void;
-  onQuickEntry: (kind: 'expense' | 'income') => void;
   onNavigate: (tab: FinanceTabKey) => void;
 }
 
 export function FinanceTabContent(props: FinanceTabContentProps) {
-  const { tab, data, metrics, holdings, portfolio, mutations, holdingMutations, run, saveProfilePatch, onQuickEntry, onNavigate } = props;
+  const { tab, data, metrics, holdings, portfolio, mutations, holdingMutations, run, saveProfilePatch, onNavigate } = props;
 
   if (tab === 'dashboard') {
     return (
@@ -35,7 +34,6 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
         holdings={holdings}
         portfolio={portfolio}
         onSaveTarget={(target) => saveProfilePatch({ net_worth_target: target })}
-        onQuickEntry={onQuickEntry}
         onNavigate={onNavigate}
         mutations={mutations}
         run={run}

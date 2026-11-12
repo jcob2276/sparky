@@ -1,32 +1,14 @@
 import { useState } from 'react';
 import { Target } from 'lucide-react';
-import type { FinanceSnapshot } from '../../lib/financeApi';
 import { formatMonths, formatPln } from '../../lib/finance/formatMoney';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
-import FinanceGoalScenarios from './FinanceGoalScenarios';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
 interface FinanceGoalCardProps {
   metrics: FinanceMetrics;
-  snapshots: FinanceSnapshot[];
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
   onSaveTarget: (target: number) => void;
-}
-
-function Sparkline({ values }: { values: number[] }) {
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const points = values
-    .map((value, index) => `${(index / (values.length - 1)) * 100},${28 - ((value - min) / span) * 24}`)
-    .join(' ');
-  return (
-    <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="h-12 w-full text-primary" aria-hidden="true">
-      <polyline points={points} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-    </svg>
-  );
 }
 
 function GoalEditor({ initial, onSave, onClose }: { initial: number; onSave: (target: number) => void; onClose: () => void }) {
@@ -66,14 +48,14 @@ function goalLine(metrics: FinanceMetrics): string {
       ? 'Przy obecnym tempie cel jest poza horyzontem 50 lat.'
       : 'Ustaw dochód i wydatki w Przepływach, żeby policzyć czas do celu.';
   }
-  return `Przy odkładaniu ${formatPln(monthlySaving)}/mies. i ${metrics.fireInput.expectedReturnPct}% rocznie: około ${formatMonths(goal.monthsToGoal)}.`;
+  return `Przy odkładaniu ${formatPln(monthlySaving)}/mies. i ${metrics.fireInput.expectedReturnPct}% rocznie: około ${formatMonths(goal.monthsToGoal).replace(/\.$/, '')}.`;
 }
 
-export function FinanceGoalCard({ metrics, snapshots, editing, onEditingChange, onSaveTarget }: FinanceGoalCardProps) {
+export function FinanceGoalCard({ metrics, editing, onEditingChange, onSaveTarget }: FinanceGoalCardProps) {
   const { goal } = metrics;
 
   return (
-    <section className="space-y-3 rounded-lg bg-surface-1 p-5" aria-label="Cel majątku">
+    <section className="space-y-3 p-5" aria-label="Cel majątku">
       <div className="flex items-center justify-between gap-3">
         <Pressable
           type="button"
@@ -99,10 +81,8 @@ export function FinanceGoalCard({ metrics, snapshots, editing, onEditingChange, 
         <div className="h-full rounded-full bg-primary transition-[width] duration-[var(--motion-slow)]" style={{ width: `${goal.progressPct}%` }} />
       </div>
       <p className="text-sm leading-relaxed text-text-secondary">
-        {goal.reached ? 'Cel osiągnięty.' : `Zostało ${formatPln(goal.remaining)}. `}{!goal.reached && goalLine(metrics)}
+        {goal.reached ? 'Cel osiągnięty.' : `Zostało ${formatPln(goal.remaining)}. ${goalLine(metrics)}`}
       </p>
-      <Sparkline values={snapshots.map((item) => item.net_worth)} />
-      <FinanceGoalScenarios metrics={metrics} />
       {editing && <GoalEditor initial={metrics.netWorthTarget} onSave={onSaveTarget} onClose={() => onEditingChange(false)} />}
     </section>
   );

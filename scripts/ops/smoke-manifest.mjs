@@ -50,6 +50,7 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "period-compare",
   "widget-food",
   "widget-tasks",
+  "widget-finance",
 ];
 
 

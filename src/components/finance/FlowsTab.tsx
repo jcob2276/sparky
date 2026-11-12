@@ -9,6 +9,8 @@ import { FinanceIncomePanel } from './FinanceFlowsPanels';
 import { FinanceBudgetField } from './FinanceBudgetField';
 import { FinanceBankCard } from './FinanceBankCard';
 import { FinanceManualHistory } from './FinanceManualHistory';
+import { FinanceMonthlyFlowsChart } from './FinanceMonthlyFlowsChart';
+import { FinanceLifeInsights } from './FinanceLifeInsights';
 import { FinanceTodayView } from './FinanceTodayView';
 import { FinanceSalesGoalCard } from './FinanceSalesGoalCard';
 import type { FinanceMetrics } from './useFinanceMetrics';
@@ -24,7 +26,7 @@ export interface FlowsTabProps {
 }
 
 const FLOW_TABS = [
-  { key: 'activity', label: 'Historia i wydatki' },
+  { key: 'activity', label: 'Transakcje' },
   { key: 'planning', label: 'Plan i stałe płatności' },
 ];
 
@@ -48,6 +50,8 @@ export function FlowsTab({
 
       {segment === 'activity' && (
         <div className="space-y-6">
+          <FinanceMonthlyFlowsChart transactions={data.transactions} />
+          <FinanceLifeInsights />
           <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => onNavigate('accounts')} />
           <FinanceManualHistory transactions={data.transactions.filter((tx) => tx.source !== 'bank')} />
         </div>
@@ -55,18 +59,17 @@ export function FlowsTab({
 
       {segment === 'planning' && (
         <div className="space-y-8">
-          <FinanceTodayView
-            metrics={metrics}
-            monthKey={metrics.monthKey}
-            cashflow={metrics.cashflowMonth}
-            todayDay={Number(getTodayWarsaw().slice(-2))}
-          />
           <div className="grid gap-8 lg:grid-cols-2">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-8">
               <FinanceBudgetField
                 key={metrics.effectiveExpenses}
                 monthlyExpenses={metrics.effectiveExpenses}
                 onSave={(amount) => saveProfilePatch({ monthly_expenses: amount })}
+              />
+              <FinanceTodayView
+                monthKey={metrics.monthKey}
+                cashflow={metrics.cashflowMonth}
+                todayDay={Number(getTodayWarsaw().slice(-2))}
               />
             </div>
             <FinanceIncomePanel

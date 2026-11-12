@@ -135,6 +135,12 @@ export async function ebAspsp(name: string, country: string): Promise<EbAspsp | 
   return res.aspsps?.find((a) => a.name === name) ?? null;
 }
 
+/** Banki dostępne w kraju (Polska domyślnie), do wyboru przy dodawaniu kolejnego rachunku. */
+export async function ebListAspsps(country: string): Promise<EbAspsp[]> {
+  const res = await call<{ aspsps?: EbAspsp[] }>('GET', `/aspsps?country=${encodeURIComponent(country)}`);
+  return (res.aspsps ?? []).sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+}
+
 export interface PsuInfo {
   ip?: string | null; userAgent?: string | null; accept?: string | null;
   acceptLanguage?: string | null; acceptEncoding?: string | null; referer?: string | null;

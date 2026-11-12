@@ -1,6 +1,6 @@
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { safeExecute } from '../../_shared/supabase.ts';
-import { ebCreateSession, ebStartAuth } from '../../_shared/enableBanking.ts';
+import { ebAspsp, ebCreateSession, ebStartAuth } from '../../_shared/enableBanking.ts';
 
 const DEFAULT_ASPSP = { name: 'Bank Pekao', country: 'PL' };
 const CONSENT_DAYS = 180;
@@ -10,16 +10,24 @@ function callbackUrl(): string {
 }
 
 /** Zaklada polaczenie 'pending' i zwraca adres zgody w banku (uzytkownik zatwierdza w aplikacji banku). */
-export async function startConnection(db: SupabaseClient, userId: string): Promise<{ url: string }> {
+export async function startConnection(db: SupabaseClient, userId: string, bank?: { name?: unknown; country?: unknown }): Promise<{ url: string }> {
+  const aspsp = typeof bank?.name === 'string' && bank.name
+    ? { name: bank.name.slice(0, 120), country: typeof bank.country === 'string' && /^[A-Z]{2}$/.test(bank.country) ? bank.country : DEFAULT_ASPSP.country }
+    : DEFAULT_ASPSP;
+  // Nazwa musi pochodzić z listy Enable Banking; zgoda nie może też trwać dłużej, niż bank dopuszcza.
+  const known = aspsp === DEFAULT_ASPSP ? null : await ebAspsp(aspsp.name, aspsp.country);
+  if (aspsp !== DEFAULT_ASPSP && !known) throw new Error('Nieznany bank');
   const state = crypto.randomUUID();
   const connection = await safeExecute(
     db.from('bank_connections')
-      .insert({ user_id: userId, aspsp_name: DEFAULT_ASPSP.name, aspsp_country: DEFAULT_ASPSP.country })
+      .insert({ user_id: userId, aspsp_name: aspsp.name, aspsp_country: aspsp.country })
       .select('id').single(),
   );
   await safeExecute(db.from('bank_connection_secrets').insert({ connection_id: connection.id, pending_state: state }));
-  const validUntil = new Date(Date.now() + CONSENT_DAYS * 86400e3).toISOString();
-  const { url } = await ebStartAuth({ aspsp: DEFAULT_ASPSP, state, redirectUrl: callbackUrl(), validUntil });
+  const maxSeconds = known?.maximum_consent_validity;
+  const consentMs = Math.min(CONSENT_DAYS * 86400e3, maxSeconds ? maxSeconds * 1000 : Infinity);
+  const validUntil = new Date(Date.now() + consentMs).toISOString();
+  const { url } = await ebStartAuth({ aspsp, state, redirectUrl: callbackUrl(), validUntil });
   return { url };
 }
 
@@ -30,7 +38,7 @@ export async function completeConnection(db: SupabaseClient, state: string, code
   );
   if (!secret) throw new Error('Forbidden unknown or used state');
   const connection = await safeExecute(
-    db.from('bank_connections').select('id, user_id').eq('id', secret.connection_id).single(),
+    db.from('bank_connections').select('id, user_id, aspsp_name, aspsp_country').eq('id', secret.connection_id).single(),
   );
   const session = await ebCreateSession(code);
   await safeExecute(
@@ -41,11 +49,12 @@ export async function completeConnection(db: SupabaseClient, state: string, code
       status: 'active', valid_until: session.access?.valid_until ?? null, last_error: null, updated_at: new Date().toISOString(),
     }).eq('id', connection.id),
   );
-  // Nowa zgoda zastępuje starsze aktywne połączenia tego banku (rachunki przejmujemy po IBAN niżej),
+  // Nowa zgoda zastępuje starsze aktywne połączenia TEGO SAMEGO banku (inne banki zostają) (rachunki przejmujemy po IBAN niżej),
   // inaczej stara zgoda zostałaby „aktywna” i alert o jej wygaśnięciu mylił.
   await safeExecute(
     db.from('bank_connections').update({ status: 'expired', last_note: 'Zastąpione nową zgodą.', updated_at: new Date().toISOString() })
-      .eq('user_id', connection.user_id).eq('status', 'active').neq('id', connection.id),
+      .eq('user_id', connection.user_id).eq('status', 'active').neq('id', connection.id)
+      .eq('aspsp_name', connection.aspsp_name).eq('aspsp_country', connection.aspsp_country),
   );
   for (const a of session.accounts) {
     const iban = a.account_id?.iban?.replace(/\s/g, '').toUpperCase() ?? null;

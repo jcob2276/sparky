@@ -2,6 +2,8 @@ import type { ValuedHolding } from '@vanguard/domain';
 import type { FinanceAccount } from '../../lib/financeApi';
 import { buildAllocationSlices } from '../../lib/finance/allocationSlices';
 import { formatPln } from '../../lib/finance/formatMoney';
+import { FinanceDonut } from './FinanceDonut';
+import { Money } from './FinanceMoney';
 import { FinanceEmpty, FinanceSection } from './financeUi';
 
 interface FinanceAllocationCardProps {
@@ -11,27 +13,26 @@ interface FinanceAllocationCardProps {
 
 export function FinanceAllocationCard({ accounts, holdings }: FinanceAllocationCardProps) {
   const slices = buildAllocationSlices(accounts, holdings);
+  const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
 
   return (
     <FinanceSection title="Gdzie jest majątek">
       {slices.length === 0 ? (
         <FinanceEmpty>Dodaj konta i pozycje, żeby zobaczyć podział majątku.</FinanceEmpty>
       ) : (
-        <ul className="space-y-3 px-4 py-4">
-          {slices.map((slice) => (
-            <li key={slice.key} className="space-y-1.5">
-              <div className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="font-medium text-text-primary">{slice.label}</span>
-                <span className="tabular-nums text-text-secondary">
-                  {formatPln(slice.amount)} · {slice.pct.toFixed(1).replace('.', ',')}%
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${slice.pct}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="px-0 py-4">
+          <FinanceDonut
+            ariaLabel="Podział majątku według rodzaju"
+            centerLabel="Razem z oszczędnościami"
+            center={<Money value={total} />}
+            slices={slices.map((slice) => ({
+              key: slice.key,
+              label: slice.label,
+              amount: slice.amount,
+              value: `${formatPln(slice.amount)} · ${slice.pct.toFixed(1).replace('.', ',')}%`,
+            }))}
+          />
+        </div>
       )}
     </FinanceSection>
   );
