@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
   server: {
     // Prefer HTTPS assets from the bundled dist; no live reload in production APK.
     androidScheme: 'https',
+    // iOS shell (sideloaded, re-signed every 7 days): `CAP_SERVER_URL=https://... npx cap sync ios` makes the app load the
+    // deployed site, so it is always the newest version without rebuilding the native shell. Unset = bundled dist.
+    ...(process.env.CAP_SERVER_URL ? { url: process.env.CAP_SERVER_URL, cleartext: false } : {}),
   },
   plugins: {
     SplashScreen: {
