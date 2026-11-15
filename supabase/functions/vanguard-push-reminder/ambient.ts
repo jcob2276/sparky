@@ -10,9 +10,16 @@ interface CalendarEventRow {
   category: string | null;
 }
 
+/** Dane odczytane z góry jednym RPC (push_reminder_snapshot); brak = odczyt zapytaniami jak dawniej. */
+export interface AmbientPreloaded {
+  recentAmbient: { send_after: string }[];
+  upcomingEvents: CalendarEventRow[];
+}
+
 export async function processAmbientSignals(
   supabase: SupabaseClient,
   now: Date,
+  preloaded?: AmbientPreloaded,
 ): Promise<{ meeting_briefs: number; pattern_interventions: number }> {
   let meetingBriefsCount = 0;
   let patternInterventionsCount = 0;
@@ -30,13 +37,15 @@ export async function processAmbientSignals(
   // Minimum 90 minutes cooldown between proactive ambient interruptions to prevent attention fatigue.
   try {
     const todayStartIso = `${warsawDate}T00:00:00.000Z`;
-    const { data: recentAmbient } = await supabase
-      .from("outbound_messages")
-      .select("send_after")
-      .gte("send_after", todayStartIso)
-      .not("dedupe_key", "is", null)
-      .order("send_after", { ascending: false })
-      .limit(5);
+    const recentAmbient = preloaded
+      ? preloaded.recentAmbient
+      : (await supabase
+        .from("outbound_messages")
+        .select("send_after")
+        .gte("send_after", todayStartIso)
+        .not("dedupe_key", "is", null)
+        .order("send_after", { ascending: false })
+        .limit(5)).data;
 
     if (recentAmbient && recentAmbient.length >= 3) {
       // Attention budget reached — respect user focus and remain silent
@@ -60,13 +69,15 @@ export async function processAmbientSignals(
     const minStartIso = new Date(nowMs + 3 * 60 * 1000).toISOString();
     const maxStartIso = new Date(nowMs + 25 * 60 * 1000).toISOString();
 
-    const { data: upcomingEvents, error: calErr } = await supabase
-      .from("vanguard_calendar")
-      .select("id, user_id, summary, start_time, end_time, category")
-      .gte("start_time", minStartIso)
-      .lte("start_time", maxStartIso)
-      .order("start_time", { ascending: true })
-      .limit(5);
+    const { data: upcomingEvents, error: calErr } = preloaded
+      ? { data: preloaded.upcomingEvents, error: null }
+      : await supabase
+        .from("vanguard_calendar")
+        .select("id, user_id, summary, start_time, end_time, category")
+        .gte("start_time", minStartIso)
+        .lte("start_time", maxStartIso)
+        .order("start_time", { ascending: true })
+        .limit(5);
 
     if (!calErr && upcomingEvents && upcomingEvents.length > 0) {
       for (const event of upcomingEvents as CalendarEventRow[]) {
