@@ -1,6 +1,23 @@
 {
   "rewrites": [
-    { "source": "/oura-api/:path*", "destination": "https://api.ouraring.com/:path*" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/lukasz/:path*",
+      "destination": "https://finanse-lukasz.vercel.app/lukasz/:path*"
+    },
+    {
+      "source": "/oura-api/:path*",
+      "destination": "https://api.ouraring.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/lukasz",
+      "destination": "/lukasz/",
+      "permanent": false
+    }
   ]
 }
