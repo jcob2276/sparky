@@ -372,7 +372,7 @@ function renderAudit(){
 let logTimer=null,viewerMode="";
 function openViewer(title,meta,btns){
   $("#vTitle").textContent=title;setText($("#vMeta"),meta);
-  $("#vBody").hidden=false;$("#vEdit").hidden=true;$("#vBody").textContent="";
+  $("#vBody").hidden=false;$("#vEdit").hidden=true;$("#vBody").textContent="";$("#vBody").classList.remove("media");
   $("#vBtns").innerHTML=btns;
   if(!$("#viewer").open)$("#viewer").showModal();
 }
@@ -393,6 +393,7 @@ async function showLogs(kind,name){
   $("#vClose").onclick=()=>$("#viewer").close();
   await draw();logTimer=setInterval(draw,3000);
 }
+const previewOf=p=>{const e=(p.split(".").pop()||"").toLowerCase();return e==="pdf"?"pdf":["png","jpg","jpeg","gif","webp","svg"].includes(e)?"img":["mp4","webm","mov"].includes(e)?"video":["mp3","wav","ogg","m4a"].includes(e)?"audio":""};
 async function showFile(path){
   viewerMode="file";
   openViewer(path,"Ładowanie…",`<button class="soft sm" id="vClose" type="button">Zamknij</button>`);
@@ -401,7 +402,16 @@ async function showFile(path){
     const r=await api("/api/cat?path="+encodeURIComponent(path));
     const dl=`<button class="soft sm" id="vDl" type="button">${icon("down")}Pobierz</button>`;
     if(r.error){setText($("#vMeta"),"Błąd: "+r.error);return}
-    if(r.kind==="binary"){setText($("#vMeta"),`Plik binarny, ${fmt(r.size)}. Podgląd tekstu niedostępny.`);$("#vBtns").innerHTML=dl+`<button class="soft sm" id="vClose" type="button">Zamknij</button>`}
+    const pv=previewOf(path);
+    if(r.kind==="binary"&&pv){
+      setText($("#vMeta"),`${fmt(r.size)} · podgląd`);
+      const url=`/api/download?inline=1&path=${encodeURIComponent(path)}&token=${encodeURIComponent(TOKEN)}`,b=$("#vBody");
+      b.textContent="";b.classList.add("media");
+      const el=pv==="pdf"?Object.assign(document.createElement("iframe"),{title:"Podgląd PDF"}):pv==="img"?Object.assign(document.createElement("img"),{alt:path}):Object.assign(document.createElement(pv),{controls:true});
+      el.src=url;b.append(el);
+      $("#vBtns").innerHTML=dl+`<button class="soft sm" id="vClose" type="button">Zamknij</button>`;
+    }
+    else if(r.kind==="binary"){setText($("#vMeta"),`Plik binarny, ${fmt(r.size)}. Podgląd tekstu niedostępny.`);$("#vBtns").innerHTML=dl+`<button class="soft sm" id="vClose" type="button">Zamknij</button>`}
     else if(r.kind==="none"){setText($("#vMeta"),"To nie jest zwykły plik.")}
     else{
       setText($("#vMeta"),`${fmt(r.size)}${r.truncated?" · pokazano pierwsze 200 KB (edycja wyłączona)":""}`);$("#vBody").textContent=r.text||"(pusty plik)";

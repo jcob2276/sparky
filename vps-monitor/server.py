@@ -610,14 +610,18 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/logs":
                 return self.js(api_logs(q.get("kind", [""])[0], q.get("name", [""])[0]))
             if u.path == "/api/download":
-                return self.download(path)
+                return self.download(path, q.get("inline", ["0"])[0] == "1")
             self.send(404, "nie ma", "text/plain")
         except ApiError as e:
             self.js({"error": e.msg})
         except Exception as e:
             self.js({"error": str(e)})
 
-    def download(self, path):
+    PREVIEW = {"pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "gif": "image/gif",
+               "webp": "image/webp", "svg": "image/svg+xml", "mp4": "video/mp4", "webm": "video/webm", "mov": "video/quicktime",
+               "mp3": "audio/mpeg", "wav": "audio/wav", "ogg": "audio/ogg", "m4a": "audio/mp4"}
+
+    def download(self, path, inline=False):
         P = shlex.quote(path)
         rc, out, _ = run_rc(f'if [ -d {P} ]; then echo d; elif [ -f {P} ]; then stat -L -c %s {P}; else echo none; fi', 20)
         out = out.strip()
@@ -628,11 +632,19 @@ class H(BaseHTTPRequestHandler):
             cmd, fname, length = f"tar czf - -C {shlex.quote(posixpath.dirname(path) or '/')} {shlex.quote(name)}", name + ".tar.gz", None
         else:
             cmd, fname, length = f"cat -- {P}", name, int(out)
-        audit("pobranie", path, True)
+        mime = self.PREVIEW.get(name.rsplit(".", 1)[-1].lower()) if inline and out != "d" else None
+        audit("podgląd" if mime else "pobranie", path, True)
         proc = subprocess.Popen(argv(cmd), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         self.send_response(200)
-        self.send_header("Content-Type", "application/octet-stream")
-        self.send_header("Content-Disposition", f"attachment; filename*=UTF-8''{quote(fname)}")
+        if mime:
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Disposition", f"inline; filename*=UTF-8''{quote(fname)}")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            if mime != "application/pdf":  # Chrome nie otwiera PDF-ów z sandboxem
+                self.send_header("Content-Security-Policy", "sandbox")
+        else:
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Disposition", f"attachment; filename*=UTF-8''{quote(fname)}")
         if length is not None:
             self.send_header("Content-Length", str(length))
         self.end_headers()
