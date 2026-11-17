@@ -56,11 +56,11 @@ def to_memos(row, tag):
     body = {"content": f"{text}\n\n#telegram {tag}", "visibility": "PRIVATE", "createTime": row["created_at"]}
     h = {"Authorization": "Bearer " + TOKEN, "Content-Type": "application/json"}
     try:
-        return http(f"{MEMOS}/api/v1/memos", h, body)
+        return http(f"{MEMOS}/api/memos", h, body)
     except urllib.error.HTTPError as e:
         if e.code == 400:  # część wersji nie pozwala ustawić createTime: wyślij bez niego
             body.pop("createTime")
-            return http(f"{MEMOS}/api/v1/memos", h, body)
+            return http(f"{MEMOS}/api/memos", h, body)
         raise
 
 
