@@ -65,15 +65,11 @@
       <div><strong id="brandName">VPS</strong><span id="brandSub">łączenie…</span></div>
     </div>
     <nav id="nav" aria-label="Sekcje">
-      <button data-page="dash"><svg class="ic"><use href="#i-dash"/></svg><span>Pulpit</span></button>
-      <button data-page="files"><svg class="ic"><use href="#i-folder"/></svg><span>Pliki</span></button>
-      <button data-page="containers"><svg class="ic"><use href="#i-box"/></svg><span>Kontenery</span><em id="nbContainers"></em></button>
-      <button data-page="services"><svg class="ic"><use href="#i-server"/></svg><span>Usługi</span><em id="nbServices"></em></button>
-      <button data-page="procs"><svg class="ic"><use href="#i-cpu"/></svg><span>Procesy</span></button>
-      <button data-page="net"><svg class="ic"><use href="#i-net"/></svg><span>Sieć i mapa</span></button>
-      <button data-page="backup"><svg class="ic"><use href="#i-cloud"/></svg><span>Kopie zapasowe</span></button>
-      <button data-page="soft"><svg class="ic"><use href="#i-pkg"/></svg><span>Oprogramowanie</span></button>
-      <button data-page="audit"><svg class="ic"><use href="#i-act"/></svg><span>Dziennik akcji</span></button>
+      <button data-group="dash" data-page="dash"><svg class="ic"><use href="#i-dash"/></svg><span>Pulpit</span></button>
+      <button data-group="files" data-page="files"><svg class="ic"><use href="#i-folder"/></svg><span>Pliki i kopie</span></button>
+      <button data-group="server" data-page="containers"><svg class="ic"><use href="#i-server"/></svg><span>Serwer</span></button>
+      <button data-group="net" data-page="net"><svg class="ic"><use href="#i-net"/></svg><span>Sieć i dziennik</span></button>
+      <span hidden id="nbContainers"></span><span hidden id="nbServices"></span>
     </nav>
     <div class="sidefoot">
       <div class="live" id="live" data-state="wait"><i></i><span id="liveTxt">łączenie</span></div>
@@ -90,6 +86,7 @@
       </div>
       <div class="top-actions" id="topActions"></div>
     </header>
+    <div class="subtabs" id="subtabs" role="tablist" aria-label="Podsekcje"></div>
 
     <!-- PULPIT -->
     <section class="page" id="page-dash">

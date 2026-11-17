@@ -104,10 +104,19 @@ function navPush(replace){
   navCur=h;
   try{(replace?history.replaceState:history.pushState).call(history,s,"",h)}catch(e){}
 }
+/* Menu ma cztery grupy; w grupie z kilkoma stronami nad treścią pokazują się zakładki */
+const GROUPS=[{id:"dash",pages:["dash"]},{id:"files",pages:["files","backup"]},{id:"server",pages:["containers","services","procs","soft"]},{id:"net",pages:["net","audit"]}];
+const groupOf=p=>GROUPS.find(g=>g.pages.includes(p))||GROUPS[0],lastIn={};
+function renderSubtabs(){
+  const g=groupOf(page),cnt={containers:"#nbContainers",services:"#nbServices"};
+  setHTML($("#subtabs"),g.pages.length>1?g.pages.map(k=>{const n=cnt[k]&&$(cnt[k]).textContent;return `<button type="button" role="tab" data-page="${k}" aria-selected="${k===page}" aria-current="${k===page?"page":"false"}">${esc(PAGES[k][0])}${n?`<em>${esc(n)}</em>`:""}</button>`}).join(""):"");
+}
 function show(p,opt={}){
   if(!PAGES[p])p="dash";page=p;
   $$(".page").forEach(s=>s.hidden=s.id!=="page-"+p);
-  $$("#nav button,#tabbar button").forEach(b=>b.setAttribute("aria-current",b.dataset.page===p?"page":"false"));
+  const g=groupOf(p);lastIn[g.id]=p;
+  $$("#nav button,#tabbar button").forEach(b=>{const on=b.dataset.group===g.id;if(on)b.dataset.page=p;b.setAttribute("aria-current",on?"page":"false")});
+  renderSubtabs();
   setText($("#pageTitle"),PAGES[p][0]);setText($("#pageSub"),PAGES[p][1]);
   document.title=PAGES[p][0]+" · Centrum VPS";
   if(!opt.nav)navPush(opt.replace);
@@ -120,7 +129,7 @@ function show(p,opt={}){
 }
 /* Skróty do aplikacji: adres bierzemy z tej samej nazwy hosta, pod którą otwarto panel (np. sparky-vps). */
 $$("#apps a").forEach(a=>{a.href=`http://${location.hostname}${a.dataset.port?":"+a.dataset.port:""}/`;a.target="_blank";a.rel="noopener"});
-$("#tabbar").innerHTML=$$("#nav button").map(b=>`<button data-page="${b.dataset.page}">${b.querySelector("svg").outerHTML}<span>${b.querySelector("span").textContent}</span></button>`).join("");
+$("#tabbar").innerHTML=$$("#nav button").map(b=>`<button data-group="${b.dataset.group}" data-page="${b.dataset.page}">${b.querySelector("svg").outerHTML}<span>${b.querySelector("span").textContent}</span></button>`).join("");
 document.addEventListener("click",e=>{
   const sb=e.target.closest(".sortb");if(sb){F.sort=sb.dataset.sort;store.set("vpsc-fsort",F.sort);renderFiles();return}
   const n=e.target.closest("[data-page]");if(n){show(n.dataset.page);return}
@@ -170,6 +179,7 @@ function renderLive(r){
   renderAll();
 }
 function renderAll(){
+  renderSubtabs();
   if(!S.live)return;
   if(page==="dash")renderDash();
   if(page==="procs")renderProcs();

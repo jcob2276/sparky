@@ -388,3 +388,13 @@
   #vBody.media img,#vBody.media video{max-width:100%;max-height:72vh;border-radius:12px}
   #vBody.media audio{width:min(32rem,100%)}
 }
+
+@layer components{
+  .subtabs{display:flex;gap:.375rem;flex-wrap:wrap;margin:-.5rem 0 1.25rem}
+  .subtabs:empty{display:none}
+  .subtabs button{display:inline-flex;align-items:center;gap:.5rem;border:0;border-radius:999px;padding:.4375rem .9375rem;background:var(--surface-2);color:var(--muted);font-size:.875rem;font-weight:560;transition:background 160ms,color 160ms,transform 160ms var(--ease-out)}
+  .subtabs button:active{transform:scale(.97)}
+  .subtabs button[aria-current=page]{background:var(--surface);color:var(--text);box-shadow:var(--shadow),0 0 0 1px var(--hair)}
+  .subtabs em{font-style:normal;font-size:.75rem;color:var(--muted);background:var(--surface-3);padding:0 .4375rem;border-radius:999px}
+  @media (max-width:60rem){.subtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-1rem;padding-inline:1rem}.subtabs button{flex:none}}
+}
