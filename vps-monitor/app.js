@@ -799,4 +799,97 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
   d.addEventListener("close",pop);
   addEventListener("popstate",()=>{popping=false});
 })();
+/* ============ dodatki: alerty, przypięte foldery, wyszukiwarka (Ctrl/Cmd+K) ============ */
+(()=>{
+  const st=document.createElement("style");
+  st.textContent=`
+  #alerts{display:grid;gap:.5rem;margin-bottom:1rem}
+  #alerts:empty{display:none}
+  .alrt{display:flex;gap:.75rem;align-items:center;justify-content:space-between;padding:.625rem .875rem;border-radius:12px;font-size:.875rem;background:color-mix(in oklab,var(--c) 14%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--c) 40%,transparent);border:0;color:var(--text);text-align:left;width:100%}
+  .alrt[data-k=bad]{--c:var(--bad)}.alrt[data-k=warn]{--c:var(--warn)}
+  .alrt b{color:var(--c)}
+  .pin{margin-left:.5rem}
+  .place.pinned span::before{content:"★ ";color:var(--warn)}
+  #pal{width:min(34rem,calc(100vw - 2rem));padding:0;margin-top:12vh}
+  #pal input{width:100%;border:0;outline:0;background:transparent;padding:1rem 1.25rem;font-size:1rem;border-bottom:1px solid var(--hair)}
+  #pal ul{list-style:none;margin:0;padding:.375rem;max-height:50vh;overflow:auto}
+  #pal li{display:flex;justify-content:space-between;gap:1rem;padding:.5rem .75rem;border-radius:10px;cursor:pointer;font-size:.9375rem}
+  #pal li small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #pal li[aria-selected=true]{background:color-mix(in oklab,var(--accent) 16%,transparent)}
+  #pal .hint{padding:.5rem 1rem;font-size:.75rem;color:var(--muted);border-top:1px solid var(--hair)}`;
+  document.head.appendChild(st);
+
+  /* --- alerty na pulpicie, liczone z danych na żywo --- */
+  const box=document.createElement("div");box.id="alerts";$("#page-dash").prepend(box);
+  function alerts(){
+    const out=[],L=S.live;if(!L)return out;
+    const d=L.disks.find(x=>x.mount==="/")||L.disks[0];
+    if(d){const p=100*d.used/d.size;if(p>=85)out.push({k:p>=93?"bad":"warn",t:`Dysk zapełniony w ${p.toFixed(0)}%, wolne ${fmt(d.size-d.used)}`,go:"files"})}
+    const rp=100*L.mem.used/L.mem.total;if(rp>=90)out.push({k:"warn",t:`Pamięć RAM zajęta w ${rp.toFixed(0)}%`,go:"procs"});
+    if(L.mem.swap_total&&L.mem.swap_used/L.mem.swap_total>.5)out.push({k:"warn",t:"Swap zajęty w ponad połowie, serwerowi brakuje pamięci",go:"procs"});
+    const f=(S.services||[]).filter(s=>s.active==="failed");
+    if(f.length)out.push({k:"bad",t:`Usługi z błędem: ${f.slice(0,3).map(s=>s.name||s.unit).join(", ")}${f.length>3?"…":""}`,go:"services"});
+    const dn=(S.docker?.containers||[]).filter(c=>c.state!=="running");
+    if(dn.length)out.push({k:"warn",t:`Kontenery nie działają: ${dn.slice(0,3).map(c=>c.name).join(", ")}${dn.length>3?"…":""}`,go:"containers"});
+    return out;
+  }
+  const rd=renderDash;
+  renderDash=function(){rd();
+    box.innerHTML=alerts().map(a=>`<button class="alrt" data-k="${a.k}" data-page="${a.go}" type="button"><span><b>${a.k==="bad"?"Uwaga":"Zwróć uwagę"}</b> · ${esc(a.t)}</span><span class="muted small">Pokaż ›</span></button>`).join("")};
+
+  /* --- przypięte foldery --- */
+  const pins=()=>{try{return JSON.parse(localStorage.getItem("vpsc-pins")||"[]")}catch(e){return[]}};
+  const savePins=l=>{try{localStorage.setItem("vpsc-pins",JSON.stringify(l))}catch(e){}};
+  const lab=p=>p.split("/").filter(Boolean).pop()||"/";
+  function drawPins(){
+    const pl=pins(),known=new Set(PLACES.map(x=>x[0]));
+    $("#places").innerHTML=PLACES.map(([p,l,i])=>`<button class="place" data-p="${esc(p)}" type="button">${icon(i)}<span>${esc(l)}</span></button>`).join("")
+      +pl.filter(p=>!known.has(p)).map(p=>`<button class="place pinned" data-p="${esc(p)}" type="button" title="${esc(p)}">${icon("folder")}<span>${esc(lab(p))}</span></button>`).join("");
+    $$("#places .place").forEach(b=>b.setAttribute("aria-current",b.dataset.p===F.cwd));
+    const b=$("#pinBtn");if(b){const on=pl.includes(F.cwd);b.textContent=on?"★ Przypięte":"☆ Przypnij";b.title=on?"Odepnij ten folder":"Przypnij ten folder do listy Miejsca"}
+  }
+  const tools=document.querySelector(".fm-tools"),pb=document.createElement("button");
+  pb.id="pinBtn";pb.type="button";pb.className="soft sm pin";tools.appendChild(pb);
+  pb.onclick=()=>{let l=pins();l=l.includes(F.cwd)?l.filter(x=>x!==F.cwd):[...l,F.cwd];savePins(l);drawPins()};
+  const rc=renderCrumbs;renderCrumbs=function(){rc();drawPins()};drawPins();
+
+  /* --- wyszukiwarka --- */
+  const dlg=document.createElement("dialog");dlg.id="pal";dlg.setAttribute("aria-label","Szukaj");
+  dlg.innerHTML=`<input id="palQ" type="search" placeholder="Szukaj: strony, aplikacje, foldery, pliki, kontenery…" autocomplete="off"><ul id="palL" role="listbox"></ul><div class="hint">↑↓ wybór · Enter otwórz · Esc zamknij</div>`;
+  document.body.appendChild(dlg);
+  let items=[],sel=0;
+  const goPath=p=>{show("files");F.mode="dir";F.filter="";$("#fq").value="";loadDir(p)};
+  function all(){
+    const r=[];
+    Object.keys(PAGES).forEach(k=>r.push({t:PAGES[k][0],s:"strona",run:()=>show(k)}));
+    $$("#apps a").forEach(a=>r.push({t:a.textContent.trim(),s:"aplikacja",run:()=>window.open(a.href,"_blank","noopener")}));
+    PLACES.forEach(([p,l])=>r.push({t:l,s:p,run:()=>goPath(p)}));
+    pins().forEach(p=>r.push({t:"★ "+lab(p),s:p,run:()=>goPath(p)}));
+    (S.docker?.containers||[]).forEach(c=>r.push({t:c.name,s:"kontener · "+c.state,run:()=>show("containers")}));
+    (S.services||[]).forEach(s=>r.push({t:s.name||s.unit,s:"usługa · "+s.active,run:()=>show("services")}));
+    (F.items||[]).forEach(i=>r.push({t:i.name,s:(i.type==="d"?"folder":"plik")+" w "+F.cwd,run:()=>{const p=(F.cwd==="/"?"":F.cwd)+"/"+i.name;if(i.type==="d")goPath(p);else{show("files");showFile(p)}}}));
+    return r;
+  }
+  function draw(){
+    const q=$("#palQ").value.trim().toLowerCase(),src=all();
+    items=(q?src.filter(x=>(x.t+" "+x.s).toLowerCase().includes(q)):src.slice(0,12)).slice(0,30);
+    if(sel>=items.length)sel=0;
+    $("#palL").innerHTML=items.length?items.map((x,i)=>`<li role="option" data-i="${i}" aria-selected="${i===sel}"><span>${esc(x.t)}</span><small>${esc(x.s)}</small></li>`).join(""):`<li class="muted">Nic nie znaleziono</li>`;
+  }
+  const run=i=>{const x=items[i];if(!x)return;dlg.close();x.run()};
+  $("#palQ").oninput=()=>{sel=0;draw()};
+  $("#palQ").onkeydown=e=>{
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();sel=(sel+(e.key==="ArrowDown"?1:-1)+items.length)%Math.max(items.length,1);draw();const li=$("#palL [aria-selected=true]");li&&li.scrollIntoView({block:"nearest"})}
+    else if(e.key==="Enter"){e.preventDefault();run(sel)}
+  };
+  $("#palL").onclick=e=>{const li=e.target.closest("[data-i]");if(li)run(+li.dataset.i)};
+  dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+  const openPal=()=>{if($("#viewer").open||$("#dlg").open)return;$("#palQ").value="";sel=0;draw();dlg.showModal();$("#palQ").focus()};
+  addEventListener("keydown",e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();dlg.open?dlg.close():openPal()}
+    else if(e.key==="/"&&!dlg.open&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();openPal()}
+  });
+  const hb=$("#theme")?.parentElement;
+  if(hb){const b=document.createElement("button");b.type="button";b.className="soft sm";b.textContent="Szukaj ⌘K";b.title="Szukaj w panelu (Ctrl/Cmd+K albo /)";b.onclick=openPal;hb.prepend(b)}
+})();
 boot();
