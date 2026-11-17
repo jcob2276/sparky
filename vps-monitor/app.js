@@ -520,7 +520,7 @@ function renderFiles(){
     const upCell=canUp?`<div class="fi up" role="button" tabindex="0" data-up="1" title="Folder wyżej"><div class="g"><svg viewBox="0 0 24 24"><use href="#i-uparrow"/></svg></div><div class="nm">Wyżej</div><div class="sz"></div></div>`:"";
     setHTML($("#fmBody"),`<div class="fgrid${F.selectMode?" sm":""}">${upCell}${vis.map(i=>{
       const d=i.type==="d",sz=sizeOf(i),e=extOf(i.name);
-      return `<div class="fi" role="option" tabindex="0" aria-selected="${F.sel.has(i.name)}" data-name="${esc(i.name)}" data-t="${i.type}" data-cat="${catOf(i.name)}" title="${esc(i.name)}">${cb}<div class="g"><svg viewBox="0 0 24 24"><use href="#i-${d?"folder":"file"}"/></svg>${!d&&e?`<b>${esc(e)}</b>`:""}</div><div class="nm">${esc(i.name)}</div><div class="sz">${sz==null?"":fmt(sz)}</div><div class="dt" title="Dodano na serwer">${esc((i.ctime||"").slice(0,16))}</div></div>`}).join("")}</div>`);
+      return `<div class="fi" role="option" tabindex="0" aria-selected="${F.sel.has(i.name)}" data-name="${esc(i.name)}" data-t="${i.type}" data-cat="${catOf(i.name)}" title="${esc(i.name)}">${cb}<div class="g"><svg viewBox="0 0 24 24"><use href="#i-${d?"folder":"file"}"/></svg>${!d&&e?`<b>${esc(e)}</b>`:""}</div><div class="nm">${esc(i.name)}</div><div class="sz">${sz==null?"":fmt(sz)}</div><div class="dt" title="Dodano na serwer">${esc((i.ctime||"").slice(5,16))}</div></div>`}).join("")}</div>`);
   }
 }
 function renderTrash(){
@@ -820,6 +820,20 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
   .alrt b{color:var(--c)}
   .pin{margin-left:.5rem}
   .place.pinned span::before{content:"★ ";color:var(--warn)}
+  .plabel{font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:.875rem .625rem .25rem}
+  .place.sys{font-size:.8125rem;color:var(--muted)}.place.sys .ic{color:var(--muted)}
+  .fm-tools{flex-wrap:wrap}
+  @media (max-width:60rem){
+    .fm-side{display:block!important;overflow-x:auto;scrollbar-width:none;padding:.75rem 1rem 0;background:none}
+    .fm-side::-webkit-scrollbar{display:none}
+    .fm-side h2,.plabel{display:none}
+    #places{display:flex;gap:.375rem}
+    .place{width:auto;flex:none;white-space:nowrap;background:var(--surface-2);padding:.5rem .875rem;border-radius:999px}
+    .place .ic{width:1rem;height:1rem}
+    .place[aria-current=true]{background:color-mix(in oklab,var(--accent) 18%,var(--surface));box-shadow:inset 0 0 0 1.5px var(--accent)}
+    .fm-tools{width:100%}.fm-tools .search{flex:1;min-width:0}
+    .fm-side{min-width:0}
+  }
   #pal{width:min(34rem,calc(100vw - 2rem));padding:0;margin-top:12vh}
   #pal input{width:100%;border:0;outline:0;background:transparent;padding:1rem 1.25rem;font-size:1rem;border-bottom:1px solid var(--hair)}
   #pal ul{list-style:none;margin:0;padding:.375rem;max-height:50vh;overflow:auto}
@@ -851,12 +865,16 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
   const pins=()=>{try{return JSON.parse(localStorage.getItem("vpsc-pins")||"[]")}catch(e){return[]}};
   const savePins=l=>{try{localStorage.setItem("vpsc-pins",JSON.stringify(l))}catch(e){}};
   const lab=p=>p.split("/").filter(Boolean).pop()||"/";
+  const MAIN=["/home/ubuntu","/home/ubuntu/projekty","/home/ubuntu/studia","/home/ubuntu/archiwa"];
+  const btn=(p,l,c="")=>`<button class="place ${c}" data-p="${esc(p)}" type="button" title="${esc(p)}">${icon("folder")}<span>${esc(l)}</span></button>`;
   function drawPins(){
     const pl=pins(),known=new Set(PLACES.map(x=>x[0]));
-    $("#places").innerHTML=PLACES.map(([p,l,i])=>`<button class="place" data-p="${esc(p)}" type="button">${icon(i)}<span>${esc(l)}</span></button>`).join("")
-      +pl.filter(p=>!known.has(p)).map(p=>`<button class="place pinned" data-p="${esc(p)}" type="button" title="${esc(p)}">${icon("folder")}<span>${esc(lab(p))}</span></button>`).join("");
+    const main=PLACES.filter(x=>MAIN.includes(x[0])),sys=PLACES.filter(x=>!MAIN.includes(x[0])),mine=pl.filter(p=>!known.has(p));
+    $("#places").innerHTML=main.map(([p,l])=>btn(p,l)).join("")
+      +(mine.length?`<div class="plabel">Przypięte</div>`+mine.map(p=>btn(p,lab(p),"pinned")).join(""):"")
+      +`<div class="plabel">System</div>`+sys.map(([p,l])=>btn(p,l,"sys")).join("");
     $$("#places .place").forEach(b=>b.setAttribute("aria-current",b.dataset.p===F.cwd));
-    const b=$("#pinBtn");if(b){const on=pl.includes(F.cwd);b.textContent=on?"★ Przypięte":"☆ Przypnij";b.title=on?"Odepnij ten folder":"Przypnij ten folder do listy Miejsca"}
+    const b=$("#pinBtn");if(b){const on=pl.includes(F.cwd);b.textContent=on?"★":"☆";b.title=on?"Odepnij ten folder":"Przypnij ten folder do listy Miejsca";b.setAttribute("aria-label",b.title)}
   }
   const tools=document.querySelector(".fm-tools"),pb=document.createElement("button");
   pb.id="pinBtn";pb.type="button";pb.className="soft sm pin";tools.appendChild(pb);
