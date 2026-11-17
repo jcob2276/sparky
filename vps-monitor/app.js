@@ -920,4 +920,37 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
   const hb=$("#theme")?.parentElement;
   if(hb){const b=document.createElement("button");b.type="button";b.className="soft sm";b.textContent="Szukaj ⌘K";b.title="Szukaj w panelu (Ctrl/Cmd+K albo /)";b.onclick=openPal;hb.prepend(b)}
 })();
+/* ============ pulpit: stan i bezpieczeństwo oraz Sparky/Memos ============ */
+(()=>{
+  const row=(k,label,val)=>`<div class="row"><span>${esc(label)}</span><span class="pill" data-k="${k}">${esc(val)}</span></div>`;
+  async function loadHealth(){
+    let h,b;
+    try{let bk;[h,bk]=await Promise.all([api("/api/health"),api("/api/backup")]);b=bk.status||{}}catch(e){setHTML($("#health"),'<p class="empty">Nie udało się sprawdzić stanu serwera.</p>');return}
+    const rows=[],n=x=>parseInt(x,10)||0;
+    rows.push(["Port 22 (SSH) z internetu",n(h.ssh22_open)===0?["ok","zamknięty"]:["bad","otwarty"]]);
+    rows.push(["Poprawki bezpieczeństwa",n(h.autoupdate)?["ok","instalują się same"]:["warn","wyłączone"]]);
+    rows.push(["Aktualizacje do zainstalowania",n(h.upgrades)===0?["ok","brak"]:["warn",h.upgrades+" czeka"]]);
+    rows.push(["Restart serwera",n(h.reboot)?["warn","wymagany"]:n(h.autoreboot)?["ok","niepotrzebny, nocny o 4:30"]:["ok","niepotrzebny"]]);
+    const t=b&&b.last_ok?new Date(b.last_ok):null,age=t?(Date.now()-t)/36e5:null;
+    rows.push(["Ostatnia kopia zapasowa",!t?["bad","brak"]:b.state==="failed"?["bad","błąd"]:age>36?["warn",when(b.last_ok)]:["ok",when(b.last_ok)]]);
+    rows.push(["fail2ban (blokada zgadywania haseł)",h.fail2ban==="active"?["ok",`działa, zablokowano ${n(h.banned)}`]:["bad","nie działa"]]);
+    const bad=rows.filter(r=>r[1][0]==="bad").length,warn=rows.filter(r=>r[1][0]==="warn").length;
+    const head=bad?`<p class="small" style="color:var(--bad);margin:0 0 .5rem"><b>Wymaga uwagi:</b> ${bad} ${bad===1?"rzecz":"rzeczy"}</p>`:warn?`<p class="small" style="color:var(--warn);margin:0 0 .5rem"><b>Do sprawdzenia:</b> ${warn}</p>`:`<p class="small" style="color:var(--good);margin:0 0 .5rem"><b>Wszystko w porządku</b></p>`;
+    setHTML($("#health"),head+rows.map(r=>row(r[1][0],r[0],r[1][1])).join(""));
+  }
+  async function loadSparky(){
+    let s;try{s=await api("/api/sparky")}catch(e){setHTML($("#sparky"),'<p class="empty">Nie udało się sprawdzić.</p>');return}
+    const n=x=>parseInt(x,10)||0,up=x=>x==="running",keys=n(s.key_SPARKY_KEY)&&n(s.key_SPARKY_USER_ID)&&n(s.key_MEMOS_TOKEN);
+    const rows=[];
+    rows.push(["Memos",up(s["memos-memos-1"])?["ok","działa"]:["bad",s["memos-memos-1"]||"brak"]]);
+    rows.push(["Notatki w Memos",["ok",String(n(s.memos_notes))]]);
+    rows.push(["Most Memos → Sparky",!up(s["memos-bridge-1"])?["bad","zatrzymany"]:keys?["ok","działa"]:["warn","czeka na klucze"]]);
+    rows.push(["Lustro Telegram → Memos",!up(s["memos-mirror-1"])?["bad","zatrzymane"]:keys?["ok",`przepisano w 24 h: ${n(s.mirrored24h)}`]:["warn","czeka na klucze"]]);
+    const hint=keys?"":`<p class="small muted pretty" style="margin:.75rem 0 0">Most i lustro są uruchomione, ale nie mają jeszcze kluczy Sparky’ego (plik <code>/opt/memos/bridge.env</code>), więc niczego nie przesyłają.</p>`;
+    setHTML($("#sparky"),rows.map(r=>row(r[1][0],r[0],r[1][1])).join("")+hint);
+  }
+  const go=()=>{if(page==="dash"){loadHealth();loadSparky()}};
+  document.addEventListener("click",e=>{if(e.target.closest('[data-page="dash"]'))setTimeout(go,50)});
+  setInterval(go,60000);setTimeout(go,800);
+})();
 boot();

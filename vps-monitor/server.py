@@ -20,7 +20,9 @@ TOKEN = secrets.token_urlsafe(24)
 EXTRA_HOSTS = [h.strip() for h in os.environ.get("EXTRA_HOSTS", "").split(",") if h.strip()]
 ALLOWED_HOSTS = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"} | {f"{h}:{PORT}" for h in EXTRA_HOSTS}
 ALLOWED_ORIGINS = {"http://" + h for h in ALLOWED_HOSTS}
-STATIC = {"/app.css": "text/css; charset=utf-8", "/app.js": "text/javascript; charset=utf-8"}
+STATIC = {"/app.css": "text/css; charset=utf-8", "/app.js": "text/javascript; charset=utf-8",
+          "/manifest.webmanifest": "application/manifest+json", "/icon-192.png": "image/png", "/icon-512.png": "image/png",
+          "/apple-touch-icon.png": "image/png"}
 MAX_UPLOAD = 4 * 1024 ** 3
 MAX_EDIT = 500 * 1024
 TRASH = "/home/ubuntu/.kosz-panel"
@@ -350,6 +352,58 @@ def api_ls(path):
     return {"path": path, "items": items, "policy": dir_policy(path)}
 
 
+_cache = {}
+
+
+def cached(key, ttl, fn):
+    c = _cache.get(key)
+    if c and time.time() - c[0] < ttl:
+        return c[1]
+    v = fn()
+    _cache[key] = (time.time(), v)
+    return v
+
+
+def kv(out):
+    d = {}
+    for l in out.splitlines():
+        if "=" in l:
+            k, v = l.split("=", 1)
+            d[k.strip()] = v.strip()
+    return d
+
+
+def api_health():
+    def go():
+        out = run(r"""
+echo upgrades=$(apt list --upgradable 2>/dev/null | tail -n +2 | wc -l)
+echo reboot=$([ -f /var/run/reboot-required ] && echo 1 || echo 0)
+echo ssh22_open=$(iptables -S INPUT 2>/dev/null | grep -c -- '--dport 22 -j ACCEPT')
+echo banned=$(fail2ban-client status sshd 2>/dev/null | awk '/Currently banned/{print $NF}')
+echo failed=$(fail2ban-client status sshd 2>/dev/null | awk '/Total failed/{print $NF}')
+echo fail2ban=$(systemctl is-active fail2ban)
+echo autoreboot=$(grep -rhc 'Automatic-Reboot "true"' /etc/apt/apt.conf.d/ 2>/dev/null | paste -sd+ | bc)
+echo autoupdate=$(grep -hc 'Unattended-Upgrade "1"' /etc/apt/apt.conf.d/20auto-upgrades 2>/dev/null)
+echo uptime=$(uptime -p)
+""", 40)
+        return kv(out)
+    return cached("health", 60, go)
+
+
+def api_sparky():
+    def go():
+        out = run(r"""
+for n in memos-bridge-1 memos-mirror-1 memos-memos-1; do echo $n=$(docker inspect -f '{{.State.Status}}' $n 2>/dev/null); done
+for k in SPARKY_KEY SPARKY_USER_ID MEMOS_TOKEN; do echo key_$k=$(grep -c "^$k=.\+" /opt/memos/bridge.env 2>/dev/null); done
+echo mirrored24h=$(docker logs --since 24h memos-mirror-1 2>&1 | grep -c 'do Memos')
+echo lastlog=$(docker logs --tail 1 memos-mirror-1 2>&1 | tail -1 | cut -c1-160)
+echo cursor=$(python3 -c "import json;print(json.load(open('/opt/memos/bridge-data/mirror_state.json')).get('cursor',''))" 2>/dev/null)
+echo memos_notes=$(sqlite3 /opt/memos/data/memos_prod.db 'select count(*) from memo' 2>/dev/null)
+""", 40)
+        return kv(out)
+    return cached("sparky", 30, go)
+
+
 def api_du(path):
     q = shlex.quote(path)
     out = run(f"du -xka --max-depth=1 {q} 2>/dev/null | sort -rn | head -120", 180)
@@ -605,6 +659,10 @@ class H(BaseHTTPRequestHandler):
                 return self.js(api_cat(path))
             if u.path == "/api/trash":
                 return self.js(api_trash())
+            if u.path == "/api/health":
+                return self.js(api_health())
+            if u.path == "/api/sparky":
+                return self.js(api_sparky())
             if u.path == "/api/backup":
                 return self.js(api_backup())
             if u.path == "/api/logs":

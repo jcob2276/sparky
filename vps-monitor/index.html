@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="vps-token" content="__TOKEN__">
+<meta name="theme-color" content="#0e1118">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VPS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/icon-192.png">
 <title>Centrum VPS</title>
 <link rel="stylesheet" href="/app.css">
 </head>
@@ -125,6 +133,10 @@
         <button class="card tile" data-go="services"><span class="muted small">Usługi</span><strong id="sSvc">–</strong><span class="small muted" id="sSvcSub"></span></button>
         <button class="card tile" data-go="net"><span class="muted small">Otwarte porty</span><strong id="sPorts">–</strong><span class="small muted" id="sPortsSub"></span></button>
         <button class="card tile" data-go="soft"><span class="muted small">Pakiety</span><strong id="sPkg">–</strong><span class="small muted">apt + snap</span></button>
+      </div>
+      <div class="grid g2" style="margin-top:1rem">
+        <article class="card" id="healthCard"><h2>Stan i bezpieczeństwo</h2><div id="health"><p class="empty">Sprawdzam…</p></div></article>
+        <article class="card" id="sparkyCard"><h2>Sparky i Memos</h2><div id="sparky"><p class="empty">Sprawdzam…</p></div></article>
       </div>
       <div class="grid g2" style="margin-top:1rem">
         <article class="card"><h2>Najwięcej pamięci</h2><div id="topProcs"></div></article>
