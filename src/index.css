@@ -3318,6 +3318,12 @@ a,
 .finance-reference-list li + li { border-top: 1px solid var(--finance-edge); }
 .finance-reference-record { width: 100%; padding: 10px; display: flex; align-items: center; gap: 9px; font-size: .9rem; }
 .finance-reference-record-icon { flex: 0 0 34px; min-height: 34px; display: grid; place-items: center; border-radius: 11px; color: var(--finance-accent); background: color-mix(in srgb, var(--finance-accent) 11%, transparent); }
+.finance-reference-record-icon[data-category-tone] { color: var(--record-ink, var(--finance-muted)); background: color-mix(in srgb, var(--record-ink, var(--finance-muted)) 13%, var(--finance-card)); }
+.finance-reference-record-icon[data-category-tone="food"], .finance-reference-record-icon[data-category-tone="income"] { --record-ink: var(--finance-accent); }
+.finance-reference-record-icon[data-category-tone="travel"] { --record-ink: var(--primary); }
+.finance-reference-record-icon[data-category-tone="home"] { --record-ink: var(--attention); }
+.finance-reference-record-icon[data-category-tone="health"] { --record-ink: var(--color-danger); }
+.finance-reference-record-icon[data-category-tone="shopping"], .finance-reference-record-icon[data-category-tone="leisure"] { --record-ink: var(--color-warning); }
 .finance-reference-metrics { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
 .finance-reference-metrics h2, .finance-reference-metrics small { color: var(--finance-muted); font-size: .82rem; }
 .finance-reference-metrics strong { display: block; font-size: clamp(.98rem, 4vw, 1.38rem); margin-block: 4px; }

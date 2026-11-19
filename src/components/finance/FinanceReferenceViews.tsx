@@ -1,6 +1,6 @@
 import { ControlInput, ControlSelect, Pressable } from '../ui/ControlPrimitives';
 import { useState, type ReactNode } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Car, ChevronLeft, ChevronRight, Clapperboard, Dumbbell, Fuel, Gift, GraduationCap, HeartPulse, House, Plane, Receipt, Search, ShoppingBag, Utensils, Wallet, type LucideIcon } from 'lucide-react';
 import { getTodayWarsaw } from '../../lib/date';
 import type { FinanceAccount, FinanceBundle, FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
@@ -41,6 +41,15 @@ export function FinanceReferenceCategories({ transactions }: { transactions: Fin
   );
 }
 
+const CATEGORY_ICONS: Record<string, [LucideIcon, string]> = {
+  Jedzenie: [Utensils, 'food'], Transport: [Car, 'travel'], Paliwo: [Fuel, 'travel'],
+  Dom: [House, 'home'], Zdrowie: [HeartPulse, 'health'], Rozrywka: [Clapperboard, 'leisure'],
+  Rozwój: [GraduationCap, 'leisure'], Hobby: [Dumbbell, 'health'], Prezenty: [Gift, 'leisure'],
+  Podróże: [Plane, 'travel'], Zakupy: [ShoppingBag, 'shopping'], Oszczędności: [ArrowLeftRight, 'travel'],
+  'Opłaty i przelewy': [Receipt, 'home'], Wpływy: [Wallet, 'income'], Zwroty: [ArrowDownLeft, 'income'],
+  Sauna: [Dumbbell, 'health'],
+};
+
 const dayFormatter = new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Warsaw' });
 
 export function FinanceReferenceHistory({ records, accounts, onSelect }: {
@@ -65,12 +74,13 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
           <ul className="finance-reference-list">
             {items.map((tx) => {
               const outgoing = tx.kind === 'expense';
-              const Icon = outgoing ? ArrowUpRight : ArrowDownLeft;
+              const { group, detail } = financeTransactionCategory(tx);
+              const [Icon, tone] = CATEGORY_ICONS[detail] ?? CATEGORY_ICONS[group] ?? [outgoing ? ArrowUpRight : ArrowDownLeft, 'neutral'];
               const account = accounts.find((item) => item.id === tx.account_id)?.name;
               return (
                 <li key={tx.id}>
                   <Pressable type="button" className="finance-reference-record" onClick={() => onSelect(tx)}>
-                    <span className="finance-reference-record-icon"><Icon size={18} aria-hidden="true" /></span>
+                    <span className="finance-reference-record-icon" data-category-tone={tone}><Icon size={18} aria-hidden="true" /></span>
                     <span className="min-w-0 flex-1 text-left">
                       <strong className="block truncate">{tx.note || tx.category}</strong>
                       <small className="block truncate text-text-muted">{[tx.category, account, tx.source === 'bank' ? 'Bank' : 'Wpis ręczny'].filter(Boolean).join(' · ')}</small>
