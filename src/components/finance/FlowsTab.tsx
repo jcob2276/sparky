@@ -23,6 +23,7 @@ export interface FlowsTabProps {
   run: (fn: () => Promise<void>) => Promise<void>;
   saveProfilePatch: (patch: Record<string, number>) => void;
   onNavigate: (tab: FinanceTabKey) => void;
+  initialSegment?: 'activity' | 'planning';
 }
 
 const FLOW_TABS = [
@@ -37,8 +38,9 @@ export function FlowsTab({
   run,
   saveProfilePatch,
   onNavigate,
+  initialSegment = 'activity',
 }: FlowsTabProps) {
-  const [segment, setSegment] = useState<'activity' | 'planning'>('activity');
+  const [segment, setSegment] = useState<'activity' | 'planning'>(initialSegment);
 
   return (
     <div className="space-y-6">

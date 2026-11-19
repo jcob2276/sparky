@@ -95,21 +95,21 @@ describe('FinancePage', () => {
     expect(screen.getByText(/Zaloguj się/)).toBeInTheDocument();
   });
 
-  it('keeps the three main destinations with the quick-entry plus in the middle of the bottom navigation', () => {
+  it('puts Start, Transakcje, Analiza and Portfel in the reference order', () => {
     openFinance();
     const nav = within(screen.getByRole('navigation', { name: 'Sekcje finansów' }));
     expect(nav.getAllByRole('button').map(button => button.getAttribute('aria-label') ?? button.textContent))
-      .toEqual(['Pulpit', 'Portfel', 'Szybki wpis', 'Przepływy']);
+      .toEqual(['Start', 'Transakcje', 'Analiza', 'Portfel']);
     fireEvent.click(nav.getByRole('button', { name: 'Portfel' }));
     expect(screen.getByRole('region', { name: 'Podsumowanie portfela' })).toBeInTheDocument();
   });
 
-  it.each(['Pulpit', 'Portfel', 'Przepływy'])('opens quick entry from the bottom plus on %s', async (tabName) => {
+  it.each(['Start', 'Transakcje', 'Analiza', 'Portfel'])('opens quick entry from the header on %s', async (tabName) => {
     openFinance();
     const nav = within(screen.getByRole('navigation', { name: 'Sekcje finansów' }));
     fireEvent.click(nav.getByRole('button', { name: tabName }));
     expect(screen.queryByRole('group', { name: 'Kategoria' })).not.toBeInTheDocument();
-    fireEvent.click(nav.getByRole('button', { name: 'Szybki wpis' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Szybki wpis' }));
     expect(await screen.findByRole('group', { name: 'Kategoria' })).toBeInTheDocument();
   });
 
@@ -129,11 +129,11 @@ describe('FinancePage', () => {
 
   it('opens settings from the existing account-management action in flows', () => {
     openFinance();
-    fireEvent.click(screen.getByRole('button', { name: 'Przepływy' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
     fireEvent.click(screen.getByRole('button', { name: 'Przejdź do ustawień finansów' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Ustawienia finansów' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wróć do finansów' }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Przepływy' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Transakcje' })).toBeInTheDocument();
   });
 
   it.each(['connected', 'denied'])('keeps the bank callback in settings and returns to the dashboard (%s)', (result) => {
@@ -142,7 +142,7 @@ describe('FinancePage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Ustawienia finansów' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edytuj Gotówka fizyczna' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wróć do finansów' }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Finanse' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Twój kapitał. Twój kierunek.' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wróć do Sparky' })).toBeInTheDocument();
   });
 });
