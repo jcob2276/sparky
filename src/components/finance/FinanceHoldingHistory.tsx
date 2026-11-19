@@ -29,13 +29,12 @@ export function FinanceHoldingHistory() {
   const events = query.data?.pages.flat() ?? [];
   if (!userId) return null;
   return <section className="space-y-2" aria-label="Historia operacji portfela">
-    <h2 className="ios-section-title px-1">Operacje portfela</h2>
     <div className="ios-group">
       {query.isLoading ? <Skeleton variant="block" className="h-24" /> : query.isError ?
         <div className="space-y-2 p-4"><p role="alert" className="text-sm text-text-secondary">Nie udało się pobrać historii operacji.</p><Button variant="ghost" size="sm" onClick={() => void query.refetch()}>Spróbuj ponownie</Button></div> : events.length ?
         <HoldingHistoryView events={events} /> : <p className="p-4 text-sm text-text-muted">Historia pojawi się po dodaniu pozycji lub zapisaniu zakupu.</p>}
       {query.hasNextPage && <div className="p-3"><Button variant="ghost" className="w-full" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>{query.isFetchingNextPage ? 'Ładowanie…' : 'Starsze operacje'}</Button></div>}
     </div>
-    <p className="px-1 text-xs leading-relaxed text-text-muted">Rejestr od uruchomienia historii. Stan początkowy i korekty nie są zakupami ani wpłatami. Kwota zakupu dotyczy pozycji, nie wyniku inwestycji.</p>
+    <p className="px-1 text-xs leading-relaxed text-text-muted">Rejestr obejmuje operacje od uruchomienia historii.</p>
   </section>;
 }

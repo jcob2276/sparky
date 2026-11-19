@@ -19,11 +19,14 @@ export function RecordedView({ history }: { history: History }) {
         </AreaChart>
       </ResponsiveContainer>
     </div> : <p className="py-4 text-sm text-text-muted">Historia zaczyna się od zapisania stanu początkowego. Wykres pojawi się po kolejnych wycenach.</p>}
-    <dl className="divide-y divide-border-custom/20">
-      <div className="flex justify-between gap-3 py-2 text-sm"><dt className="text-text-secondary">Zakupy w okresie porównania</dt><dd className="tabular-nums text-text-primary">{history.points.length > 1 ? formatPln(history.purchases, 2) : '—'}</dd></div>
-      <div className="flex justify-between gap-3 py-2 text-sm"><dt className="text-text-secondary">Zmiana wartości po odjęciu zakupów</dt><dd className="tabular-nums text-text-primary">{history.valuationChange == null ? '—' : formatPln(history.valuationChange, 2)}</dd></div>
-    </dl>
-    <p className="text-xs leading-relaxed text-text-muted">{history.points[0] && last ? `${history.points[0].date} – ${last.date} · ${history.points.length} wycen. ` : ''}Źródło: zapisane ilości i ceny zamknięcia w PLN. Bez gotówki brokera, prowizji i dywidend. Korekty i usunięcia w okresie wstrzymują obliczanie zmiany po odjęciu zakupów.</p>
+    <details>
+      <summary className="cursor-pointer py-2 text-sm text-text-muted">Szczegóły wyceny</summary>
+      <dl className="divide-y divide-border-custom/20">
+        <div className="flex justify-between gap-3 py-2 text-sm"><dt className="text-text-secondary">Zakupy w okresie porównania</dt><dd className="tabular-nums text-text-primary">{history.points.length > 1 ? formatPln(history.purchases, 2) : '—'}</dd></div>
+        <div className="flex justify-between gap-3 py-2 text-sm"><dt className="text-text-secondary">Zmiana wartości po odjęciu zakupów</dt><dd className="tabular-nums text-text-primary">{history.valuationChange == null ? '—' : formatPln(history.valuationChange, 2)}</dd></div>
+      </dl>
+      <p className="text-xs leading-relaxed text-text-muted">{history.points[0] && last ? `${history.points[0].date} – ${last.date} · ${history.points.length} wycen. ` : ''}Źródło: zapisane ilości i ceny zamknięcia w PLN. Bez gotówki brokera, prowizji i dywidend. Korekty i usunięcia w okresie wstrzymują obliczanie zmiany po odjęciu zakupów.</p>
+    </details>
     {history.missing.length > 0 && <p className="text-xs text-warning">Niepełna historia cen: {history.missing.join(', ')}. Dni bez pełnej wyceny są pomijane.</p>}
   </div>;
 }

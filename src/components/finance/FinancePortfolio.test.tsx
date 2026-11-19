@@ -29,8 +29,7 @@ it('shows session and crypto daily changes with quote dates in position rows, in
   expect(historyPanel).toBeVisible();
   fireEvent.click(history);
   expect(historyPanel).not.toBeVisible();
-  expect(screen.queryByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('tab', { name: 'Mapa' }));
+  expect(screen.getByRole('tab', { name: 'Mapa' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).toBeVisible();
   fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
   const crypto = screen.getByRole('button', { name: /BTC-USD/ });

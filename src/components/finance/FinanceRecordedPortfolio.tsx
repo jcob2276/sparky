@@ -15,7 +15,6 @@ import { FinancePortfolioChart } from './FinancePortfolioChart';
 
 export function FinanceRecordedPortfolio({ holdings }: { holdings: ValuedHolding[] }) {
   const userId = useStore(state => state.session?.user?.id);
-  const [mode, setMode] = useState('recorded');
   const [range, setRange] = useState<HistoryRange>('3M');
   const events = useAllHoldingEvents(userId);
   const tickers = useMemo(() => [...new Set((events.data ?? []).map(event => event.ticker))], [events.data]);
@@ -26,11 +25,10 @@ export function FinanceRecordedPortfolio({ holdings }: { holdings: ValuedHolding
   const history = useMemo(() => buildRecordedPortfolio(events.data ?? [], prices.data ?? [], today, from), [events.data, prices.data, today, from]);
   if (!userId) return <FinancePortfolioChart holdings={holdings} />;
   return <section className="space-y-3" aria-label="Historia portfela">
-    <Tabs active={mode} onChange={setMode} tabs={[{ key: 'recorded', label: 'Historia portfela' }, { key: 'model', label: 'Dzisiejszy skład wstecz' }]} />
-    {mode === 'model' ? <FinancePortfolioChart holdings={holdings} /> : <div className="ios-group space-y-4 p-4">
+    <div className="space-y-3">
       <Tabs active={range} onChange={key => setRange(key as HistoryRange)} tabs={HISTORY_RANGES.map(({ key, label }) => ({ key, label }))} />
       {events.isLoading || (tickers.length > 0 && prices.isLoading) ? <Skeleton variant="block" className="h-44" /> : events.isError || prices.isError ?
         <div className="space-y-2"><p role="alert" className="text-sm text-text-secondary">Nie udało się pobrać historii portfela.</p><Button variant="ghost" onClick={() => { void events.refetch(); void prices.refetch(); }}>Spróbuj ponownie</Button></div> : <RecordedView history={history} />}
-    </div>}
+    </div>
   </section>;
 }
