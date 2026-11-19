@@ -34,11 +34,11 @@ it('toggles savings only in the displayed wealth and breaks out the existing por
   expect(within(wealth).getByText('1850,00 zł')).toBeInTheDocument();
   expect(within(wealth).getByText('1300,00 zł')).toBeInTheDocument();
   expect(within(wealth).getByText('50,00 zł')).toBeInTheDocument();
-  expect(screen.getByRole('region', { name: 'Poduszka finansowa' })).toHaveTextContent('8,0 mies.');
+  expect(screen.getByRole('region', { name: 'Poduszka finansowa' })).toHaveTextContent('14 700,00 zł');
 
   fireEvent.click(screen.getByRole('switch', { name: 'Uwzględnij oszczędności' }));
   expect(within(wealth).getByText('2150,00 zł')).toBeInTheDocument();
-  expect(screen.getByRole('region', { name: 'Poduszka finansowa' })).toHaveTextContent('8,0 mies.');
+  expect(screen.getByRole('region', { name: 'Poduszka finansowa' })).toHaveTextContent('14 700,00 zł');
   fireEvent.click(within(wealth).getByRole('button', { name: 'Portfel XTB' }));
   expect(onPortfolio).toHaveBeenCalledOnce();
 });
