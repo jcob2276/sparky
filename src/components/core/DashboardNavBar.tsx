@@ -48,7 +48,7 @@ export function DashboardNavBar({
     <nav
       aria-label="Główna nawigacja"
       data-material="floating"
-      className={`ui-floating-nav fixed left-1/2 z-[var(--z-modal)] flex w-[94%] max-w-[380px] -translate-x-1/2 items-center justify-between p-1.5 transition-opacity duration-[var(--motion-fast)] ease-[var(--ease-out)] ${
+      className={`ui-floating-nav fixed inset-x-0 z-[var(--z-modal)] mx-auto flex w-[94%] max-w-[380px] items-center justify-between p-1.5 transition-opacity duration-[var(--motion-fast)] ease-[var(--ease-out)] ${
         hidden ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'
       }`}
       style={{ bottom: 'max(14px, env(safe-area-inset-bottom))' }}

@@ -27,7 +27,11 @@ export async function initNativeShell(): Promise<void> {
 
   document.documentElement.classList.add('capacitor-native');
   document.body.classList.add('capacitor-native');
-  if (!isAndroid()) document.documentElement.classList.add('capacitor-ios');
+  if (!isAndroid()) {
+    document.documentElement.classList.add('capacitor-ios');
+    const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    if (viewport) viewport.content += ', maximum-scale=1';
+  }
 
   try {
     // Prefer design token; StatusBar API needs a concrete color string.
