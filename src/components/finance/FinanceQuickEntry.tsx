@@ -12,6 +12,7 @@ import { applyKeypadKey, keyFromKeyboard, parseKeypadAmount } from '../../lib/fi
 import { loadQuickEntryMemory, saveQuickEntryMemory } from '../../lib/finance/quickEntryMemory';
 import Sheet from '../ui/Sheet';
 import { ControlInput, ControlSelect, Pressable } from '../ui/ControlPrimitives';
+import { isFuelNote } from './financeReferenceCategories';
 import { FinanceKeypad } from './FinanceKeypad';
 
 type Kind = 'expense' | 'income';
@@ -57,7 +58,10 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
   const [category, setCategory] = useState(initial.category);
   const [accountId, setAccountId] = useState(initial.accountId);
   const [note, setNote] = useState('');
+  const [categoryPicked, setCategoryPicked] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const suggestedFuel = kind === 'expense' && (!categoryPicked || category === 'Transport') && isFuelNote(note);
+  const effectiveCategory = suggestedFuel ? 'Paliwo' : category;
   const value = parseKeypadAmount(amount);
   const liquid = accounts.filter((account) => account.is_liquid);
 
@@ -78,6 +82,7 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
 
   const switchKind = (next: Kind) => {
     setKind(next);
+    setCategoryPicked(false);
     const memory = pickInitial(next, accounts);
     setCategory(memory.category);
     setAccountId(memory.accountId);
@@ -85,9 +90,9 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
 
   const submit = async () => {
     if (!(value > 0) || pending) return;
-    const saved = await onSubmit({ kind, amount: value, category, note, accountId: accountId || null });
+    const saved = await onSubmit({ kind, amount: value, category: effectiveCategory, note, accountId: accountId || null });
     if (saved) {
-      saveQuickEntryMemory(kind, { category, accountId });
+      saveQuickEntryMemory(kind, { category: suggestedFuel ? 'Transport' : category, accountId });
       onDone();
     }
   };
@@ -116,14 +121,14 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
           {(amount || '').includes(',') && <span className="tabular-nums text-text-secondary">,{amount.split(',')[1]}</span>}
           <span className="ml-2 text-2xl font-medium text-text-muted">zł</span>
         </p>
-        <p className="mt-2 text-sm text-text-secondary">{value > 0 ? category : 'Wpisz kwotę na klawiaturze'}</p>
+        <p className="mt-2 text-sm text-text-secondary">{value > 0 ? effectiveCategory : 'Wpisz kwotę na klawiaturze'}</p>
       </div>
 
       <div className="grid grid-cols-4 gap-2" role="group" aria-label="Kategoria">
         {categoriesFor(kind).map(item => {
           const Icon = CATEGORY_ICONS[item] ?? MoreHorizontal;
-          const selected = category === item;
-          return <Pressable key={item} type="button" aria-pressed={selected} onClick={() => setCategory(item)}
+          const selected = (suggestedFuel ? 'Transport' : category) === item;
+          return <Pressable key={item} type="button" aria-pressed={selected} onClick={() => { setCategory(item); setCategoryPicked(true); }}
             className={`flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-xs font-medium leading-tight ${selected ? 'bg-primary/12 text-primary ring-1 ring-primary/40' : 'bg-surface-2/60 text-text-secondary hover:bg-surface-2'}`}>
             <Icon size={20} aria-hidden="true" />
             <span className="w-full truncate text-center">{item}</span>
