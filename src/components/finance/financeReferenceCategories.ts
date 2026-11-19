@@ -6,7 +6,7 @@ const UNCLASSIFIED_DETAIL = 'Bez podkategorii';
 
 const GROUPS = {
   Jedzenie: ['Zakupy spożywcze', 'Jedzenie na mieście', 'Dostawa jedzenia'],
-  Transport: ['Transport i paliwo', 'Komunikacja miejska', 'Taksówki', 'Parking', 'Serwis samochodu'],
+  Transport: ['Paliwo', 'Transport i paliwo', 'Komunikacja miejska', 'Taksówki', 'Parking', 'Serwis samochodu'],
   Dom: ['Dom i remont', 'Czynsz', 'Rachunki', 'Telefon i internet'],
   Zdrowie: ['Apteka', 'Lekarze i badania', 'Uroda'],
   Rozrywka: ['Subskrypcje', 'Kultura i wydarzenia', 'Gry'],
@@ -40,10 +40,18 @@ export function financeCategory(value: string) {
   };
 }
 
+export function isFuelNote(note: string) {
+  return /(?:^|[^\p{L}])paliw(?:o|a|em|ie)(?=$|[^\p{L}])/u.test(normalized(note));
+}
+
 export function financeTransactionCategory(item: FinanceTransaction) {
   const kind = movement(item);
   if (kind === 'transfer') return { group: 'Oszczędności', detail: item.note ?? UNCLASSIFIED_DETAIL };
-  if (kind === 'expense') return financeCategory(item.category);
+  if (kind === 'expense') {
+    const category = financeCategory(item.category);
+    return item.source !== 'bank' && category.group === 'Transport' && category.detail === UNCLASSIFIED_DETAIL && isFuelNote(item.note ?? '')
+      ? financeCategory('Paliwo') : category;
+  }
   return { group: kind === 'refund' ? 'Zwroty' : 'Wpływy', detail: item.category.trim() || UNCLASSIFIED_DETAIL };
 }
 
@@ -53,7 +61,7 @@ export function summarizeFinanceCategories(transactions: readonly FinanceTransac
     if (movement(item) !== 'expense') continue;
     const cents = Math.round(Math.abs(item.amount) * 100);
     if (!Number.isSafeInteger(cents) || cents <= 0) continue;
-    const { group, detail } = financeCategory(item.category);
+    const { group, detail } = financeTransactionCategory(item);
     const entry = groups.get(group) ?? { cents: 0, details: new Map<string, number>() };
     entry.cents += cents;
     entry.details.set(detail, (entry.details.get(detail) ?? 0) + cents);

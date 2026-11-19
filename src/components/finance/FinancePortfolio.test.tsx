@@ -109,6 +109,19 @@ describe('FinanceQuickEntry', () => {
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 
+  it('recognises a fuel note and saves it as a fuel expense', async () => {
+    window.localStorage.clear();
+    const onSubmit = vi.fn().mockResolvedValue(true);
+    render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={vi.fn()} onSubmit={onSubmit} />);
+    for (const key of ['1', '8', '0']) fireEvent.click(screen.getByRole('button', { name: key }));
+    fireEvent.click(screen.getByRole('button', { name: 'Transport' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dodaj notatkę' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Notatka' }), { target: { value: 'Paliwo' } });
+    expect(screen.getByText('Paliwo')).toBeInTheDocument();
+    fireEvent.submit(screen.getByRole('button', { name: /Dodaj wydatek/ }).closest('form')!);
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 180, category: 'Paliwo' })));
+  });
+
   it('remembers the last category for the next entry', async () => {
     window.localStorage.clear();
     const onSubmit = vi.fn().mockResolvedValue(true);
