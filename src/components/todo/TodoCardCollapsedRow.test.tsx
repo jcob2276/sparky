@@ -15,7 +15,7 @@ const props = (): ComponentProps<typeof TodoCardCollapsedRow> => ({
     scheduled_time: null, section_id: null, sort_order: 0, location_name: null } satisfies TodoItemRow,
   busy: false, isDone: true, icon: null, label: 'Test', dateInfo: null,
   today: '2026-10-08', isEditing: false, editingTitle: '', expanded: false,
-  onEditChange: vi.fn(), onEditSave: vi.fn(), onTitlePress: vi.fn(), onToggleExpand: vi.fn(), onDelete: vi.fn(), panelId: 'details',
+  onEditChange: vi.fn(), onEditSave: vi.fn(), onToggleExpand: vi.fn(), onDelete: vi.fn(), panelId: 'details',
   sections: [], onSetSchedule: vi.fn(), onSetPriority: vi.fn(), onMoveSection: vi.fn(),
   totalSubtaskCount: 0, doneSubtaskCount: 0, isLinkedToPlan: false,
   swipe: { handleComplete: vi.fn(),
@@ -43,11 +43,11 @@ describe('task row actions', () => {
     expect(input.onDelete).toHaveBeenCalledOnce();
     expect(input.onToggleExpand).toHaveBeenCalledOnce();
   });
-  it('starts inline editing on title click without expanding', () => {
+  it('keeps the title passive on tap', () => {
     const input = props();
     render(<TodoCardCollapsedRow {...input} />);
     fireEvent.click(screen.getByText('Test'));
-    expect(input.onTitlePress).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('textbox')).toBeNull();
     expect(input.onToggleExpand).not.toHaveBeenCalled();
   });
   it('saves on Enter, cancels on Escape and never saves twice on the following blur', () => {

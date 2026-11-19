@@ -30,7 +30,6 @@ export interface TodoCardProps {
   onMoveSection: (sId: string | null) => void;
   isEditing: boolean;
   editingTitle: string;
-  onEditStart: (t: string) => void;
   onEditChange: (val: string) => void;
   onEditSave: () => void;
   onEditCancel?: () => void;
@@ -72,7 +71,6 @@ export default function TodoCard({
   onMoveSection,
   isEditing,
   editingTitle,
-  onEditStart,
   onEditChange,
   onEditSave,
   onEditCancel,
@@ -175,7 +173,6 @@ export default function TodoCard({
           isLinkedToPlan={isLinkedToPlan}
           sectionName={sectionName}
           dreamTitle={dreamTitle}
-          onTitlePress={() => onEditStart(item.title)}
           onToggleExpand={() => onToggleExpand(item.id)}
           onDelete={onDelete}
           sections={sections}
