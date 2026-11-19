@@ -13,7 +13,7 @@ export function BankPicker({ open, onOpenChange, onPick }: Props) {
   const needle = query.trim().toLowerCase();
   const list = (banks.data ?? []).filter(bank => !needle || bank.name.toLowerCase().includes(needle));
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="Dodaj bank" side="bottom" compact>
+    <Sheet open={open} onOpenChange={onOpenChange} title="Dodaj bank" side="bottom" compact handleDragOnly>
       <div className="space-y-3 p-1">
         <ControlInput aria-label="Szukaj banku" placeholder="Szukaj banku" value={query} onChange={event => setQuery(event.target.value)} />
         {banks.isLoading && <FinanceEmpty>Wczytuję listę banków…</FinanceEmpty>}

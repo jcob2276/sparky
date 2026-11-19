@@ -48,7 +48,7 @@ export function BankAccountList({
           </Pressable>
         ))}
       </FinanceList>
-      <Sheet open={open != null} onOpenChange={next => { if (!next) setOpenId(null); }} title={open ? `Rachunek ${last4(open)}` : 'Rachunek'} side="bottom" compact>
+      <Sheet open={open != null} onOpenChange={next => { if (!next) setOpenId(null); }} title={open ? `Rachunek ${last4(open)}` : 'Rachunek'} side="bottom" compact handleDragOnly>
         {open && (() => {
           const linked = linkedTo(open);
           return (

@@ -52,7 +52,7 @@ export function BankEnvelopes({ spending, budgets, currency, onSet }: Props) {
           );
         })}
       </div>
-      <Sheet open={editing} onOpenChange={setEditing} title="Limit kategorii" side="bottom" compact>
+      <Sheet open={editing} onOpenChange={setEditing} title="Limit kategorii" side="bottom" compact handleDragOnly>
         <form className="space-y-3 p-1" onSubmit={event => { event.preventDefault(); if (parsed > 0) { onSet(category, parsed); setEditing(false); setValue(''); } }}>
           <ControlSelect aria-label="Kategoria" value={category} onChange={event => { setCategory(event.target.value); setValue(budgets[event.target.value] ? String(budgets[event.target.value]) : ''); }}
             className="w-full">

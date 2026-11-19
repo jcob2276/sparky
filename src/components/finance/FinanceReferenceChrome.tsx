@@ -53,7 +53,7 @@ export function FinanceReferenceTransactionSheet({ selected, onClose }: {
   onClose: () => void;
 }) {
   return (
-    <Sheet open={selected !== null} onOpenChange={(open) => { if (!open) onClose(); }} title="Szczegóły transakcji" side="bottom" compact>
+    <Sheet open={selected !== null} onOpenChange={(open) => { if (!open) onClose(); }} title="Szczegóły transakcji" side="bottom" compact handleDragOnly>
       {selected && <div className="space-y-3 p-5">
         <p className="text-lg font-semibold">{selected.note || selected.category}</p>
         <dl className="finance-reference-breakdown">

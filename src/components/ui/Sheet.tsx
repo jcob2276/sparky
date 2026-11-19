@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import IconButton from './IconButton';
 import { IOS_SPRING, shouldCommitGesture } from '../../lib/motion/iosMotion';
@@ -15,10 +15,12 @@ interface SheetProps {
   side?: 'left' | 'right' | 'bottom';
   /** Bottom sheet only: cap width and center it on wide screens instead of spanning the viewport. */
   compact?: boolean;
+  handleDragOnly?: boolean;
 }
 
-function Sheet({ open, onOpenChange, title, children, side = 'right', compact = false }: SheetProps) {
+function Sheet({ open, onOpenChange, title, children, side = 'right', compact = false, handleDragOnly = false }: SheetProps) {
   const panelRef = useRef<HTMLElement>(null);
+  const dragControls = useDragControls();
   const reduceMotion = useReducedMotion();
   const { light } = useHaptics();
 
@@ -38,7 +40,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         light();
-        onOpenChange(false);
+        onOpenChangeRef.current(false);
       }
     };
     window.addEventListener('keydown', close);
@@ -47,7 +49,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
       window.removeEventListener('keydown', close);
       document.body.style.overflow = '';
     };
-  }, [open, onOpenChange, light]);
+  }, [open, light]);
 
   const placement = side === 'bottom'
     ? `inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]${compact ? ' mx-auto max-w-lg sm:border-x' : ''}`
@@ -82,14 +84,16 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
             data-material="floating"
-            style={{ willChange: 'transform' }}
+            data-touch-sheet={handleDragOnly || undefined}
             initial={reduceMotion ? { opacity: 0 } : initial}
-            animate={reduceMotion ? { opacity: 1 } : { transform: 'translate(0px, 0px)' }}
+            animate={reduceMotion ? { opacity: 1 } : side === 'bottom' ? { y: 0 } : { x: 0 }}
             exit={reduceMotion ? { opacity: 0 } : exit}
             transition={reduceMotion ? { duration: 0.12 } : IOS_SPRING.sheet}
             drag={side === 'bottom' && !reduceMotion ? 'y' : false}
+            dragControls={dragControls}
+            dragListener={!handleDragOnly}
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0.02, bottom: 0.55 }}
+            dragElastic={{ top: 0.02, bottom: handleDragOnly ? 1 : 0.55 }}
             onDragEnd={(_, info) => {
               const height = panelRef.current?.getBoundingClientRect().height ?? window.innerHeight;
               if (info.offset.y > 0 && shouldCommitGesture({
@@ -105,7 +109,8 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
             {side === 'bottom' && (
               <div
                 aria-label="Przeciągnij, aby zamknąć"
-                className="ios-sheet-handle"
+                className={handleDragOnly ? 'finance-sheet-grabber' : 'ios-sheet-handle'}
+                onPointerDown={handleDragOnly && !reduceMotion ? (event) => dragControls.start(event) : undefined}
               />
             )}
             <header className={`flex min-h-[52px] items-center justify-between border-b border-black/8 dark:border-white/10 px-5 ${side === 'bottom' ? '' : 'pt-[max(env(safe-area-inset-top),1.75rem)]'}`}>

@@ -8,7 +8,7 @@ const GROUPS = {
   Jedzenie: ['Zakupy spożywcze', 'Jedzenie na mieście', 'Dostawa jedzenia'],
   Transport: ['Paliwo', 'Transport i paliwo', 'Komunikacja miejska', 'Taksówki', 'Parking', 'Serwis samochodu'],
   Dom: ['Dom i remont', 'Czynsz', 'Rachunki', 'Telefon i internet'],
-  Zdrowie: ['Apteka', 'Lekarze i badania', 'Uroda'],
+  Zdrowie: ['Apteka', 'Lekarze i badania', 'Uroda', 'Sauna'],
   Rozrywka: ['Subskrypcje', 'Kultura i wydarzenia', 'Gry'],
   Rozwój: ['Kursy', 'Książki'],
   Hobby: ['Sport', 'Sprzęt i materiały'],

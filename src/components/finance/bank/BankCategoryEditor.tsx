@@ -43,7 +43,7 @@ export function BankCategoryEditor({ transaction: tx, pending, onClose, onSave, 
     if (await onSave({ transactionId: tx.id, category: automatic ? null : selection, remember: !automatic && canRemember && remember, ...(forgetRule ? { forgetRule: true } : {}) })) onClose();
   };
   return (
-    <Sheet open onOpenChange={open => { if (!open && !pending) onClose(); }} title="Kategoria transakcji" side="bottom" compact>
+    <Sheet open onOpenChange={open => { if (!open && !pending) onClose(); }} title="Kategoria transakcji" side="bottom" compact handleDragOnly>
       <div className="space-y-4">
         <div>
           <p className="break-words text-base font-medium">{tx.counterparty_name || tx.remittance || 'Transakcja'}</p>
