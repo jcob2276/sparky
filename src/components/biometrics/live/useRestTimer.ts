@@ -4,6 +4,7 @@ import { useHaptics } from '../../../hooks/useHaptics';
 interface RestState {
   endsAt: number;
   startedAt: number;
+  activity?: { exercise: string; nextSet?: number };
 }
 
 /** Odliczanie przerwy: startuje po zaliczonej serii, bez ręcznego włączania. */
@@ -29,11 +30,11 @@ export function useRestTimer() {
     }
   }, [finished, haptics]);
 
-  const start = useCallback((seconds: number) => {
+  const start = useCallback((seconds: number, activity?: RestState['activity']) => {
     const t = Date.now();
     notifiedRef.current = false;
     setNow(t);
-    setRest({ startedAt: t, endsAt: t + seconds * 1000 });
+    setRest({ startedAt: t, endsAt: t + seconds * 1000, activity });
   }, []);
 
   const adjust = useCallback((deltaSeconds: number) => {
@@ -46,5 +47,9 @@ export function useRestTimer() {
 
   const skip = useCallback(() => setRest(null), []);
 
-  return { active: rest != null, remaining, finished, elapsedSinceStart: rest ? Math.floor((now - rest.startedAt) / 1000) : 0, start, adjust, skip };
+  const activityRest = rest?.activity && !finished
+    ? { ...rest.activity, startedAt: rest.startedAt, endsAt: rest.endsAt }
+    : null;
+
+  return { active: rest != null, activityRest, remaining, finished, elapsedSinceStart: rest ? Math.floor((now - rest.startedAt) / 1000) : 0, start, adjust, skip };
 }

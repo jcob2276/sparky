@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CalendarDays, Info, Flag, FolderInput, GripVertical, MoreHorizontal, Trash2 } from 'lucide-react';
+import { CalendarDays, Info, Flag, FolderInput, GripVertical, Trash2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import TodoAnchoredPopover, { type PopoverAnchor } from './TodoAnchoredPopover';
 import { DatePresetsPanel, MovePanel, PriorityPanel } from './TodoRowPickers';
@@ -26,7 +26,6 @@ interface TodoRowQuickActionsProps {
   onSetSchedule: (patch: { due_date?: string | null }) => void;
   onSetPriority: (priority: string) => void;
   onMoveSection: (sectionId: string | null) => void;
-  onShowContextMenu: (item: TodoItemRow, clientX: number, clientY: number) => void;
 }
 
 interface OpenPopover {
@@ -43,7 +42,7 @@ const QUIET = 'text-text-secondary hover:text-text-primary';
 /** Linear-style hover bar: one click each for date, priority, move, delete. Also the target of d / p / m shortcuts. */
 export default function TodoRowQuickActions({
   item, today, expanded, panelId, sections, grip,
-  onToggleExpand, onDelete, onSetSchedule, onSetPriority, onMoveSection, onShowContextMenu,
+  onToggleExpand, onDelete, onSetSchedule, onSetPriority, onMoveSection,
 }: TodoRowQuickActionsProps) {
   const [open, setOpen] = useState<OpenPopover | null>(null);
   const dateRef = useRef<HTMLButtonElement>(null);
@@ -115,14 +114,6 @@ export default function TodoRowQuickActions({
         className="todo-focus-grip todo-qa text-text-secondary" data-tip="Przeciągnij do sekcji" aria-hidden="true">
         <GripVertical size={16} aria-hidden="true" />
       </div>
-      <Pressable haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-touch`} data-tip="Więcej opcji" aria-label="Więcej opcji"
-        onClick={(e) => {
-          e.stopPropagation();
-          const rect = e.currentTarget.getBoundingClientRect();
-          onShowContextMenu(item, rect.left, rect.bottom + 4);
-        }}>
-        <MoreHorizontal size={18} aria-hidden="true" />
-      </Pressable>
 
       {open && (
         <TodoAnchoredPopover anchor={open.anchor} label={PANEL_LABEL[open.kind]} width={PANEL_WIDTH[open.kind]}

@@ -1,7 +1,7 @@
 /**
  * @component CalendarGrid
  * @role Dispatcher renderowania siatki — wybiera day/3-day/week/month/agenda.
- * @composes grid/CalendarDayView, grid/Calendar3DayView, grid/CalendarWeekView, grid/CalendarMonthView, grid/CalendarAgendaView
+ * @composes grid/CalendarDayView, grid/Calendar3DayView, grid/CalendarWeekView, grid/CalendarAgendaView
  * @usedBy CalendarView
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -19,7 +19,6 @@ import { useCalendarDragSelect } from './grid/useCalendarDragSelect';
 import { CalendarDayView } from './grid/CalendarDayView';
 import { Calendar3DayView } from './grid/Calendar3DayView';
 import { CalendarWeekView } from './grid/CalendarWeekView';
-import { CalendarMonthView } from './grid/CalendarMonthView';
 import type { CalRow } from './calendarHelpers';
 import type { CalendarTodo } from './hooks/useCalendarTodos';
 import type { GoalChip } from './grid/types';
@@ -92,7 +91,6 @@ type GridViewProps = {
   setSelectedDay: (day: string) => void;
   weekStart: string;
   setWeekStart: (start: string) => void;
-  setCalView: ReturnType<typeof useCalendarData>['setCalView'];
   weather: ReturnType<typeof useCalendarData>['weather'];
   today: string;
   weekDays: string[];
@@ -103,7 +101,6 @@ type GridViewProps = {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
-  handleColumnClick: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: ReturnType<typeof useCalendarData>['handleEventMouseDown'];
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -113,14 +110,13 @@ type GridViewProps = {
   setSaving: ReturnType<typeof useCalendarData>['setSaving'];
   scheduleTodoAt: (todo: { id: string }, day: string, startMin: number, duration: number) => Promise<unknown>;
   handleEventClick: (ev: CalRow) => void;
-  setQuickCreate: ReturnType<typeof useCalendarData>['setQuickCreate'];
+  setCalView: ReturnType<typeof useCalendarData>['setCalView'];
   gridRef: React.RefObject<HTMLDivElement | null>;
 };
 
 function CalendarGridViews(p: GridViewProps) {
   const column = {
     today: p.today,
-    setCalView: p.setCalView,
     dragSelect: p.dragSelect,
     goalChipFor: p.goalChipFor,
     completedTodoIds: p.completedTodoIds,
@@ -128,7 +124,6 @@ function CalendarGridViews(p: GridViewProps) {
     todosForDay: p.todosForDay,
     handleColumnMouseDown: p.handleColumnMouseDown,
     handleColumnMouseMove: p.handleColumnMouseMove,
-    handleColumnClick: p.handleColumnClick,
     handleEventMouseDown: p.handleEventMouseDown,
     handleEventContextMenu: p.handleEventContextMenu,
     handleToggleTodo: p.handleToggleTodo,
@@ -155,6 +150,7 @@ function CalendarGridViews(p: GridViewProps) {
   if (p.calView === '3dni') {
     return (
       <Calendar3DayView
+        setCalView={p.setCalView}
         selectedDay={p.selectedDay}
         setSelectedDay={p.setSelectedDay}
         setWeekStart={p.setWeekStart}
@@ -163,28 +159,15 @@ function CalendarGridViews(p: GridViewProps) {
       />
     );
   }
-  if (p.calView === 'tydzien') {
-    return (
-      <CalendarWeekView
-        weekStart={p.weekStart}
-        setWeekStart={p.setWeekStart}
-        setSelectedDay={p.setSelectedDay}
-        weather={p.weather}
-        weekDays={p.weekDays}
-        {...column}
-      />
-    );
-  }
   return (
-    <CalendarMonthView
-      selectedDay={p.selectedDay}
-      setSelectedDay={p.setSelectedDay}
+    <CalendarWeekView
       setCalView={p.setCalView}
-      getEventsForDay={p.getEventsForDay}
-      todosForDay={p.todosForDay}
-      handleEventClick={p.handleEventClick}
-      setQuickCreate={p.setQuickCreate}
-      today={p.today}
+      weekStart={p.weekStart}
+      setWeekStart={p.setWeekStart}
+      setSelectedDay={p.setSelectedDay}
+      weather={p.weather}
+      weekDays={p.weekDays}
+      {...column}
     />
   );
 }
@@ -206,11 +189,15 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     handleEventMouseDown, handleEventClick,
   } = calData;
 
-  const { onTouchStart, onTouchEnd, consumeSwipe } = useCalendarGridSwipe({
-    calView, selectedDay, weekStart, setSelectedDay, setWeekStart,
+  const { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel } = useCalendarGridSwipe({
+    calView, selectedDay, setSelectedDay, setWeekStart,
+    onHold: (date, startMin) => {
+      setQuickDuration(60);
+      setQuickCreate({ date, startMin });
+    },
   });
-  const { dragSelect, handleColumnMouseDown, handleColumnMouseMove, handleColumnClick } = useCalendarDragSelect({
-    setQuickDuration, setQuickCreate, consumeSwipe,
+  const { dragSelect, handleColumnMouseDown, handleColumnMouseMove } = useCalendarDragSelect({
+    setQuickDuration, setQuickCreate,
   });
   useInitialGridScroll(gridRef, calView);
 
@@ -233,15 +220,17 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     <div
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
     >
       <CalendarGridViews
         calView={calView}
+        setCalView={setCalView}
         selectedDay={selectedDay}
         setSelectedDay={setSelectedDay}
         weekStart={weekStart}
         setWeekStart={setWeekStart}
-        setCalView={setCalView}
         weather={weather}
         today={today}
         weekDays={weekDays}
@@ -252,7 +241,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         todosForDay={todosForDay}
         handleColumnMouseDown={handleColumnMouseDown}
         handleColumnMouseMove={handleColumnMouseMove}
-        handleColumnClick={handleColumnClick}
         handleEventMouseDown={handleEventMouseDown}
         handleEventContextMenu={handleEventContextMenu}
         handleToggleTodo={handleToggleTodo}
@@ -262,7 +250,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         setSaving={setSaving}
         scheduleTodoAt={scheduleTodoAt}
         handleEventClick={handleEventClick}
-        setQuickCreate={setQuickCreate}
         gridRef={gridRef}
       />
     </div>

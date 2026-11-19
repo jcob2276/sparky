@@ -10,21 +10,20 @@ interface DragSelectState {
 interface UseCalendarDragSelectProps {
   setQuickDuration: (duration: number) => void;
   setQuickCreate: (value: { date: string; startMin: number }) => void;
-  consumeSwipe?: () => boolean;
 }
 
 const isCoarsePointer = () =>
   typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
-function minutesFromColumnEvent(currentTarget: EventTarget & HTMLElement, clientY: number) {
+export function minutesFromColumnEvent(currentTarget: HTMLElement, clientY: number) {
   const rect = currentTarget.getBoundingClientRect();
   const offsetY = clientY - rect.top;
   const clickedMin = Math.round(offsetY / PX_PER_MIN / 15) * 15 + HOUR_START * 60;
   return Math.max(HOUR_START * 60, Math.min(HOUR_END * 60 - 15, clickedMin));
 }
 
-function isInteractiveTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
+export function isInteractiveTarget(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false;
   return Boolean(
     target.closest('.cursor-move') ||
       target.closest('.cursor-s-resize') ||
@@ -37,7 +36,6 @@ function isInteractiveTarget(target: EventTarget | null) {
 export const useCalendarDragSelect = ({
   setQuickDuration,
   setQuickCreate,
-  consumeSwipe,
 }: UseCalendarDragSelectProps) => {
   const [dragSelect, setDragSelect] = useState<DragSelectState | null>(null);
 
@@ -74,18 +72,9 @@ export const useCalendarDragSelect = ({
     setDragSelect({ ...dragSelect, currentMin });
   };
 
-  const handleColumnClick = (day: string, e: React.MouseEvent<Element>) => {
-    if (!isCoarsePointer()) return;
-    if (consumeSwipe?.()) return;
-    if (isInteractiveTarget(e.target)) return;
-    setQuickDuration(60);
-    setQuickCreate({ date: day, startMin: minutesFromColumnEvent(e.currentTarget as HTMLElement, e.clientY) });
-  };
-
   return {
     dragSelect,
     handleColumnMouseDown,
     handleColumnMouseMove,
-    handleColumnClick,
   };
 };

@@ -18,6 +18,7 @@ export interface BarcodeScannerProps {
 }
 
 export default function BarcodeScanner({ onDetected, onClose, loading }: BarcodeScannerProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
@@ -77,6 +78,12 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
     return () => { stopped = true; if (rafId) cancelAnimationFrame(rafId); stream?.getTracks().forEach((t) => t.stop()); trackRef.current = null; };
   }, [detectorSupported, onDetected]);
 
+  // Skaner otwiera się pod formularzem: wyśrodkuj go, żeby nie trzeba było przewijać palcem.
+  useEffect(() => {
+    const timer = window.setTimeout(() => rootRef.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' }), 60);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const toggleTorch = async () => {
     const track = trackRef.current;
     if (!track) return;
@@ -95,7 +102,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <Pressable onClick={onClose} className="touch-manipulation text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
       {detectorSupported && !cameraError ? (
         <div className="relative rounded-lg overflow-hidden bg-scrim aspect-square">

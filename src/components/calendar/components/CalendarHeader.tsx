@@ -14,7 +14,6 @@ const CALENDAR_TABS = [
   { key: 'dzien', label: 'Dzień', mobileLabel: 'Dzień' },
   { key: '3dni', label: '3 Dni', mobileLabel: '3D' },
   { key: 'tydzien', label: 'Tydzień', mobileLabel: 'Tydz.' },
-  { key: 'miesiac', label: 'Miesiąc', mobileLabel: 'Mc' },
 ];
 
 function pluralizeEvents(count: number): string {
@@ -163,7 +162,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
               onClick={() => setSearchOpen(true)}
               variant="secondary"
               size="sm"
-              className="calendar-icon-action hidden h-11 w-11 shrink-0 !p-0 sm:inline-flex sm:h-9 sm:w-9"
+              className="calendar-icon-action h-11 w-11 shrink-0 !p-0 sm:inline-flex sm:h-9 sm:w-9"
               aria-label="Szukaj wydarzeń"
               icon={<Search size={14} />}
             />

@@ -25,7 +25,7 @@ export default function PromptDialog() {
             if (event.key === 'Enter') resolvePrompt(value);
             if (event.key === 'Escape') resolvePrompt(null);
           }}
-          className="mt-3 w-full"
+          className="mt-3 w-full text-base"
         />
       </label>
       <div className="mt-4 flex justify-end gap-2">

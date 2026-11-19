@@ -26,7 +26,6 @@ interface CalendarWeekViewProps {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
-  handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -165,7 +164,7 @@ function WeekDayHeaderCell({
 export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
   weekStart, setWeekStart, setSelectedDay, setCalView, weather, today, weekDays, dragSelect,
   goalChipFor, completedTodoIds, getEventsForDay, todosForDay, handleColumnMouseDown,
-  handleColumnMouseMove, handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
+  handleColumnMouseMove, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
   setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, handleEventClick, gridRef,
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
@@ -271,7 +270,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                 day, colClass: 'calendar-week-column', today, dayEvents: getEventsForDay(day).filter(ev => !ev.is_all_day),
                 dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
                 goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleEventClick, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
+                handleEventMouseDown, handleEventContextMenu, handleEventClick, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
                 setToastMessage, setSaving, scheduleTodoAt,
               })}
             </div>

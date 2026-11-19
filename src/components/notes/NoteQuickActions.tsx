@@ -41,21 +41,27 @@ export default function NoteQuickActions({ note, point, onClose, onTogglePin, on
   }, [sheet, point]);
 
   useEffect(() => {
-    const panel = ref.current;
-    const outside = (event: PointerEvent) => { if (panel && !panel.contains(event.target as Node)) onCloseRef.current(); };
     const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); onCloseRef.current(); } };
-    document.addEventListener('pointerdown', outside, true);
     document.addEventListener('keydown', key, true);
-    return () => { document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', key, true); };
+    return () => document.removeEventListener('keydown', key, true);
   }, []);
 
   const divider = <div className="ios-glass-divider" role="separator" />;
   return createPortal(
     <>
-      {sheet ? <div className="ios-glass-scrim" aria-hidden="true" /> : null}
+      <Pressable
+        type="button"
+        tabIndex={-1}
+        aria-label="Zamknij akcje notatki"
+        className={`ios-glass-scrim note-quick-actions-backdrop ${sheet ? '' : 'note-quick-actions-backdrop-clear'}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClose();
+        }}
+      />
       <div ref={ref} role="menu" aria-label={`Akcje notatki: ${note.title.trim() || 'Bez tytułu'}`} data-mode={sheet ? 'sheet' : 'popover'}
         style={sheet ? undefined : { left: pos.left, top: pos.top, width: WIDTH, transformOrigin: 'top left' }}
-        className="ios-glass ios-glass-pop fixed !rounded-2xl overflow-hidden py-1.5">
+        className="ios-glass ios-glass-pop note-quick-actions-panel fixed !rounded-2xl overflow-y-auto py-1.5">
         <Pressable role="menuitem" className={ITEM} onClick={onTogglePin}>{note.is_pinned ? 'Odepnij notatkę' : 'Przypnij notatkę'}</Pressable>
         {onLock ? <Pressable role="menuitem" className={ITEM} onClick={onLock}>Zablokuj notatkę</Pressable> : null}
         {onShare || onMove ? divider : null}

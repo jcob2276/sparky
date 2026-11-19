@@ -1,5 +1,8 @@
 .todoist-theme {
-  /* Responsive theme values from CSS variables */
+  height: 100dvh;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  overscroll-behavior: none;
 }
 
 .todoist-theme aside {
@@ -15,4 +18,3 @@
 .todoist-theme aside .text-primary {
   color: var(--primary) !important;
 }
-

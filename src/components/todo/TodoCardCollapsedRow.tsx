@@ -42,14 +42,13 @@ interface TodoCardCollapsedRowProps {
     onGripTouchMove: (e: React.TouchEvent) => void;
     onGripMouseDown: (e: React.MouseEvent) => void;
   };
-  onShowContextMenu: (item: TodoItemRow, clientX: number, clientY: number) => void;
 }
 
 const PRIORITY_LABEL: Record<string, string> = { urgent: 'P1 · Pilne', high: 'P2 · Ważne', normal: 'P3', low: 'P4' };
 
 export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, dateInfo, today,
   isEditing, editingTitle, onEditChange, onEditSave, onEditCancel, expanded, onTitlePress, onToggleExpand, onDelete, panelId, sections, onSetSchedule, onSetPriority, onMoveSection,
-  totalSubtaskCount, doneSubtaskCount, isLinkedToPlan, sectionName, dreamTitle, swipe, onShowContextMenu,
+  totalSubtaskCount, doneSubtaskCount, isLinkedToPlan, sectionName, dreamTitle, swipe,
 }: TodoCardCollapsedRowProps) {
   const notes = getPlainText(item.notes || '').replace(/\bsource:(?:note|link):[0-9a-f-]+/gi, '').trim();
   const priority = item.priority || 'normal';
@@ -120,7 +119,7 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
         </div>
         <TodoRowQuickActions item={item} today={today} expanded={expanded} panelId={panelId} sections={sections}
           grip={swipe} onToggleExpand={onToggleExpand} onDelete={onDelete} onSetSchedule={onSetSchedule}
-          onSetPriority={onSetPriority} onMoveSection={onMoveSection} onShowContextMenu={onShowContextMenu} />
+          onSetPriority={onSetPriority} onMoveSection={onMoveSection} />
       </div>
     </>
   );

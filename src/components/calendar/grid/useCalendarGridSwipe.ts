@@ -1,59 +1,62 @@
-import { useRef, type TouchEventHandler } from 'react';
+import { useEffect, useRef, type TouchEventHandler } from 'react';
 import { addDays, weekMon } from '../calendarHelpers';
+import { isInteractiveTarget, minutesFromColumnEvent } from './useCalendarDragSelect';
 
 interface Options {
   calView: string;
   selectedDay: string;
-  weekStart: string;
   setSelectedDay: (day: string) => void;
   setWeekStart: (day: string) => void;
+  onHold: (day: string, startMin: number) => void;
 }
 
 export function useCalendarGridSwipe(options: Options) {
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const swipeConsumed = useRef(false);
+  const start = useRef<{ x: number; y: number; held: boolean } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const consumeSwipe = () => {
-    if (!swipeConsumed.current) return false;
-    swipeConsumed.current = false;
-    return true;
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const cancel = () => {
+    clearTimeout(timer.current);
+    start.current = null;
   };
 
   const onTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
-    // swipe nie generuje kliknięcia, więc flaga z poprzedniego gestu nie może zjeść następnego tapnięcia
-    swipeConsumed.current = false;
-    if (event.touches.length !== 1) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('button, a, input, textarea, [role="dialog"]')) return;
-    // Week/3-day grids scroll horizontally — swipe would fight the canvas.
-    if (options.calView === 'tydzien' || options.calView === '3dni') return;
-    touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    cancel();
+    if (event.touches.length !== 1 || isInteractiveTarget(event.target)) return;
+    const { clientX: x, clientY: y } = event.touches[0];
+    const gesture = { x, y, held: false };
+    start.current = gesture;
+    const column = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-day-col]') : null;
+    const day = column?.dataset.dayCol;
+    if (!column || !day) return;
+    const minute = minutesFromColumnEvent(column, y);
+    timer.current = setTimeout(() => {
+      gesture.held = true;
+      options.onHold(day, minute);
+    }, 450);
+  };
+
+  const onTouchMove: TouchEventHandler<HTMLDivElement> = (event) => {
+    if (event.touches.length !== 1) { cancel(); return; }
+    const point = event.touches[0];
+    if (start.current && Math.hypot(point.clientX - start.current.x, point.clientY - start.current.y) > 10) {
+      clearTimeout(timer.current);
+    }
   };
 
   const onTouchEnd: TouchEventHandler<HTMLDivElement> = (event) => {
-    if (!touchStart.current || event.changedTouches.length !== 1) return;
-    // Przeciąganie wydarzenia (długie przytrzymanie) kończy się tym samym touchend; to nie jest swipe.
-    if (document.body.dataset.calendarDragging) {
-      touchStart.current = null;
-      return;
-    }
-    const deltaX = event.changedTouches[0].clientX - touchStart.current.x;
-    const deltaY = event.changedTouches[0].clientY - touchStart.current.y;
-    touchStart.current = null;
-    if (Math.abs(deltaX) <= 80 || Math.abs(deltaY) >= 50) return;
-
-    swipeConsumed.current = true;
-    const direction = deltaX < 0 ? 1 : -1;
-    if (options.calView === 'dzien') {
-      const next = addDays(options.selectedDay, direction);
-      options.setSelectedDay(next);
-      options.setWeekStart(weekMon(next));
-    } else if (options.calView === 'miesiac') {
-      const [year, month] = options.selectedDay.split('-').map(Number);
-      const next = new Date(year, month - 1 + direction, 1);
-      options.setSelectedDay(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-01`);
-    }
+    const gesture = start.current;
+    cancel();
+    if (!gesture || gesture.held || event.changedTouches.length !== 1 || options.calView !== 'dzien'
+      || document.body.dataset.calendarDragging) return;
+    const { clientX, clientY } = event.changedTouches[0];
+    const dx = clientX - gesture.x;
+    const dy = clientY - gesture.y;
+    if (Math.abs(dx) < 64 || Math.abs(dx) <= Math.abs(dy) * 1.8) return;
+    const next = addDays(options.selectedDay, dx < 0 ? 1 : -1);
+    options.setSelectedDay(next);
+    options.setWeekStart(weekMon(next));
   };
 
-  return { onTouchStart, onTouchEnd, consumeSwipe };
+  return { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel: cancel };
 }
