@@ -9,7 +9,7 @@ export interface CategorySpending {
   share: number;
 }
 
-const isCategory = (value: string | null): value is BankCategory => value != null && value in BANK_CATEGORY_LABELS;
+const isCategory = (value: string | null): value is BankCategory => value != null && Object.prototype.hasOwnProperty.call(BANK_CATEGORY_LABELS, value);
 
 /** Etykieta kategorii; brak lub nieznana to "Do sprawdzenia", żeby UI nigdy nie pokazał pustego pola. */
 export function bankCategoryLabel(category: string | null): string {

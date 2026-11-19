@@ -4,6 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Search } from '
 import { getTodayWarsaw } from '../../lib/date';
 import type { FinanceAccount, FinanceBundle, FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
+import { financeTransactionCategory, summarizeFinanceCategories } from './financeReferenceCategories';
 import { FinanceDonut } from './FinanceDonut';
 import { formatMonthLabel } from './financeNarrative';
 import { financePeriodTotals, financeRecordsInRange, moveFinanceMonth, movement, type FinanceDateRange } from './financeReferencePeriods';
@@ -23,15 +24,25 @@ export function FinanceReferenceCategories({ transactions, onCategory }: {
   transactions: FinanceTransaction[];
   onCategory: (category: string) => void;
 }) {
-  const { categories, expenses } = financePeriodTotals(transactions);
-  const slices = [...categories.entries()].sort((a, b) => b[1] - a[1]).map(([name, amount]) => ({
-    key: name, label: name, amount, value: `${formatPln(amount, 2)} · ${Math.round(amount / expenses * 100)}%`,
+  const groups = summarizeFinanceCategories(transactions);
+  const expenses = groups.reduce((sum, group) => sum + group.amount, 0);
+  const slices = groups.map(({ group, amount }) => ({
+    key: group, label: group, amount, value: `${formatPln(amount, 2)} · ${Math.round(amount / expenses * 100)}%`,
   }));
   return (
     <section className="finance-reference-card">
       <h2 className="finance-reference-label">Kategorie</h2>
       {slices.length ? <FinanceDonut slices={slices} ariaLabel="Wydatki według kategorii" centerLabel="Wydatki" center={formatPln(expenses, 2)} onSelect={onCategory} />
         : <p className="text-text-muted">Brak wydatków w tym okresie.</p>}
+      {groups.length > 0 && <details className="mt-3">
+        <summary className="finance-reference-link cursor-pointer">Podkategorie</summary>
+        {groups.map(({ group, details }) => <div key={group} className="mt-3">
+          <h3 className="finance-reference-label">{group}</h3>
+          <dl className="finance-reference-breakdown">
+            {details.map(({ detail, amount }) => <div key={detail}><dt>{detail}</dt><dd>{formatPln(amount, 2)}</dd></div>)}
+          </dl>
+        </div>)}
+      </details>}
     </section>
   );
 }
@@ -93,23 +104,28 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
 }) {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
+  const [detail, setDetail] = useState('');
   const [account, setAccount] = useState('');
   const [limit, setLimit] = useState(50);
   const [view, setView] = useState<'list' | 'categories'>('list');
   const records = range ? financeRecordsInRange(data.transactions, range)
     : data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
-  const hasFilters = Boolean(query || kind || account || category);
+  const hasFilters = Boolean(query || kind || account || category || detail);
   const resetFilters = () => {
     setQuery('');
     setKind('');
     setAccount('');
+    setDetail('');
     onCategory('');
     setLimit(50);
   };
-  const categoryOptions = [...new Set([...records.map((tx) => tx.category), ...(category ? [category] : [])])].sort((a, b) => a.localeCompare(b, 'pl'));
+  const categoryOptions = [...new Set([...records.map((tx) => financeTransactionCategory(tx).group), ...(category ? [category] : [])])].sort((a, b) => a.localeCompare(b, 'pl'));
+  const details = [...new Set(records.map((tx) => financeTransactionCategory(tx)).filter((item) => item.group === category).map((item) => item.detail))]
+    .sort((a, b) => a.localeCompare(b, 'pl'));
   const filtered = records.filter((tx) => {
     const text = `${tx.note ?? ''} ${tx.category} ${tx.amount} ${formatPln(Math.abs(tx.amount), 2)}`.toLocaleLowerCase('pl');
-    return (!category || category === tx.category) && (!kind || kind === movement(tx))
+    const classified = financeTransactionCategory(tx);
+    return (!category || category === classified.group) && (!detail || detail === classified.detail) && (!kind || kind === movement(tx))
       && (!account || account === tx.account_id) && text.includes(query.trim().toLocaleLowerCase('pl'));
   });
   return (
@@ -118,7 +134,7 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
         <Pressable type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>Lista</Pressable>
         <Pressable type="button" aria-pressed={view === 'categories'} onClick={() => setView('categories')}>Kategorie</Pressable>
       </div>
-      {view === 'categories' ? <FinanceReferenceCategories transactions={records} onCategory={(name) => { onCategory(name); setView('list'); }} /> : (
+      {view === 'categories' ? <FinanceReferenceCategories transactions={records} onCategory={(name) => { setDetail(''); onCategory(name); setView('list'); }} /> : (
         <>
           <div className="finance-reference-search">
             <label><Search size={16} aria-hidden="true" /><ControlInput type="search" aria-label="Szukaj transakcji" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Sklep, opis lub kwota" /></label>
@@ -131,9 +147,12 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
             <ControlSelect aria-label="Konto transakcji" value={account} onChange={(event) => setAccount(event.target.value)}>
               <option value="">Wszystkie konta</option>{data.accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </ControlSelect>
-            <ControlSelect aria-label="Kategoria transakcji" value={category} onChange={(event) => onCategory(event.target.value)}>
+            <ControlSelect aria-label="Kategoria transakcji" value={category} onChange={(event) => { setDetail(''); onCategory(event.target.value); }}>
               <option value="">Wszystkie kategorie</option>{categoryOptions.map((value) => <option key={value}>{value}</option>)}
             </ControlSelect>
+            {!!category && details.length > 0 && <ControlSelect aria-label="Podkategoria transakcji" value={detail} onChange={(event) => setDetail(event.target.value)}>
+              <option value="">Wszystkie podkategorie</option>{details.map((value) => <option key={value}>{value}</option>)}
+            </ControlSelect>}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-x-2">
             <p className="text-sm text-text-muted" role="status">Liczba transakcji: {filtered.length}</p>

@@ -42,6 +42,8 @@ describe('bankCategoryLabel', () => {
     expect(bankCategoryLabel('inne')).toBe('Inne');
     expect(bankCategoryLabel(null)).toBe('Do sprawdzenia');
     expect(bankCategoryLabel('xyz')).toBe('Do sprawdzenia');
+    expect(bankCategoryLabel('constructor')).toBe('Do sprawdzenia');
+    expect(bankCategoryLabel('__proto__')).toBe('Do sprawdzenia');
   });
 });
 

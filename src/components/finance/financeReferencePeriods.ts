@@ -14,19 +14,15 @@ export function financePeriodTotals(transactions: FinanceTransaction[]) {
   let income = 0;
   let expenses = 0;
   let refunds = 0;
-  const categories = new Map<string, number>();
   for (const tx of transactions) {
     const amount = Math.abs(tx.amount);
     switch (movement(tx)) {
       case 'income': income += amount; break;
       case 'refund': refunds += amount; break;
-      case 'expense':
-        expenses += amount;
-        categories.set(tx.category, (categories.get(tx.category) ?? 0) + amount);
-        break;
+      case 'expense': expenses += amount; break;
     }
   }
-  return { income, expenses, refunds, balance: income + refunds - expenses, categories };
+  return { income, expenses, refunds, balance: income + refunds - expenses };
 }
 
 export interface FinanceDateRange {

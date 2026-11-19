@@ -143,7 +143,7 @@ describe('FinancePage', () => {
     vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
     bundle.transactions = [
       { id: 'nov', user_id: 'u', amount: 40, category: 'Transport', note: 'Bilet listopad', transaction_date: '2026-11-02', kind: 'expense', created_at: '' },
-      { id: 'oct', user_id: 'u', amount: 30, category: 'Transport', note: 'Bilet październik', transaction_date: '2026-10-20', kind: 'expense', created_at: '' },
+      { id: 'oct', user_id: 'u', amount: 30, category: 'Transport i paliwo', note: 'Bilet październik', transaction_date: '2026-10-20', kind: 'expense', created_at: '' },
       { id: 'other', user_id: 'u', amount: 60, category: 'Jedzenie', note: 'Obiad', transaction_date: '2026-11-05', kind: 'expense', created_at: '' },
     ];
     openFinance();
@@ -154,6 +154,9 @@ describe('FinancePage', () => {
     expect(screen.getByText('Bilet listopad')).toBeInTheDocument();
     expect(screen.getByText('Bilet październik')).toBeInTheDocument();
     expect(screen.queryByText('Obiad')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Podkategoria transakcji' }), { target: { value: 'Transport i paliwo' } });
+    expect(screen.getByText('Bilet październik')).toBeInTheDocument();
+    expect(screen.queryByText('Bilet listopad')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wyczyść filtry' }));
     expect(screen.getByText('Obiad')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wróć do widoku miesiąca' }));
