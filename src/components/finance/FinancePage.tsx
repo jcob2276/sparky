@@ -147,7 +147,7 @@ function FinancePage() {
           onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={openTransactions} onSelect={setSelected} />}
         {data && tab === 'flows' && (
           <>
-            {historyAvailable && <FinanceReferenceTransactions data={data} month={month} range={historyRange} category={category}
+            {historyAvailable && <FinanceReferenceTransactions key={historyRange?.from ?? month} data={data} month={month} range={historyRange} category={category}
               onCategory={setCategory} onQuickEntry={openQuickEntry} onSelect={setSelected} />}
             {bank.data?.connection ? <details className="finance-reference-card">
               <summary>Operacje bankowe i kategoryzacja</summary>

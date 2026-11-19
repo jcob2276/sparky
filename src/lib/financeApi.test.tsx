@@ -107,19 +107,15 @@ function BudgetTab({ tab }: { tab: FinanceTabKey }) {
     run={async (fn) => fn()} saveProfilePatch={() => {}} onNavigate={() => {}} />;
 }
 
-it.each(['dashboard', 'flows'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {
+it('keeps saved income and the budget input in finance tools without inventing plan results', async () => {
   source.income = [{ id: 'pay', user_id: 'owner', name: 'Pensja', amount_monthly: 7000,
     source_type: 'salary', is_active: true, created_at: '2026-10-17T10:00:00Z' }];
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  render(<QueryClientProvider client={client}><BudgetTab tab={tab} /></QueryClientProvider>);
-  if (tab === 'flows') {
-    fireEvent.click(await screen.findByRole('tab', { name: 'Plan i stałe płatności' }));
-    await screen.findByText('Pensja');
-    expect(screen.getByLabelText(/Plan wydatków na miesiąc/)).toHaveValue(null);
-  } else {
-    await screen.findByRole('button', { name: /Ustaw dochód i wydatki/ });
-    expect(screen.queryByText('Zostało w miesiącu')).not.toBeInTheDocument();
-  }
+  render(<QueryClientProvider client={client}><BudgetTab tab="tools" /></QueryClientProvider>);
+
+  await screen.findByText('Pensja');
+  expect(screen.getByLabelText(/Plan wydatków na miesiąc/)).toHaveValue(null);
+  expect(screen.queryByText('Zostało w miesiącu')).not.toBeInTheDocument();
 });
 
 function transaction(id: string, date = '2026-10-16'): FinanceTransaction {
