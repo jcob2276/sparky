@@ -1,5 +1,5 @@
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Flashlight, FlashlightOff, Keyboard } from 'lucide-react';
 import Spinner from '../../ui/Spinner';
 
@@ -9,6 +9,31 @@ declare global {
       detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]>;
     };
   }
+}
+
+async function createDecoder() {
+  const formats = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
+  if (window.BarcodeDetector) {
+    try {
+      const detector = new window.BarcodeDetector({ formats });
+      return async (video: HTMLVideoElement) => (await detector.detect(video))[0]?.rawValue;
+    } catch {
+      // Some implementations expose the API without supporting these formats.
+    }
+  }
+
+  const { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType, NotFoundException, ChecksumException, FormatException } =
+    await import('@zxing/library');
+  const reader = new BrowserMultiFormatReader(new Map([
+    [DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E]],
+  ]));
+  return (video: HTMLVideoElement) => {
+    try {
+      return reader.decode(video).getText();
+    } catch (error) {
+      if (!(error instanceof NotFoundException || error instanceof ChecksumException || error instanceof FormatException)) throw error;
+    }
+  };
 }
 
 export interface BarcodeScannerProps {
@@ -24,13 +49,14 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   const trackRef = useRef<MediaStreamTrack | null>(null);
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  const detectorSupported = typeof window !== 'undefined' && !!window.BarcodeDetector;
+  const cameraAvailable = Boolean(navigator.mediaDevices?.getUserMedia);
+  const scanCode = useEffectEvent((code: string) => onDetected(code));
 
   useEffect(() => {
-    if (!detectorSupported) return;
+    if (!cameraAvailable || loading) return;
     let stream: MediaStream | null = null;
     let stopped = false;
-    let rafId: number;
+    let scanTimer: ReturnType<typeof setTimeout> | undefined;
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -52,30 +78,41 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
             // Not supported on all devices, safe to ignore
           }
         }
-        if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
-        const detector = new window.BarcodeDetector!({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
+        const video = videoRef.current;
+        if (stopped || !video) return;
+        video.srcObject = stream;
+        await video.play();
+        const decode = await createDecoder();
         const scan = async () => {
-          if (stopped || !videoRef.current) return;
+          if (stopped) return;
           try {
-            const codes = await detector.detect(videoRef.current);
-            if (codes.length > 0) {
-              const raw = codes[0].rawValue.replace(/[\s-]+/g, '').trim();
-              if (raw) {
-                onDetected(raw);
-                return;
-              }
+            const code = video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+              ? (await decode(video))?.replace(/[\s-]+/g, '')
+              : undefined;
+            if (stopped) return;
+            if (code) {
+              scanCode(code);
+              return;
             }
-          } catch { /* ignore mid-frame decode errors */ }
-          rafId = requestAnimationFrame(() => { scan(); });
+          } catch (error) {
+            if (stopped) return;
+            console.error('[BarcodeScanner] decode failed', error);
+            stream?.getTracks().forEach((mediaTrack) => mediaTrack.stop());
+            setCameraError('Nie udało się odczytać obrazu z kamery — wpisz kod ręcznie');
+            return;
+          }
+          scanTimer = setTimeout(() => { void scan(); }, 150);
         };
-        scan();
+        void scan();
       } catch (err: unknown) {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (stopped) return;
         console.error('[BarcodeScanner] camera failed', err);
         setCameraError('Brak dostępu do kamery — wpisz kod ręcznie');
       }
     })();
-    return () => { stopped = true; if (rafId) cancelAnimationFrame(rafId); stream?.getTracks().forEach((t) => t.stop()); trackRef.current = null; };
-  }, [detectorSupported, onDetected]);
+    return () => { stopped = true; clearTimeout(scanTimer); stream?.getTracks().forEach((t) => t.stop()); trackRef.current = null; };
+  }, [cameraAvailable, loading]);
 
   const toggleTorch = async () => {
     const track = trackRef.current;
@@ -97,7 +134,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   return (
     <div className="space-y-3">
       <Pressable onClick={onClose} className="touch-manipulation text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
-      {detectorSupported && !cameraError ? (
+      {cameraAvailable && !cameraError ? (
         <div className="relative rounded-lg overflow-hidden bg-scrim aspect-square">
           <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
           <div className="absolute inset-8 border-2 border-primary/70 rounded-lg pointer-events-none" />
