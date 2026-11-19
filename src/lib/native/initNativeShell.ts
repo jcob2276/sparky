@@ -5,7 +5,7 @@
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { isNativePlatform } from './platform';
+import { isAndroid, isNativePlatform } from './platform';
 import { handleNativeBack } from './backStack';
 
 function cssColor(varName: string, fallback: string): string {
@@ -27,6 +27,7 @@ export async function initNativeShell(): Promise<void> {
 
   document.documentElement.classList.add('capacitor-native');
   document.body.classList.add('capacitor-native');
+  if (!isAndroid()) document.documentElement.classList.add('capacitor-ios');
 
   try {
     // Prefer design token; StatusBar API needs a concrete color string.
