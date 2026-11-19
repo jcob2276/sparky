@@ -14,6 +14,7 @@ export function mergeBankFinance(bundle: FinanceBundle, bank: BankData, today: s
     return { ...account, balance: source.balance };
   });
   const linkedIds = new Set(linked.values());
+  const savingsAccountIds = new Set(accounts.filter((account) => account.account_type === 'savings').map((account) => account.id));
   const imported = new Set(bank.transactions.filter(tx => linked.has(tx.account_id) && tx.currency === 'PLN'
     && tx.booking_date && tx.booking_date <= today && isBankBooked(tx)).map(tx => tx.id));
   const transactions = bundle.transactions.filter(t => !t.bank_transaction_id || !imported.has(t.bank_transaction_id));
@@ -37,7 +38,8 @@ export function mergeBankFinance(bundle: FinanceBundle, bank: BankData, today: s
       if (savingsTransfer) {
         savingsTransfers.push({
           id: `bank:${tx.id}`, user_id: bundle.profile.user_id, account_id: accountId,
-          amount: tx.amount, category: 'Oszczędności', note: tx.amount < 0 ? 'Wpłata na oszczędności' : 'Wypłata z oszczędności',
+          amount: tx.amount, category: 'Oszczędności', note: savingsAccountIds.has(accountId) ? 'Przelew między kontami oszczędnościowymi'
+            : tx.amount < 0 ? 'Wpłata na oszczędności' : 'Wypłata z oszczędności',
           transaction_date: tx.booking_date, created_at: '', kind: tx.amount < 0 ? 'expense' : 'income',
           source: 'bank', flow_kind: 'transfer',
         });
