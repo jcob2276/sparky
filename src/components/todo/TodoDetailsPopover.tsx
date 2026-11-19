@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Pressable } from '../ui/ControlPrimitives';
 import { createPortal } from 'react-dom';
 import type { PopoverAnchor } from './TodoAnchoredPopover';
 
@@ -48,6 +49,11 @@ function place(anchor: PopoverAnchor, height: number): Placement {
 }
 
 /** Liquid-glass details window: a popover with an arrow to the row on wide screens, a bottom sheet on phones. */
+function blurPanelField(panel: HTMLElement | null) {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && panel?.contains(active)) active.blur();
+}
+
 export default function TodoDetailsPopover({ anchorRef, label, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -74,29 +80,17 @@ export default function TodoDetailsPopover({ anchorRef, label, onClose, children
 
   useEffect(() => {
     const panel = ref.current;
-    // Closing unmounts the fields before their blur handlers run, so commit the focused field first.
-    const commitFocused = () => {
-      const active = document.activeElement;
-      if (panel && active instanceof HTMLElement && panel.contains(active)) active.blur();
-    };
-    const closeOutside = (event: PointerEvent) => {
-      // The ControlSelect sheet is its own portal: taps inside it must not close this window before a value is chosen.
-      if (event.target instanceof Element && event.target.closest('[aria-modal="true"]')) return;
-      if (panel && !panel.contains(event.target as Node)) { commitFocused(); onCloseRef.current(); }
-    };
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (document.querySelector('[aria-modal="true"]')) return;
       event.preventDefault();
       event.stopPropagation();
-      commitFocused();
+      blurPanelField(panel);
       onCloseRef.current();
     };
-    document.addEventListener('pointerdown', closeOutside, true);
     document.addEventListener('keydown', onKey, true);
     const returnFocusTo = anchorRef.current?.closest<HTMLElement>('[data-todo-id]') ?? null;
     return () => {
-      document.removeEventListener('pointerdown', closeOutside, true);
       document.removeEventListener('keydown', onKey, true);
       const active = document.activeElement;
       if (active === document.body || (panel && active && panel.contains(active))) returnFocusTo?.focus({ preventScroll: true });
@@ -106,11 +100,19 @@ export default function TodoDetailsPopover({ anchorRef, label, onClose, children
   const sheet = placement.mode === 'sheet';
   return createPortal(
     <>
-      {sheet ? <div className="ios-glass-scrim" aria-hidden="true" /> : null}
+      <Pressable type="button" tabIndex={-1} aria-label="Zamknij edycję zadania"
+        className={`ios-glass-scrim todo-details-backdrop ${sheet ? '' : 'todo-details-backdrop-clear'}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          blurPanelField(ref.current);
+          onClose();
+        }}
+      />
       <div ref={ref} role="dialog" aria-label={label} data-mode={placement.mode} data-side={placement.side}
+        data-no-view-swipe
         onClick={(event) => event.stopPropagation()}
         style={sheet ? undefined : { left: placement.left, top: placement.top, width: Math.min(WIDTH, window.innerWidth - 2 * MARGIN), ['--arrow' as string]: `${placement.arrow}px` }}
-        className="ios-glass ios-glass-pop fixed">
+        className="ios-glass ios-glass-pop todo-details-panel fixed">
         <div className="ios-glass-scroll">{children}</div>
       </div>
     </>,

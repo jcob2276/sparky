@@ -6,7 +6,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // iOS 27 requires the UIScene lifecycle: the window lives in SceneDelegate (see Info.plist UIApplicationSceneManifest).
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        application.applicationSupportsShakeToEdit = false
         return true
     }
 

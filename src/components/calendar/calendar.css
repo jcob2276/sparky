@@ -68,6 +68,8 @@
   .calendar-shell {
     background: var(--background);
     box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    overscroll-behavior: none;
   }
 
   .calendar-main {
@@ -148,30 +150,9 @@
     padding-bottom: 4rem;
   }
 
-  .calendar-month-weekday {
-    font-size: 0.65rem;
-    letter-spacing: 0.02em;
-  }
-
-  .calendar-month-cell {
-    min-height: var(--calendar-mobile-month-cell-min);
-    padding: 4px;
-  }
-
-  .calendar-month-event-pill {
-    display: none;
-  }
-
-  .calendar-month-dots {
-    display: flex;
-  }
 }
 
 @media (min-width: 768px) {
-  .calendar-month-dots {
-    display: flex;
-  }
-
   .calendar-fab,
   .calendar-toast {
     bottom: 1rem;

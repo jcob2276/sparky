@@ -52,8 +52,8 @@ export default function TodoListView({
   const completedCount = Math.max(loadedDoneCount, doneCountQuery.data ?? 0);
 
   return (
-    <main ref={mainRef} className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>
-      <div className="mx-auto max-w-[var(--content-default)] space-y-4 px-4 py-4 pb-24 lg:px-8">
+    <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain" onClick={() => setExpandedId(null)}>
+      <div className="mx-auto max-w-[var(--content-default)] space-y-4 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] lg:px-8">
         {error && <DataStateNotice tone="warning" title="Błąd" detail={error} />}
 
         <AppleRemindersSmartGrid

@@ -3,12 +3,14 @@
  * @role Stały pasek narzędzi edytora, wydzielony z RichEditor.tsx pod limit 300 linii.
  * @usedBy RichEditor
  */
+import { createPortal } from 'react-dom';
 import { Pressable } from '../ui/ControlPrimitives';
 import { useRef, useEffect, useState, type ReactNode } from 'react';
 import RichEditorFormatPopover, { type FormatState } from './RichEditorFormatPopover';
 import { CheckSquare, Table2, Image, Indent, Outdent, Undo, Redo, Link2 } from 'lucide-react';
 
 interface Props {
+  docked: boolean;
   activeState: FormatState;
   showStaticBar: boolean;
   onAction: (action: string) => void;
@@ -44,8 +46,9 @@ const GROUPS: BarButton[][] = [
   ],
 ];
 
-export default function RichEditorStaticBar({ activeState, showStaticBar, onAction }: Props) {
+export default function RichEditorStaticBar({ activeState, showStaticBar, onAction, docked }: Props) {
   const staticBarRef = useRef<HTMLDivElement>(null);
+  const [viewportBounds, setViewportBounds] = useState({ bottom: 0, left: 0, right: 0 });
   const [hasMore, setHasMore] = useState(false);
   const [formatAnchor, setFormatAnchor] = useState<DOMRect | null>(null);
 
@@ -55,41 +58,59 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     if (bar) setHasMore(bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
   };
 
-  // Pin formatting bar above keyboard on mobile (iOS visualViewport API)
   useEffect(() => {
-    if (!showStaticBar) return;
-    updateHasMore();
-    const vv = window.visualViewport;
-    if (!vv) return;
+    if (!showStaticBar || !docked) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    let frame = 0;
     const reposition = () => {
-      const bar = staticBarRef.current;
-      if (!bar) return;
-      const keyboardH = window.innerHeight - (vv.offsetTop + vv.height);
-      if (keyboardH > 50) {
-        bar.style.cssText = `position:fixed;bottom:${keyboardH}px;left:0;right:0;z-index:99999;margin:0;border-radius:0;width:100%;padding:0 12px;`;
-        bar.classList.add('kb-open');
-      } else {
-        bar.style.cssText = '';
-        bar.classList.remove('kb-open');
-      }
-      updateHasMore();
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const layout = document.documentElement;
+        setViewportBounds({
+          bottom: Math.max(0, layout.clientHeight - viewport.height - viewport.offsetTop),
+          left: Math.max(0, viewport.offsetLeft),
+          right: Math.max(0, layout.clientWidth - viewport.width - viewport.offsetLeft),
+        });
+      });
     };
-    vv.addEventListener('resize', reposition);
-    vv.addEventListener('scroll', reposition);
+    reposition();
+    viewport.addEventListener('resize', reposition);
+    viewport.addEventListener('scroll', reposition);
+    window.addEventListener('resize', reposition);
     return () => {
-      vv.removeEventListener('resize', reposition);
-      vv.removeEventListener('scroll', reposition);
+      cancelAnimationFrame(frame);
+      viewport.removeEventListener('resize', reposition);
+      viewport.removeEventListener('scroll', reposition);
+      window.removeEventListener('resize', reposition);
     };
-  }, [showStaticBar]);
+  }, [showStaticBar, docked]);
+
+  useEffect(() => {
+    const bar = staticBarRef.current;
+    if (!showStaticBar || !bar) return;
+    const observer = new ResizeObserver(updateHasMore);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [showStaticBar, docked]);
 
   if (!showStaticBar) return null;
 
-  return (
-    <div className={`keep-static-bar ${hasMore ? 'has-more' : ''}`} ref={staticBarRef} onScroll={updateHasMore}>
+  const bar = (
+    <div
+      className={`keep-static-bar ${hasMore ? 'has-more' : ''} ${docked ? 'keep-static-bar-docked' : ''}`}
+      ref={staticBarRef}
+      onScroll={updateHasMore}
+      style={docked ? {
+        ...viewportBounds,
+        bottom: viewportBounds.bottom || undefined,
+      } : undefined}
+    >
       <Pressable
         type="button"
         data-format-trigger=""
-        onMouseDown={e => { e.preventDefault(); const rect = e.currentTarget.getBoundingClientRect(); setFormatAnchor(current => (current ? null : rect)); }}
+        onMouseDown={e => e.preventDefault()}
+        onClick={e => { const rect = e.currentTarget.getBoundingClientRect(); setFormatAnchor(current => (current ? null : rect)); }}
         className={`keep-static-btn ${formatAnchor ? 'active' : ''}`}
         title="Format tekstu"
         aria-label="Format tekstu"
@@ -106,7 +127,8 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
             <Pressable
               key={action}
               type="button"
-              onMouseDown={e => { e.preventDefault(); onAction(action); }}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => onAction(action)}
               className={`keep-static-btn ${active && activeState[active] ? 'active' : ''}`}
               title={title}
               aria-label={title}
@@ -119,4 +141,5 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
       {formatAnchor && <RichEditorFormatPopover anchor={formatAnchor} state={activeState} onAction={onAction} onClose={() => setFormatAnchor(null)} />}
     </div>
   );
+  return docked ? createPortal(bar, document.body) : bar;
 }

@@ -8,15 +8,18 @@ export function useTodoViewSwipe(
   currentView: TodoViewMode,
   setCurrentView: (view: TodoViewMode) => void,
 ) {
-  const start = useRef<{ x: number; y: number; target: EventTarget | null } | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
 
   const onTouchStart = useCallback((event: React.TouchEvent) => {
     const touch = event.touches[0];
-    if (!touch) return;
+    const target = event.target instanceof SVGElement ? event.target.closest('button, a, [data-no-view-swipe]') : event.target;
+    if (event.touches.length !== 1 || !touch || shouldBlockSwipeNav(target)) {
+      start.current = null;
+      return;
+    }
     start.current = {
       x: touch.clientX,
       y: touch.clientY,
-      target: event.target,
     };
   }, []);
 
@@ -28,8 +31,7 @@ export function useTodoViewSwipe(
 
     const deltaX = touch.clientX - gesture.x;
     const deltaY = touch.clientY - gesture.y;
-    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.75) return;
-    if (shouldBlockSwipeNav(gesture.target)) return;
+    if (Math.abs(deltaX) < 96 || Math.abs(deltaX) <= Math.abs(deltaY) * 2.5) return;
 
     const currentIndex = VIEW_ORDER.indexOf(currentView);
     const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
@@ -37,5 +39,7 @@ export function useTodoViewSwipe(
     if (nextView) setCurrentView(nextView);
   }, [currentView, setCurrentView]);
 
-  return { onTouchStart, onTouchEnd };
+  const onTouchCancel = useCallback(() => { start.current = null; }, []);
+
+  return { onTouchStart, onTouchEnd, onTouchCancel };
 }

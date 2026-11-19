@@ -88,8 +88,6 @@ export function useCalendarKeyboardShortcuts({
         calData.setCalView('3dni');
       } else if (key === 'w' || key === '7') {
         calData.setCalView('tydzien');
-      } else if (key === 'm') {
-        calData.setCalView('miesiac');
       } else if (key === 't') {
         calData.setSelectedDay(today);
         calData.setWeekStart(weekMon(today));

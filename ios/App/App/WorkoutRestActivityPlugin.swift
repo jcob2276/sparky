@@ -21,26 +21,39 @@ final class WorkoutRestActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
             return
         }
-        guard let start = call.getDouble("startedAt"), let end = call.getDouble("endsAt"),
-              start.isFinite, end.isFinite, let exercise = call.getString("exercise"), end > start else {
-            call.reject("Invalid rest timer")
+        guard let workoutStart = call.getDouble("workoutStartedAt"), workoutStart.isFinite else {
+            call.reject("Invalid workout start")
             return
         }
 
-        let endsAt = Date(timeIntervalSince1970: end / 1000)
+        var restStart: Date?
+        var restEnd: Date?
+        var exercise: String?
+        var nextSet: Int?
+        if let rest = call.getObject("rest") {
+            guard let start = rest["startedAt"] as? Double, let end = rest["endsAt"] as? Double,
+                  start.isFinite, end.isFinite, end > start, let name = rest["exercise"] as? String else {
+                call.reject("Invalid rest timer")
+                return
+            }
+            if end / 1000 > Date.now.timeIntervalSince1970 {
+                restStart = Date(timeIntervalSince1970: start / 1000)
+                restEnd = Date(timeIntervalSince1970: end / 1000)
+                exercise = name
+                nextSet = rest["nextSet"] as? Int
+            }
+        }
+
         let state = WorkoutRestAttributes.ContentState(
-            startedAt: Date(timeIntervalSince1970: start / 1000),
-            endsAt: endsAt,
+            workoutStartedAt: Date(timeIntervalSince1970: workoutStart / 1000),
+            restStartedAt: restStart,
+            restEndsAt: restEnd,
             exercise: exercise,
-            nextSet: call.getInt("nextSet")
+            nextSet: nextSet
         )
 
         Task { @MainActor in
-            guard endsAt > .now else {
-                call.resolve()
-                return
-            }
-            let content = ActivityContent(state: state, staleDate: endsAt)
+            let content = ActivityContent(state: state, staleDate: nil)
             do {
                 if let current = Activity<WorkoutRestAttributes>.activities.first {
                     await current.update(content)
@@ -49,7 +62,7 @@ final class WorkoutRestActivityPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
                 call.resolve()
             } catch {
-                call.reject("Could not start workout rest activity", nil, error)
+                call.reject("Could not start workout activity", nil, error)
             }
         }
     }

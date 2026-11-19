@@ -57,3 +57,24 @@ describe('list shortcuts on Space', () => {
     expect(editor.textContent).toBe('a -');
   });
 });
+
+it.each([false, true])('moves between header and body cells with Tab (shift=%s)', (shiftKey) => {
+  const editor = setup('temporary');
+  try {
+    editor.innerHTML = '<table class="keep-table"><thead><tr><th>Góra</th></tr></thead><tbody><tr><td>Dół</td></tr></tbody></table>';
+    const [header, body] = Array.from(editor.querySelectorAll('th, td'));
+    const selection = window.getSelection()!;
+    selection.collapse(shiftKey ? body : header, 0);
+    const preventDefault = vi.fn();
+    expect(handleRichEditorKeyShortcuts({
+      e: { key: 'Tab', shiftKey, preventDefault } as unknown as React.KeyboardEvent<HTMLDivElement>,
+      editor,
+      handleInput: vi.fn(),
+      insertHTML: vi.fn(),
+    })).toBe(true);
+    expect(selection.anchorNode).toBe(shiftKey ? header : body);
+    expect(preventDefault).toHaveBeenCalledOnce();
+  } finally {
+    document.body.innerHTML = '';
+  }
+});

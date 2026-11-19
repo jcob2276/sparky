@@ -184,7 +184,6 @@ export default function TodoCard({
           onMoveSection={onMoveSection}
           panelId={panelId}
           swipe={swipe}
-          onShowContextMenu={onShowContextMenu}
         />
       </div>
 

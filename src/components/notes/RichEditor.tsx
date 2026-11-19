@@ -1,3 +1,4 @@
+import { noteLinkHtml } from './noteLinks';
 import { sanitizePastedHtml } from './pasteSanitizer';
 import { useCallback, useEffect, useRef } from 'react';
 import { ControlInput } from '../ui/ControlPrimitives';
@@ -19,6 +20,7 @@ interface RichEditorProps {
   className?: string;
   style?: React.CSSProperties;
   showStaticBar?: boolean;
+  dockToolbar?: boolean;
   allNotes?: Array<{ id: string; title: string }>;
   noteId?: string;
   userId?: string;
@@ -32,6 +34,7 @@ export default function RichEditor({
   className = '',
   style = {},
   showStaticBar = true,
+  dockToolbar = false,
   allNotes = [],
   noteId,
   userId,
@@ -173,6 +176,12 @@ export default function RichEditor({
         onPaste={(event) => {
           // Pasted files (images) keep their own handling; HTML loses the source's fonts, colours and backgrounds.
           if (event.clipboardData.files.length > 0) return;
+          const link = noteLinkHtml(event.clipboardData.getData('text/plain'));
+          if (link) {
+            event.preventDefault();
+            formatting.insertHTML(link);
+            return;
+          }
           const html = event.clipboardData.getData('text/html');
           if (!html) return;
           event.preventDefault();
@@ -206,6 +215,7 @@ export default function RichEditor({
         />
       )}
       <RichEditorStaticBar
+        docked={dockToolbar}
         activeState={formatting.activeState}
         showStaticBar={showStaticBar}
         onAction={formatting.handleAction}

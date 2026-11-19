@@ -175,28 +175,23 @@ function handleTabShortcut(e: React.KeyboardEvent<HTMLDivElement>, editor: HTMLD
   const selection = window.getSelection();
   if (!selection || !selection.anchorNode) return false;
 
-  let parent = selection.anchorNode.parentElement;
-  while (parent && parent !== editor) {
-    if (parent.tagName === 'TD') {
-      e.preventDefault();
-      const allCells = Array.from(editor?.querySelectorAll('.keep-td') || []);
-      const idx = allCells.indexOf(parent);
-      if (idx !== -1) {
-        const next = allCells[idx + 1] as HTMLElement;
-        if (next) {
-          next.focus();
-          const r = document.createRange();
-          r.selectNodeContents(next);
-          r.collapse(false);
-          selection.removeAllRanges();
-          selection.addRange(r);
-        }
-      }
-      return true;
-    }
-    parent = parent.parentElement;
-  }
-  return false;
+  const anchor = selection.anchorNode;
+  const element = anchor instanceof Element ? anchor : anchor.parentElement;
+  const cell = element?.closest<HTMLTableCellElement>('td, th');
+  const table = cell?.closest<HTMLTableElement>('table.keep-table');
+  if (!cell || !table || !editor?.contains(table)) return false;
+
+  const cells = Array.from(table.rows).flatMap(row => Array.from(row.cells));
+  const next = cells[cells.indexOf(cell) + (e.shiftKey ? -1 : 1)];
+  if (!next) return false;
+
+  e.preventDefault();
+  const range = document.createRange();
+  range.selectNodeContents(next);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  return true;
 }
 
 export function handleRichEditorKeyShortcuts({

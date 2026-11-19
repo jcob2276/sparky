@@ -20,6 +20,7 @@ import LiveExerciseCard from './live/LiveExerciseCard';
 import LiveUndoBar from './live/LiveUndoBar';
 import LiveFinishSheet from './live/LiveFinishSheet';
 import { useRestTimer } from './live/useRestTimer';
+import { useWorkoutActivity } from './live/useWorkoutActivity';
 import { summarize } from './live/liveWorkoutUtils';
 import { useLiveExerciseOps } from './live/useLiveExerciseOps';
 import { pluralPl } from '../../lib/formatPl';
@@ -38,6 +39,7 @@ export default function LiveWorkout({
   const { accent, setAccent } = useTreningAccent();
   const logger = useWorkoutLogger({ initial, onSaved, onBack });
   const rest = useRestTimer();
+  useWorkoutActivity(logger.timerStart, rest.activityRest);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);

@@ -20,15 +20,13 @@ const props = (): ComponentProps<typeof TodoCardCollapsedRow> => ({
   totalSubtaskCount: 0, doneSubtaskCount: 0, isLinkedToPlan: false,
   swipe: { handleComplete: vi.fn(),
     onGripTouchStart: vi.fn(), onGripTouchEnd: vi.fn(), onGripTouchMove: vi.fn(), onGripMouseDown: vi.fn() },
-  onShowContextMenu: vi.fn(),
 });
 
 describe('task row actions', () => {
-  it('keeps the actions menu available for completed tasks', () => {
-    const input = props();
-    render(<TodoCardCollapsedRow {...input} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Więcej opcji' }));
-    expect(input.onShowContextMenu).toHaveBeenCalledWith(input.item, expect.any(Number), expect.any(Number));
+  it('offers details without a second menu button', () => {
+    render(<TodoCardCollapsedRow {...props()} />);
+    expect(screen.queryByRole('button', { name: 'Więcej opcji' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Rozwiń szczegóły: Test' })).toBeTruthy();
   });
   it('can reopen a completed task without expanding or dragging it', () => {
     const input = props();

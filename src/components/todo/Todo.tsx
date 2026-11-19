@@ -95,7 +95,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
   if (loading) {
     return (
-      <div className="todoist-theme flex h-dvh overflow-hidden bg-background text-text-primary">
+      <div className="todoist-theme flex overflow-hidden bg-background text-text-primary">
         <div className="w-64 border-r border-border-custom/40 p-4 space-y-4 hidden md:block">
           <Skeleton lines={4} className="opacity-60" />
           <Skeleton variant="card" lines={3} className="opacity-40" />
@@ -116,7 +116,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
   return (
     <SidebarProvider open={!sidebarCollapsed} onOpenChange={open => setSidebarCollapsed(!open)}>
-    <div className="todoist-theme flex h-dvh overflow-hidden bg-background text-text-primary">
+    <div className="todoist-theme flex overflow-hidden bg-background text-text-primary">
       {draggingItem && <DragGhost item={draggingItem} posRef={dragPosRef} />}
 
       <TodoContextMenuConnected />
@@ -143,6 +143,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         className="flex flex-1 flex-col min-w-0 overflow-hidden"
         onTouchStart={viewSwipe.onTouchStart}
         onTouchEnd={viewSwipe.onTouchEnd}
+        onTouchCancel={viewSwipe.onTouchCancel}
       >
         <TodoHeader
           onBack={onBack}
@@ -163,7 +164,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         {/* Views stay mounted once visited (pre-mounted when idle) and are only hidden: 0 ms switch. */}
         {visited.has('eisenhower') && (
           <main
-            className={todoView === 'eisenhower' ? 'flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]' : 'hidden'}
+            className={todoView === 'eisenhower' ? 'todo-view-enter flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]' : 'hidden'}
             onClick={() => setExpandedId(null)}
           >
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
@@ -173,14 +174,14 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         )}
 
         {visited.has('kanban') && (
-          <main className={todoView === 'kanban' ? 'flex-1 overflow-hidden pb-[env(safe-area-inset-bottom)]' : 'hidden'}>
+          <main className={todoView === 'kanban' ? 'todo-view-enter flex-1 overflow-hidden pb-[env(safe-area-inset-bottom)]' : 'hidden'}>
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
               <KanbanView items={boardItems} sections={todoData.sections} setItems={setBoardItems} today={today} />
             </Suspense>
           </main>
         )}
 
-        <div className={todoView === 'lista' ? 'flex min-h-0 flex-1 flex-col [--content-default:90rem]' : 'hidden'}>
+        <div className={todoView === 'lista' ? 'todo-view-enter flex min-h-0 flex-1 flex-col [--content-default:90rem]' : 'hidden'}>
           <TodoListView
             navDest={navDest}
             onSelectNavDest={(d) => { setNavDest(d); setActiveFilterSection(null); }}

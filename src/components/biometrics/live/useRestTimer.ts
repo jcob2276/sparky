@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { syncWorkoutRestActivity, type WorkoutRestActivityState } from '../../../lib/native/workoutRestActivity';
 import { useHaptics } from '../../../hooks/useHaptics';
 
 interface RestState {
   endsAt: number;
   startedAt: number;
-  activity?: Pick<WorkoutRestActivityState, 'exercise' | 'nextSet'>;
+  activity?: { exercise: string; nextSet?: number };
 }
 
 /** Odliczanie przerwy: startuje po zaliczonej serii, bez ręcznego włączania. */
@@ -31,16 +30,6 @@ export function useRestTimer() {
     }
   }, [finished, haptics]);
 
-  useEffect(() => {
-    if (rest?.activity) {
-      syncWorkoutRestActivity(finished ? null : { ...rest.activity, startedAt: rest.startedAt, endsAt: rest.endsAt });
-    } else {
-      syncWorkoutRestActivity(null);
-    }
-  }, [rest, finished]);
-
-  useEffect(() => () => syncWorkoutRestActivity(null), []);
-
   const start = useCallback((seconds: number, activity?: RestState['activity']) => {
     const t = Date.now();
     notifiedRef.current = false;
@@ -58,5 +47,9 @@ export function useRestTimer() {
 
   const skip = useCallback(() => setRest(null), []);
 
-  return { active: rest != null, remaining, finished, elapsedSinceStart: rest ? Math.floor((now - rest.startedAt) / 1000) : 0, start, adjust, skip };
+  const activityRest = rest?.activity && !finished
+    ? { ...rest.activity, startedAt: rest.startedAt, endsAt: rest.endsAt }
+    : null;
+
+  return { active: rest != null, activityRest, remaining, finished, elapsedSinceStart: rest ? Math.floor((now - rest.startedAt) / 1000) : 0, start, adjust, skip };
 }

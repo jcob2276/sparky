@@ -910,12 +910,17 @@
   font-size: var(--text-sm);
   word-break: break-word;
   caret-color: var(--text-primary);
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* iOS editor gets more breathing room */
 .keep-ios-editor {
   min-height: var(--ds-local-css-200px);
-  font-size: var(--text-base);
+  font-size: max(var(--notes-editor-font-size), 1rem);
   line-height: var(--ds-local-css-1-7);
 }
 
@@ -1178,26 +1183,6 @@
     width: var(--ds-local-css-52px);
     height: 52px;
   }
-}
-
-/* ── Keyboard-pinned bar (iOS visualViewport) ────────────────── */
-.keep-static-bar.kb-open {
-  background: var(--color-theme-hex-ba249249251092) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: var(--ds-local-css-blur-20px-saturate-180) !important;
-  border-top: 0.5px solid var(--color-theme-hex-ba00001) !important;
-  box-shadow: var(--ds-css-boxshadow-0-1px-0-rgba-0-0-0-0-06-important);
-  height: 54px !important;
-}
-.dark .keep-static-bar.kb-open {
-  background: var(--color-theme-hex-ba282830092) !important;
-  border-top: 0.5px solid var(--color-theme-hex-ba255255255008) !important;
-}
-.keep-static-bar.kb-open .keep-static-btn {
-  color: var(--text-primary);
-}
-.dark .keep-static-bar.kb-open .keep-static-btn {
-  color: var(--color-theme-hex-ba255255255082);
 }
 
 /* ── Blockquote ──────────────────────────────────────────────── */
@@ -1806,6 +1791,12 @@
 }
 
 @media (max-width: 767px) {
+  .keep-browser-header {
+    flex-shrink: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--background);
+  }
+
   .keep-mobile-note-open .keep-browser-header,
   .keep-mobile-note-open .keep-create-fab,
   .keep-mobile-note-open .keep-mobile-navigation {
@@ -1861,17 +1852,7 @@
     letter-spacing: -0.025em;
   }
 
-  .keep-inline-editor .keep-static-bar:not(.kb-open) {
-    position: fixed;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px;
-    z-index: var(--z-overlay, 40);
-    width: auto;
-    margin: 0;
-    border-radius: 14px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  }
+
 }
 
 /* Calm Notes shell: stable reading widths and compact mobile spacing. */
@@ -2483,3 +2464,18 @@
 .keep-rich-editor [style*="background-color: rgb(167, 243, 208)"],
 .keep-rich-editor [style*="background-color: rgb(191, 219, 254)"],
 .keep-rich-editor [style*="background-color: rgb(254, 240, 138)"] { color: var(--note-text-on-highlight); }
+
+.note-quick-actions-backdrop {
+  touch-action: none;
+}
+
+.note-quick-actions-backdrop-clear {
+  background: transparent;
+}
+
+.ios-glass.note-quick-actions-panel {
+  background: var(--background);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overscroll-behavior: contain;
+}

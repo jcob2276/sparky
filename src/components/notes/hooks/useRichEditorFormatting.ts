@@ -1,7 +1,8 @@
 import { highlightBackground, readHighlightColor } from '../highlightColors';
 import { useState, useRef, RefObject } from 'react';
 import { ActiveState } from '../richEditorTypes';
-import { promptDialog } from '../../../lib/notify';
+import { noteLinkHtml } from '../noteLinks';
+import { notify, promptDialog } from '../../../lib/notify';
 
 interface UseRichEditorFormattingOptions {
   editorRef: RefObject<HTMLDivElement | null>;
@@ -66,6 +67,7 @@ export function useRichEditorFormatting({
   };
 
   const restoreSelection = () => {
+    editorRef.current?.focus({ preventScroll: true });
     if (savedSelectionRef.current) {
       const sel = window.getSelection();
       if (sel) {
@@ -73,13 +75,14 @@ export function useRichEditorFormatting({
         sel.addRange(savedSelectionRef.current.range);
       }
     }
-    editorRef.current?.focus();
   };
 
   const insertHTML = (html: string) => {
     const editor = editorRef.current;
     if (!editor) return;
-    editor.focus();
+    if (document.activeElement !== editor && !editor.contains(document.activeElement)) {
+      editor.focus({ preventScroll: true });
+    }
 
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
@@ -171,13 +174,22 @@ export function useRichEditorFormatting({
       handleInput();
       handleSelection();
     } else if (action === 'link') {
-      void promptDialog('Wpisz adres URL odnośnika:').then((url) => {
-        if (url !== null) {
-          restoreSelection();
-          document.execCommand('createLink', false, url);
-          handleInput();
-          handleSelection();
+      handleSelection();
+      const savedRange = savedSelectionRef.current?.range.cloneRange();
+      void promptDialog('Adres linku (https://)').then((url) => {
+        if (!url?.trim()) return;
+        const html = noteLinkHtml(url, savedRange?.toString());
+        if (!html) {
+          notify('Wpisz poprawny adres HTTP lub HTTPS.', 'error');
+          return;
         }
+        if (!editorRef.current) return;
+        if (savedRange && editorRef.current.contains(savedRange.commonAncestorContainer)) {
+          savedSelectionRef.current = { range: savedRange };
+        }
+        restoreSelection();
+        insertHTML(html);
+        handleSelection();
       });
     } else if (action === 'clear') {
       restoreSelection();
@@ -227,20 +239,20 @@ export function useRichEditorFormatting({
       const tableHtml =
         '<table class="keep-table">' +
         '<thead><tr>' +
-        '<th class="keep-td keep-th" contenteditable="true"><br></th>' +
-        '<th class="keep-td keep-th" contenteditable="true"><br></th>' +
-        '<th class="keep-td keep-th" contenteditable="true"><br></th>' +
+        '<th class="keep-td keep-th"><br></th>' +
+        '<th class="keep-td keep-th"><br></th>' +
+        '<th class="keep-td keep-th"><br></th>' +
         '</tr></thead>' +
         '<tbody>' +
         '<tr>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
+        '<td class="keep-td"><br></td>' +
+        '<td class="keep-td"><br></td>' +
+        '<td class="keep-td"><br></td>' +
         '</tr>' +
         '<tr>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
-        '<td class="keep-td" contenteditable="true"><br></td>' +
+        '<td class="keep-td"><br></td>' +
+        '<td class="keep-td"><br></td>' +
+        '<td class="keep-td"><br></td>' +
         '</tr>' +
         '</tbody></table><p><br></p>';
       insertHTML(tableHtml);

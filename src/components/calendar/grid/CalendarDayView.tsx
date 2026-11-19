@@ -1,9 +1,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '../../ui/Button';
+import { Pressable } from '../../ui/ControlPrimitives';
 import {
-  HOURS,
-  PX_PER_HOUR,
   monthLabel,
   addDays,
   weekMon,
@@ -11,11 +10,13 @@ import {
 import { WMO_WEATHER_DESC, getWMOWeatherIcon } from '../CalendarWeather';
 import { renderTimeGutter, renderDayColumn, renderAllDayTodos } from './CalendarGridColumns';
 import { AllDayStrip } from './AllDayStrip';
-import { formatWarsawDate } from '../../../lib/date';
+import { formatLongDateWarsaw, formatWarsawDate, formatWeekdayWarsaw } from '../../../lib/date';
 import type { CalRow } from '../calendarHelpers';
 import type { CalendarTodo } from '../hooks/useCalendarTodos';
 import type { WeatherState } from '../hooks/useCalendarWeather';
 import type { GoalChip } from './types';
+
+const WEEKDAYS = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
 
 interface CalendarDayViewProps {
   selectedDay: string;
@@ -34,7 +35,6 @@ interface CalendarDayViewProps {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
-  handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -60,7 +60,6 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
   todosForDay,
   handleColumnMouseDown,
   handleColumnMouseMove,
-  handleColumnClick,
   handleEventMouseDown,
   handleEventContextMenu,
   handleToggleTodo,
@@ -72,6 +71,12 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
   handleEventClick,
   gridRef,
 }) => {
+  const monday = weekMon(selectedDay);
+  const days = Array.from({ length: 7 }, (_, index) => addDays(monday, index));
+  const selectDay = (day: string) => {
+    setSelectedDay(day);
+    setWeekStart(weekMon(day));
+  };
   const untimedTodos = todosForDay(selectedDay).filter((t) => !t.scheduled_time);
   const allDayEvents = getEventsForDay(selectedDay).filter((ev) => ev.is_all_day);
   const tomorrow = (() => {
@@ -84,6 +89,20 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      <nav aria-label="Dni tygodnia" className="calendar-week-strip grid shrink-0 grid-cols-7 border-b border-border-custom/30 px-2 sm:px-4">
+        {days.map((day, index) => {
+          const selected = day === selectedDay;
+          return (
+            <Pressable key={day} onClick={() => selectDay(day)}
+              aria-label={`${formatWeekdayWarsaw(day)}, ${formatLongDateWarsaw(day)}`}
+              aria-current={selected ? 'date' : undefined}
+              className={`mx-auto flex min-h-11 w-full max-w-14 flex-col items-center justify-center gap-0.5 rounded-xl text-sm ${selected ? 'bg-primary/10 font-semibold text-primary' : day === today ? 'text-primary' : 'text-text-secondary'}`}>
+              <span className="text-xs">{WEEKDAYS[index]}</span>
+              <span>{Number(day.slice(-2))}</span>
+            </Pressable>
+          );
+        })}
+      </nav>
       <div className="calendar-period-header flex items-center justify-between px-4 py-1.5 border-b border-border-custom/20 select-none bg-surface-solid/10 backdrop-blur-xs">
         <Button
           variant="ghost"
@@ -148,8 +167,8 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
         setEditingTodoTitle,
         setToastMessage,
       })}
-      <div ref={gridRef} className="flex-1 overflow-y-auto pb-20 sm:pb-8">
-        <div className="flex pt-3 pb-24" style={{ minHeight: HOURS * PX_PER_HOUR + 100 }}>
+      <div ref={gridRef} className="min-h-0 flex-1 touch-pan-y overscroll-contain overflow-y-auto pb-16 sm:pb-4">
+        <div key={selectedDay} className="calendar-day-timeline flex pt-3">
           {renderTimeGutter({ dayKey: selectedDay, weather })}
           <div data-day-col={selectedDay} className="flex-1 relative">
             {renderDayColumn({
@@ -162,7 +181,6 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
               completedTodoIds,
               handleColumnMouseDown,
               handleColumnMouseMove,
-              handleColumnClick,
               handleEventMouseDown,
               handleEventContextMenu,
               handleEventClick,

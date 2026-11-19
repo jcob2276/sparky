@@ -227,46 +227,6 @@ export function eventColor(ev: CalRow) {
   return categoryMap['praca'];
 }
 
-export interface MonthDayInfo {
-  dateStr: string;
-  dayNumber: number;
-  isCurrentMonth: boolean;
-  isToday: boolean;
-}
-
-export function getMonthGridDays(dateStr: string): MonthDayInfo[] {
-  const [y, m] = dateStr.split('-').map(Number);
-  const firstOfMonth = new Date(y, m - 1, 1);
-  const lastOfMonth = new Date(y, m, 0);
-
-  const firstDayOfWeek = (firstOfMonth.getDay() + 6) % 7; // Mon=0
-  const startDate = new Date(firstOfMonth);
-  startDate.setDate(startDate.getDate() - firstDayOfWeek);
-
-  const days: MonthDayInfo[] = [];
-  const today = todayStr();
-
-  const totalDays = (firstDayOfWeek + lastOfMonth.getDate()) > 35 ? 42 : 35;
-
-  for (let i = 0; i < totalDays; i++) {
-    const cur = new Date(startDate);
-    cur.setDate(cur.getDate() + i);
-    const yStr = cur.getFullYear();
-    const mStr = String(cur.getMonth() + 1).padStart(2, '0');
-    const dStr = String(cur.getDate()).padStart(2, '0');
-    const curDateStr = `${yStr}-${mStr}-${dStr}`;
-
-    days.push({
-      dateStr: curDateStr,
-      dayNumber: cur.getDate(),
-      isCurrentMonth: cur.getMonth() === m - 1,
-      isToday: curDateStr === today,
-    });
-  }
-
-  return days;
-}
-
 export interface VideoCallDetection {
   url: string;
   provider: 'Google Meet' | 'Zoom' | 'Microsoft Teams' | 'FaceTime' | 'Spotkanie Wideo';
