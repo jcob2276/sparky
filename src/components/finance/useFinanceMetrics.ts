@@ -1,3 +1,4 @@
+import { financeStatisticsRecords } from './financeReferencePeriods';
 import { useMemo } from 'react';
 import {
   FINANCE_ACCOUNT_LABELS,
@@ -68,7 +69,7 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined, portfolioVa
     };
 
     const fire = computeFireMetrics(fireInput);
-    const spentMonth = spentThisMonth(transactions, today);
+    const spentMonth = spentThisMonth(financeStatisticsRecords(transactions), today);
     const safeToSpend = computeSafeToSpend({
       liquid,
       monthlyIncome: effectiveIncome,

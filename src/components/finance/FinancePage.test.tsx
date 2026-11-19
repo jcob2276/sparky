@@ -175,6 +175,8 @@ describe('FinancePage', () => {
       { ...entry, id: 'previous', category: 'Zakupy', amount: -50, note: 'Sklep z poprzedniego miesiąca', transaction_date: '2026-10-10', kind: 'expense' },
     ];
     openFinance();
+    expect(screen.queryByText('Zwroty', { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Wydatki według kategorii' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
     expect(screen.getByText('PayU test')).toBeInTheDocument();
     expect(screen.getByText('Pekao test')).toBeInTheDocument();

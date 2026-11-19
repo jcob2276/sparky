@@ -20,13 +20,21 @@ export function mergeBankFinance(bundle: FinanceBundle, bank: BankData, today: s
   const pending = transactions.filter(t => t.account_id && linkedIds.has(t.account_id) && !t.bank_reconciled).length;
   const savingsTransfers: FinanceTransaction[] = [];
   const savingsKeys = new Set(bank.savingsIbanKeys);
+  const ownKeys = new Set([...bank.accounts, ...(bank.hiddenAccounts ?? [])].map((account) => bankOwnIbanKey(account.iban)).filter(Boolean));
+  for (const account of accounts) {
+    if (account.account_type !== 'savings' || !account.bank_account_id) continue;
+    const key = bankOwnIbanKey(bank.accounts.find((source) => source.id === account.bank_account_id)?.iban);
+    if (key) savingsKeys.add(key.replace('own-iban:', 'savings-iban:'));
+  }
   for (const tx of bank.transactions) {
     const accountId = linked.get(tx.account_id);
-    const flow = bankMovement(tx);
+
     if (!accountId || tx.currency !== 'PLN' || !tx.booking_date || tx.booking_date > today || !isBankBooked(tx)) continue;
+    const ownKey = bankOwnIbanKey(tx.counterparty_iban);
+    const savingsTransfer = !!ownKey && savingsKeys.has(ownKey.replace('own-iban:', 'savings-iban:'));
+    const flow = savingsTransfer || (ownKey && ownKeys.has(ownKey)) ? 'transfer' : bankMovement(tx);
     if (flow === 'transfer' && tx.amount !== 0) {
-      const ownKey = bankOwnIbanKey(tx.counterparty_iban);
-      if (ownKey && savingsKeys.has(ownKey.replace('own-iban:', 'savings-iban:'))) {
+      if (savingsTransfer) {
         savingsTransfers.push({
           id: `bank:${tx.id}`, user_id: bundle.profile.user_id, account_id: accountId,
           amount: tx.amount, category: 'Oszczędności', note: tx.amount < 0 ? 'Wpłata na oszczędności' : 'Wypłata z oszczędności',

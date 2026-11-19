@@ -5,7 +5,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import type { FinanceBundle, FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import type { FinanceMetrics } from './useFinanceMetrics';
-import { financePeriodTotals } from './financeReferencePeriods';
+import { financePeriodTotals, financeStatisticsRecords } from './financeReferencePeriods';
 import { FinanceReferenceCategories, FinanceReferenceHistory } from './FinanceReferenceViews';
 
 export default function FinanceReferenceStart({ data, metrics, portfolioValue, month, onPortfolio, onAccounts, onTransactions, onSelect }: {
@@ -29,7 +29,8 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   const records = data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
   const recent = [...records, ...(data.savingsTransfers ?? []).filter((tx) => tx.transaction_date.startsWith(month))]
     .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date) || b.id.localeCompare(a.id)).slice(0, 5);
-  const { income, expenses, refunds, balance } = financePeriodTotals(records);
+  const statistics = financeStatisticsRecords(records);
+  const { income, expenses, balance } = financePeriodTotals(statistics);
   const accounts = data.accounts.filter((account) => account.account_type !== 'broker_cash');
   return (
     <div className="finance-reference-start">
@@ -58,13 +59,13 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
           <div key={account.id}><dt>{account.name}</dt><dd>{formatPln(account.balance, 2)}</dd></div>
         ))}</dl> : <p className="text-sm text-text-muted">Dodaj konto w ustawieniach finansów.</p>}
       </section>
-      <FinanceReferenceCategories key={month} transactions={records} />
+      <FinanceReferenceCategories key={month} transactions={statistics} />
       <section className="finance-reference-card">
         <h2 className="finance-reference-label">Cashflow</h2>
         <p className={`finance-reference-number ${balance >= 0 ? 'finance-reference-positive' : ''}`}>{balance > 0 ? '+' : ''}{formatPln(balance, 2)}</p>
         {income > 0 && <p className="text-sm text-text-muted">Stopa oszczędzania {Math.round(balance / income * 100)}%</p>}
         <dl className="finance-reference-breakdown"><div><dt>Wpływy</dt><dd>{formatPln(income, 2)}</dd></div><div><dt>Wydatki</dt><dd>{formatPln(expenses, 2)}</dd></div>
-          {refunds > 0 && <div><dt>Zwroty</dt><dd>{formatPln(refunds, 2)}</dd></div>}</dl>
+        </dl>
       </section>
       <section className="finance-reference-card">
         <header><h2 className="finance-reference-label">Ostatnie operacje</h2><Pressable type="button" className="finance-reference-link" onClick={() => onTransactions()}>Wszystkie transakcje ›</Pressable></header>

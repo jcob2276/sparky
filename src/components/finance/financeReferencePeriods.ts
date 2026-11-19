@@ -1,3 +1,4 @@
+import { RETURNED_PURCHASE_LABEL } from '@vanguard/domain';
 import { shiftDateStr } from '../../lib/date';
 import type { FinanceTransaction } from '../../lib/financeApi';
 
@@ -8,6 +9,13 @@ export function moveFinanceMonth(month: string, offset: number): string {
 
 export function movement(tx: FinanceTransaction) {
   return tx.flow_kind ?? tx.kind;
+}
+
+export function financeStatisticsRecords(transactions: FinanceTransaction[]) {
+  return transactions.filter((tx) => {
+    const kind = movement(tx);
+    return (kind === 'income' || kind === 'expense') && (tx.source !== 'bank' || tx.category !== RETURNED_PURCHASE_LABEL);
+  });
 }
 
 export function financePeriodTotals(transactions: FinanceTransaction[]) {
