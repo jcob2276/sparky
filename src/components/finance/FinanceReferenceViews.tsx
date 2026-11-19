@@ -6,7 +6,7 @@ import type { FinanceAccount, FinanceBundle, FinanceTransaction } from '../../li
 import { formatPln } from '../../lib/finance/formatMoney';
 import { FinanceDonut } from './FinanceDonut';
 import { formatMonthLabel } from './financeNarrative';
-import { financePeriodTotals, moveFinanceMonth, movement } from './financeReferencePeriods';
+import { financePeriodTotals, financeRecordsInRange, moveFinanceMonth, movement, type FinanceDateRange } from './financeReferencePeriods';
 
 export function FinanceMonthPicker({ month, onChange }: { month: string; onChange: (value: string) => void }) {
   const latest = getTodayWarsaw().slice(0, 7);
@@ -53,7 +53,10 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
     <div className="space-y-4">
       {[...days.entries()].map(([day, items]) => (
         <section key={day} aria-label={dayFormatter.format(new Date(`${day}T12:00:00Z`))}>
-          <h3 className="finance-reference-label mb-2">{dayFormatter.format(new Date(`${day}T12:00:00Z`))}</h3>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-2">
+            <h3 className="finance-reference-label">{dayFormatter.format(new Date(`${day}T12:00:00Z`))}</h3>
+            <span className="text-sm tabular-nums text-text-muted">{formatPln(financePeriodTotals(items).balance, 2)}</span>
+          </div>
           <ul className="finance-reference-list">
             {items.map((tx) => {
               const outgoing = movement(tx) === 'expense';
@@ -79,9 +82,10 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
   );
 }
 
-export function FinanceReferenceTransactions({ data, month, category, onCategory, onQuickEntry, onSelect }: {
+export function FinanceReferenceTransactions({ data, month, range, category, onCategory, onQuickEntry, onSelect }: {
   data: FinanceBundle;
   month: string;
+  range: FinanceDateRange | null;
   category: string;
   onCategory: (value: string) => void;
   onQuickEntry: () => void;
@@ -92,7 +96,16 @@ export function FinanceReferenceTransactions({ data, month, category, onCategory
   const [account, setAccount] = useState('');
   const [limit, setLimit] = useState(50);
   const [view, setView] = useState<'list' | 'categories'>('list');
-  const records = data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
+  const records = range ? financeRecordsInRange(data.transactions, range)
+    : data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
+  const hasFilters = Boolean(query || kind || account || category);
+  const resetFilters = () => {
+    setQuery('');
+    setKind('');
+    setAccount('');
+    onCategory('');
+    setLimit(50);
+  };
   const categoryOptions = [...new Set([...records.map((tx) => tx.category), ...(category ? [category] : [])])].sort((a, b) => a.localeCompare(b, 'pl'));
   const filtered = records.filter((tx) => {
     const text = `${tx.note ?? ''} ${tx.category} ${tx.amount} ${formatPln(Math.abs(tx.amount), 2)}`.toLocaleLowerCase('pl');
@@ -122,7 +135,10 @@ export function FinanceReferenceTransactions({ data, month, category, onCategory
               <option value="">Wszystkie kategorie</option>{categoryOptions.map((value) => <option key={value}>{value}</option>)}
             </ControlSelect>
           </div>
-          <p className="text-sm text-text-muted" role="status">Liczba transakcji: {filtered.length}</p>
+          <div className="flex flex-wrap items-center justify-between gap-x-2">
+            <p className="text-sm text-text-muted" role="status">Liczba transakcji: {filtered.length}</p>
+            {hasFilters && <Pressable type="button" className="finance-reference-link" onClick={resetFilters}>Wyczyść filtry</Pressable>}
+          </div>
           {filtered.length ? <FinanceReferenceHistory records={filtered.slice(0, limit)} accounts={data.accounts} onSelect={onSelect} />
             : <p className="finance-reference-card">Brak pasujących transakcji.</p>}
           {filtered.length > limit && <Pressable type="button" className="finance-reference-link" onClick={() => setLimit(limit + 50)}>Pokaż kolejne</Pressable>}

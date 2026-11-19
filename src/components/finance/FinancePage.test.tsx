@@ -5,7 +5,7 @@ import type { FinanceBundle } from '../../lib/financeApi';
 import { useFinanceMetrics } from './useFinanceMetrics';
 import FinancePage from './FinancePage';
 
-const state = vi.hoisted(() => ({ loggedIn: false, withMetrics: false }));
+const state = vi.hoisted(() => ({ loggedIn: false, withMetrics: false, historyLoading: false }));
 const bundle: FinanceBundle = {
   hasProfile: false,
   profile: { user_id: 'u', monthly_expenses: 0, monthly_income: 0, expected_return_pct: 0, inflation_pct: 0,
@@ -24,6 +24,7 @@ vi.mock('./useFinancePageData', () => ({
   useFinancePageData: () => ({
     bundleQuery: { isLoading: false, error: null },
     holdingsQuery: { isLoading: false },
+    historyLoading: state.historyLoading,
     quotesQuery: { isLoading: false, isFetching: false },
     valuedHoldings: [],
     portfolio: { valuePln: 0, costPln: 0, pnlPln: 0, pnlPct: null, dayChangePln: 0, dayChangePct: null, unquotedCount: 0 },
@@ -76,9 +77,11 @@ vi.mock('../../lib/finance/netWorthSnapshots', () => ({
 beforeEach(() => {
   state.loggedIn = false;
   state.withMetrics = false;
+  state.historyLoading = false;
+  bundle.transactions = [];
   window.history.replaceState(null, '', '/finanse');
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 function openFinance() {
   state.loggedIn = true;
@@ -134,6 +137,34 @@ describe('FinancePage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Ustawienia finansów' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wróć do finansów' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Transakcje' })).toBeInTheDocument();
+  });
+
+  it('opens an annual category in history without losing expenses from other months', () => {
+    vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
+    bundle.transactions = [
+      { id: 'nov', user_id: 'u', amount: 40, category: 'Transport', note: 'Bilet listopad', transaction_date: '2026-11-02', kind: 'expense', created_at: '' },
+      { id: 'oct', user_id: 'u', amount: 30, category: 'Transport', note: 'Bilet październik', transaction_date: '2026-10-20', kind: 'expense', created_at: '' },
+      { id: 'other', user_id: 'u', amount: 60, category: 'Jedzenie', note: 'Obiad', transaction_date: '2026-11-05', kind: 'expense', created_at: '' },
+    ];
+    openFinance();
+    fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rok' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Transport/ }));
+
+    expect(screen.getByText('Bilet listopad')).toBeInTheDocument();
+    expect(screen.getByText('Bilet październik')).toBeInTheDocument();
+    expect(screen.queryByText('Obiad')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Wyczyść filtry' }));
+    expect(screen.getByText('Obiad')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Wróć do widoku miesiąca' }));
+    expect(screen.queryByText('Bilet październik')).not.toBeInTheDocument();
+  });
+
+  it('does not display an empty analysis while linked bank data is loading', () => {
+    state.historyLoading = true;
+    openFinance();
+    fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
+    expect(screen.queryByRole('region', { name: 'Zestawienie okresu' })).not.toBeInTheDocument();
   });
 
   it.each(['connected', 'denied'])('keeps the bank callback in settings and returns to the dashboard (%s)', (result) => {

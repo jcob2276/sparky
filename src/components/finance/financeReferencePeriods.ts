@@ -29,6 +29,15 @@ export function financePeriodTotals(transactions: FinanceTransaction[]) {
   return { income, expenses, refunds, balance: income + refunds - expenses, categories };
 }
 
+export interface FinanceDateRange {
+  from: string;
+  to: string;
+}
+
+export function financeRecordsInRange(transactions: FinanceTransaction[], range: FinanceDateRange) {
+  return transactions.filter((tx) => tx.transaction_date >= range.from && tx.transaction_date <= range.to);
+}
+
 export type FinancePeriod = 'week' | 'month' | 'year';
 
 export function financePeriodBounds(today: string, scale: FinancePeriod, offset: number): [string, string] {

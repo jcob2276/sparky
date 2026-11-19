@@ -6,7 +6,7 @@ import type { FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { FinanceMonthlyFlowsChart } from './FinanceMonthlyFlowsChart';
 import { FinanceReferenceCategories } from './FinanceReferenceViews';
-import { financePeriodBounds, financePeriodTotals, type FinancePeriod } from './financeReferencePeriods';
+import { financePeriodBounds, financePeriodTotals, financeRecordsInRange, type FinanceDateRange, type FinancePeriod } from './financeReferencePeriods';
 import { formatMonthLabel } from './financeNarrative';
 
 const SCALES = [['week', 'Tydzień'], ['month', 'Miesiąc'], ['year', 'Rok']] as const;
@@ -15,7 +15,7 @@ const labelDay = (day: string) => formatDay.format(new Date(`${day}T12:00:00Z`))
 
 export default function FinanceReferenceAnalysis({ transactions, onCategory }: {
   transactions: FinanceTransaction[];
-  onCategory: (category: string, month: string) => void;
+  onCategory: (category: string, range: FinanceDateRange) => void;
 }) {
   const [scale, setScale] = useState<FinancePeriod>('month');
   const [offset, setOffset] = useState(0);
@@ -25,9 +25,9 @@ export default function FinanceReferenceAnalysis({ transactions, onCategory }: {
   const partial = end > today;
   const elapsed = (Date.parse(today) - Date.parse(start)) / 86_400_000;
   const previousLimit = partial ? [previousEnd, shiftDateStr(previousStart, elapsed)].sort()[0] : previousEnd;
-  const within = (from: string, to: string) => transactions.filter((item) => item.transaction_date >= from && item.transaction_date <= to);
-  const current = within(start, partial ? today : end);
-  const earlier = within(previousStart, previousLimit);
+  const currentRange = { from: start, to: partial ? today : end };
+  const current = financeRecordsInRange(transactions, currentRange);
+  const earlier = financeRecordsInRange(transactions, { from: previousStart, to: previousLimit });
   const value = financePeriodTotals(current);
   const previous = financePeriodTotals(earlier);
   const saving = (period: typeof value) => period.income > 0 ? `${(100 * period.balance / period.income).toLocaleString('pl-PL', { maximumFractionDigits: 1 })}%` : '—';
@@ -57,7 +57,7 @@ export default function FinanceReferenceAnalysis({ transactions, onCategory }: {
         ))}
       </section>
       {partial && earlier.length > 0 && <p className="text-sm text-text-muted">Okres trwa. Porównanie obejmuje ten sam fragment poprzedniego okresu.</p>}
-      <FinanceReferenceCategories transactions={current} onCategory={(category) => onCategory(category, (current.find((tx) => tx.category === category)?.transaction_date ?? start).slice(0, 7))} />
+      <FinanceReferenceCategories transactions={current} onCategory={(category) => onCategory(category, currentRange)} />
       <FinanceMonthlyFlowsChart transactions={transactions} />
     </div>
   );
