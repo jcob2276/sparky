@@ -8,6 +8,8 @@ import type { FinanceMetrics } from './useFinanceMetrics';
 import { financePeriodTotals, financeStatisticsRecords } from './financeReferencePeriods';
 import { FinanceReferenceCategories, FinanceReferenceHistory } from './FinanceReferenceViews';
 
+const SAVINGS_CUSHION_TARGET = 15_000;
+
 export default function FinanceReferenceStart({ data, metrics, portfolioValue, month, onPortfolio, onAccounts, onTransactions, onSelect }: {
   data: FinanceBundle;
   metrics: FinanceMetrics | null;
@@ -32,6 +34,9 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   const statistics = financeStatisticsRecords(records);
   const { income, expenses, balance } = financePeriodTotals(statistics);
   const accounts = data.accounts.filter((account) => account.account_type !== 'broker_cash');
+  const savingsAccount = accounts.find((account) => account.account_type === 'savings' && account.bank_account_id)
+    ?? accounts.find((account) => account.account_type === 'savings');
+  const orderedAccounts = savingsAccount ? [savingsAccount, ...accounts.filter((account) => account.id !== savingsAccount.id)] : accounts;
   return (
     <div className="finance-reference-start">
       <section className="finance-reference-card finance-reference-worth" aria-label="Wartość netto">
@@ -52,10 +57,10 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
           </>
         )}
       </section>
-      {metrics && <div className="finance-reference-card p-0"><FinanceEmergencyCard metrics={metrics} /></div>}
+      {metrics && <div className="finance-reference-card p-0"><FinanceEmergencyCard metrics={metrics} savings={savingsAccount ? { balance: savingsAccount.balance, target: SAVINGS_CUSHION_TARGET } : undefined} /></div>}
       <section className="finance-reference-card">
         <header><h2 className="finance-reference-label">Konta</h2><Pressable className="finance-reference-link" type="button" onClick={onAccounts}>Zarządzaj</Pressable></header>
-        {accounts.length ? <dl className="finance-reference-breakdown">{accounts.map((account) => (
+        {accounts.length ? <dl className="finance-reference-breakdown">{orderedAccounts.map((account) => (
           <div key={account.id}><dt>{account.name}</dt><dd>{formatPln(account.balance, 2)}</dd></div>
         ))}</dl> : <p className="text-sm text-text-muted">Dodaj konto w ustawieniach finansów.</p>}
       </section>

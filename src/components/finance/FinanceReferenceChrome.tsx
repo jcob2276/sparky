@@ -1,10 +1,11 @@
-import { ChevronLeft, Plus, Settings } from 'lucide-react';
+import { ChevronLeft, Moon, Plus, Settings, Sun } from 'lucide-react';
 import type { FinanceTransaction } from '../../lib/financeApi';
 import { useBankActions } from '../../lib/finance/bankApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { notify } from '../../lib/notify';
 import { Pressable } from '../ui/ControlPrimitives';
 import Sheet from '../ui/Sheet';
+import { useDashboardTheme } from '../core/hooks/useDashboardTheme';
 import type { FinanceTabKey } from './FinanceTabContent';
 
 export function FinanceReferenceHeader({ userId, tab, bankConnected, onBack, onAccounts, onQuickEntry }: {
@@ -15,6 +16,9 @@ export function FinanceReferenceHeader({ userId, tab, bankConnected, onBack, onA
   onAccounts: () => void;
   onQuickEntry: () => void;
 }) {
+  const { theme, toggleTheme } = useDashboardTheme();
+  const dark = theme === 'dark';
+  const themeLabel = dark ? 'Włącz jasny motyw' : 'Włącz ciemny motyw';
   const { sync } = useBankActions(userId);
   return (
     <header className="finance-reference-header">
@@ -31,6 +35,9 @@ export function FinanceReferenceHeader({ userId, tab, bankConnected, onBack, onA
             })}>
             {sync.isPending ? 'Zgrywam…' : 'Zgraj'}
           </Pressable>}
+          <Pressable type="button" onClick={toggleTheme} aria-label={themeLabel} title={themeLabel}>
+            {dark ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
+          </Pressable>
           <Pressable type="button" onClick={onQuickEntry} aria-label="Szybki wpis"><Plus size={20} aria-hidden="true" /></Pressable>
           <Pressable type="button" onClick={onAccounts} aria-label="Ustawienia finansów" aria-current={tab === 'accounts' ? 'page' : undefined}>
             <Settings size={19} aria-hidden="true" />
