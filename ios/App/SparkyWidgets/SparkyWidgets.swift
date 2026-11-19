@@ -118,5 +118,6 @@ struct SparkyWidgets: WidgetBundle {
     var body: some Widget {
         QuickActionsWidget()
         CameraShortcutWidget()
+        WorkoutRestLiveActivity()
     }
 }

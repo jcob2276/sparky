@@ -31,7 +31,9 @@ it('routes only known widget actions while the app is running', async () => {
   const onOpen = app.addListener.mock.calls[0][1];
 
   onOpen({ url: 'sparky-widget://open/keep' });
+  onOpen({ url: 'sparky-widget://open/workout' });
+
   onOpen({ url: 'sparky-widget://open/unknown' });
 
-  expect(navigate).toHaveBeenCalledExactlyOnceWith('/keep');
+  expect(navigate.mock.calls).toEqual([['/keep'], ['/trening?live=1']]);
 });

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { syncWorkoutRestActivity, type WorkoutRestActivityState } from '../../../lib/native/workoutRestActivity';
 import { useHaptics } from '../../../hooks/useHaptics';
 
 interface RestState {
   endsAt: number;
   startedAt: number;
+  activity?: Pick<WorkoutRestActivityState, 'exercise' | 'nextSet'>;
 }
 
 /** Odliczanie przerwy: startuje po zaliczonej serii, bez ręcznego włączania. */
@@ -29,11 +31,21 @@ export function useRestTimer() {
     }
   }, [finished, haptics]);
 
-  const start = useCallback((seconds: number) => {
+  useEffect(() => {
+    if (rest?.activity) {
+      syncWorkoutRestActivity(finished ? null : { ...rest.activity, startedAt: rest.startedAt, endsAt: rest.endsAt });
+    } else {
+      syncWorkoutRestActivity(null);
+    }
+  }, [rest, finished]);
+
+  useEffect(() => () => syncWorkoutRestActivity(null), []);
+
+  const start = useCallback((seconds: number, activity?: RestState['activity']) => {
     const t = Date.now();
     notifiedRef.current = false;
     setNow(t);
-    setRest({ startedAt: t, endsAt: t + seconds * 1000 });
+    setRest({ startedAt: t, endsAt: t + seconds * 1000, activity });
   }, []);
 
   const adjust = useCallback((deltaSeconds: number) => {

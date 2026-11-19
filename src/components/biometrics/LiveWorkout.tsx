@@ -114,7 +114,14 @@ export default function LiveWorkout({
             onRemove={() => void removeExercise(exercise.id)}
             onSwap={() => void requestSwap(exercise.id, () => window.setTimeout(() => setPickerOpen(true), 0))}
             onUndoable={(message, run) => setUndo({ message, run })}
-            onSetDone={(seconds, setId) => { setRestTarget({ exerciseId: exercise.id, setId }); rest.start(seconds); }}
+            onSetDone={(seconds, setId) => {
+              setRestTarget({ exerciseId: exercise.id, setId });
+              const nextSetIndex = exercise.sets.findIndex((set) => !set.done && set.id !== setId);
+              rest.start(seconds, {
+                exercise: exercise.name,
+                nextSet: nextSetIndex >= 0 ? nextSetIndex + 1 : undefined,
+              });
+            }}
             rest={rest.active && restTarget?.exerciseId === exercise.id ? { setId: restTarget.setId, remaining: rest.remaining, finished: rest.finished, onAdjust: rest.adjust, onSkip: rest.skip } : undefined}
             onSetUndone={rest.skip}
             onAllDone={() => advanceFrom(exercise.id)}

@@ -17,8 +17,9 @@ interface TrainingRouteProps {
 export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRouteProps) {
   const userId = useUserId();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const isDirectLive = params.get('live') === '1' || params.get('nowy') === '1' || Boolean(initial);
+  const [params, setParams] = useSearchParams();
+  const linkRequestsLive = params.get('live') === '1' || params.get('nowy') === '1';
+  const isDirectLive = linkRequestsLive || Boolean(initial);
 
   const [currentInitial, setCurrentInitial] = useState<WorkoutLoggerInitial | null | undefined>(initial);
   const [isLive, setIsLive] = useState<boolean>(isDirectLive);
@@ -41,6 +42,14 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
   const handleLoggerBack = () => {
     setIsLive(false);
     setCurrentInitial(null);
+    if (linkRequestsLive) {
+      setParams((current) => {
+        const next = new URLSearchParams(current);
+        next.delete('live');
+        next.delete('nowy');
+        return next;
+      }, { replace: true });
+    }
   };
 
   const handleHubBack = () => {
@@ -64,7 +73,7 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
         </div>
       }
     >
-      {isLive ? (
+      {isLive || linkRequestsLive ? (
         <WorkoutLogger
           initial={currentInitial}
           onSaved={handleSaved}

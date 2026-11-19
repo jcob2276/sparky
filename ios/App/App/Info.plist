@@ -37,6 +37,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Sparky używa aparatu do zdjęć posiłków, zadań i notatek.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
