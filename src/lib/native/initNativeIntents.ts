@@ -2,10 +2,19 @@
  * Android share target + deep links (shortcuts, https://localhost/...).
  */
 import { App } from '@capacitor/app';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { isNativePlatform } from './platform';
 import { ShareIntent } from './shareIntentPlugin';
 
 const PATH_PREFIX = '__path__=';
+const widgetRoutes = new Map([
+  ['/keep', '/keep'],
+  ['/todo', '/todo'],
+  ['/camera', '/posilek?akcja=aparat'],
+  ['/barcode', '/posilek?akcja=skaner'],
+]);
+let handledWidgetLaunch = false;
+
 
 type NavigateFn = (path: string) => void;
 
@@ -46,6 +55,11 @@ function navigateFromNativeTarget(target: string): void {
 function navigateFromUrl(url: string): void {
   try {
     const parsed = new URL(url);
+    if (parsed.protocol === 'sparky-widget:' && parsed.host === 'open') {
+      const route = widgetRoutes.get(parsed.pathname);
+      if (route) navigateFromNativeTarget(route);
+      return;
+    }
     if (parsed.host !== 'localhost') return;
     const path = `${parsed.pathname}${parsed.search}`;
     navigateFromNativeTarget(path.startsWith('/') ? path : `/${path}`);
@@ -69,7 +83,7 @@ function parseNativePendingRoute(query: string | undefined): string | null {
   return null;
 }
 
-export async function initNativeIntents(): Promise<void> {
+export async function initNativeIntents(): Promise<PluginListenerHandle | undefined> {
   if (!isNativePlatform()) return;
 
   try {
@@ -80,9 +94,20 @@ export async function initNativeIntents(): Promise<void> {
     /* plugin unavailable on non-Android builds */
   }
 
-  await App.addListener('appUrlOpen', ({ url }) => {
+  const listener = await App.addListener('appUrlOpen', ({ url }) => {
+    if (url.startsWith('sparky-widget:')) handledWidgetLaunch = true;
     navigateFromUrl(url);
   });
+
+  if (!handledWidgetLaunch) {
+    const launch = await App.getLaunchUrl().catch(() => undefined);
+    if (!handledWidgetLaunch && launch?.url.startsWith('sparky-widget:')) {
+      handledWidgetLaunch = true;
+      navigateFromUrl(launch.url);
+    }
+  }
+
+  return listener;
 }
 
 export async function consumeNativeShareOnResume(): Promise<void> {

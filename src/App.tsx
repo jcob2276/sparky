@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense, type ReactNode, useCallback } from 'react';
+import { useEffect, useEffectEvent, lazy, Suspense, type ReactNode, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAppAuthSession } from './hooks/useAppAuthSession';
 import { isNativePlatform } from './lib/native/platform';
@@ -19,6 +19,7 @@ import PageTemplateBoundary, { type PageTemplateKind } from './components/shared
 import ActionHistoryController from './components/core/ActionHistoryController';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 
+const MealCaptureScreen = lazy(() => import('./components/core/nutrition/MealCaptureScreen'));
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
 const SettingsView = lazy(() => import('./components/settings/SettingsView'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
@@ -47,11 +48,15 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
     }
   }, []);
 
+  const openNativeRoute = useEffectEvent(handleNativeNavigate);
   useEffect(() => {
-    registerNativeNavigate(handleNativeNavigate);
-    void initNativeIntents();
-    return () => registerNativeNavigate(null);
-  }, [handleNativeNavigate]);
+    registerNativeNavigate((path) => openNativeRoute(path));
+    const registration = initNativeIntents();
+    return () => {
+      registerNativeNavigate(null);
+      void registration.then((listener) => listener?.remove());
+    };
+  }, []);
 
   useEffect(() => {
     if (!userId || !isNativePlatform()) return;
@@ -98,6 +103,11 @@ function AppRoutes() {
     <Routes key={session.user.id}>
       <Route path="/" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/posilek" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="list"><MealCaptureScreen /></Screen>
+        </Suspense>
+      } />
       <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/historia" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/keep" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
