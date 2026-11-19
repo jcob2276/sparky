@@ -1,5 +1,5 @@
 import { ControlInput, ControlSelect, Pressable } from '../ui/ControlPrimitives';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { getTodayWarsaw } from '../../lib/date';
 import type { FinanceAccount, FinanceBundle, FinanceTransaction } from '../../lib/financeApi';
@@ -7,7 +7,7 @@ import { formatPln } from '../../lib/finance/formatMoney';
 import { financeTransactionCategory, summarizeFinanceCategories } from './financeReferenceCategories';
 import { FinanceDonut } from './FinanceDonut';
 import { formatMonthLabel } from './financeNarrative';
-import { financePeriodTotals, financeRecordsInRange, moveFinanceMonth, movement, type FinanceDateRange } from './financeReferencePeriods';
+import { financePeriodTotals, moveFinanceMonth, movement } from './financeReferencePeriods';
 
 export function FinanceMonthPicker({ month, onChange }: { month: string; onChange: (value: string) => void }) {
   const latest = getTodayWarsaw().slice(0, 7);
@@ -20,10 +20,8 @@ export function FinanceMonthPicker({ month, onChange }: { month: string; onChang
   );
 }
 
-export function FinanceReferenceCategories({ transactions, onCategory }: {
-  transactions: FinanceTransaction[];
-  onCategory: (category: string) => void;
-}) {
+export function FinanceReferenceCategories({ transactions }: { transactions: FinanceTransaction[] }) {
+  const [expanded, setExpanded] = useState('');
   const groups = summarizeFinanceCategories(transactions);
   const expenses = groups.reduce((sum, group) => sum + group.amount, 0);
   const slices = groups.map(({ group, amount }) => ({
@@ -32,17 +30,13 @@ export function FinanceReferenceCategories({ transactions, onCategory }: {
   return (
     <section className="finance-reference-card">
       <h2 className="finance-reference-label">Kategorie</h2>
-      {slices.length ? <FinanceDonut slices={slices} ariaLabel="Wydatki według kategorii" centerLabel="Wydatki" center={formatPln(expenses, 2)} onSelect={onCategory} />
-        : <p className="text-text-muted">Brak wydatków w tym okresie.</p>}
-      {groups.length > 0 && <details className="mt-3">
-        <summary className="finance-reference-link cursor-pointer">Podkategorie</summary>
-        {groups.map(({ group, details }) => <div key={group} className="mt-3">
-          <h3 className="finance-reference-label">{group}</h3>
-          <dl className="finance-reference-breakdown">
-            {details.map(({ detail, amount }) => <div key={detail}><dt>{detail}</dt><dd>{formatPln(amount, 2)}</dd></div>)}
-          </dl>
-        </div>)}
-      </details>}
+      {slices.length ? <FinanceDonut slices={slices} ariaLabel="Wydatki według kategorii" centerLabel="Wydatki" center={formatPln(expenses, 2)}
+        expandedKey={expanded} onSelect={(key) => setExpanded(expanded === key ? '' : key)}
+        expandedContent={<dl className="finance-reference-breakdown px-4 pb-3">
+          {groups.find(({ group }) => group === expanded)?.details.map(({ detail, amount }) => (
+            <div key={detail}><dt>{detail}</dt><dd>{formatPln(amount, 2)}</dd></div>
+          ))}
+        </dl>} /> : <p className="text-text-muted">Brak wydatków w tym okresie.</p>}
     </section>
   );
 }
@@ -93,24 +87,22 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
   );
 }
 
-export function FinanceReferenceTransactions({ data, month, range, category, onCategory, onQuickEntry, onSelect }: {
+export function FinanceReferenceTransactions({ data, month, classification, onQuickEntry, onSelect }: {
   data: FinanceBundle;
   month: string;
-  range: FinanceDateRange | null;
-  category: string;
-  onCategory: (value: string) => void;
+  classification: ReactNode;
   onQuickEntry: () => void;
   onSelect: (record: FinanceTransaction) => void;
 }) {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
+  const [category, onCategory] = useState('');
   const [detail, setDetail] = useState('');
   const [account, setAccount] = useState('');
   const [limit, setLimit] = useState(50);
   const [view, setView] = useState<'list' | 'categories'>('list');
   const history = [...data.transactions, ...(data.savingsTransfers ?? [])];
-  const records = range ? financeRecordsInRange(history, range)
-    : history.filter((tx) => tx.transaction_date.startsWith(month));
+  const records = history.filter((tx) => tx.transaction_date.startsWith(month));
   const hasFilters = Boolean(query || kind || account || category || detail);
   const resetFilters = () => {
     setQuery('');
@@ -133,9 +125,9 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
     <div className="space-y-4">
       <div className="finance-reference-segment" aria-label="Widok historii">
         <Pressable type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>Lista</Pressable>
-        <Pressable type="button" aria-pressed={view === 'categories'} onClick={() => setView('categories')}>Kategorie</Pressable>
+        <Pressable type="button" aria-pressed={view === 'categories'} onClick={() => setView('categories')}>Kategoryzacja</Pressable>
       </div>
-      {view === 'categories' ? <FinanceReferenceCategories transactions={records} onCategory={(name) => { setDetail(''); onCategory(name); setView('list'); }} /> : (
+      {view === 'categories' ? classification : (
         <>
           <div className="finance-reference-search">
             <label><Search size={16} aria-hidden="true" /><ControlInput type="search" aria-label="Szukaj transakcji" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Sklep, opis lub kwota" /></label>

@@ -20,6 +20,7 @@ async function fetchBank(input: Parameters<typeof fetch>[0], init?: RequestInit)
   if (url.pathname.endsWith('/bank_accounts')) {
     return Response.json([{ id: 'a', currency: 'PLN', balance: 10, hidden: false }]);
   }
+  if (url.pathname.endsWith('/bank_category_rules')) return Response.json([]);
   expect(url.searchParams.get('account_id')).toBe('in.(a)');
   source.selections.push(url.searchParams.get('select') ?? '');
   expect(url.searchParams.get('created_at')).toMatch(/^lte\./);

@@ -1,4 +1,4 @@
-import { BANK_CATEGORY_LABELS, type BankCategory } from '@vanguard/domain';
+import { BANK_CATEGORY_LABELS, customBankCategoryLabel, isBankCategory, type BankCategory } from '@vanguard/domain';
 
 export interface SpendingRow { amount: number; category: string | null }
 
@@ -9,11 +9,10 @@ export interface CategorySpending {
   share: number;
 }
 
-const isCategory = (value: string | null): value is BankCategory => value != null && Object.prototype.hasOwnProperty.call(BANK_CATEGORY_LABELS, value);
-
 /** Etykieta kategorii; brak lub nieznana to "Do sprawdzenia", żeby UI nigdy nie pokazał pustego pola. */
 export function bankCategoryLabel(category: string | null): string {
-  return isCategory(category) ? BANK_CATEGORY_LABELS[category] : BANK_CATEGORY_LABELS.do_sprawdzenia;
+  if (category && Object.hasOwn(BANK_CATEGORY_LABELS, category)) return BANK_CATEGORY_LABELS[category as keyof typeof BANK_CATEGORY_LABELS];
+  return customBankCategoryLabel(category) ?? BANK_CATEGORY_LABELS.do_sprawdzenia;
 }
 
 /**
@@ -24,7 +23,7 @@ export function summarizeSpending(rows: readonly SpendingRow[]): CategorySpendin
   const totals = new Map<BankCategory, number>();
   for (const row of rows) {
     if (row.amount >= 0) continue;
-    const category = isCategory(row.category) ? row.category : 'do_sprawdzenia';
+    const category = isBankCategory(row.category) ? row.category : 'do_sprawdzenia';
     if (['przelewy_wlasne', 'inwestycje', 'gotowka'].includes(category)) continue;
     totals.set(category, (totals.get(category) ?? 0) + Math.abs(row.amount));
   }
@@ -32,7 +31,7 @@ export function summarizeSpending(rows: readonly SpendingRow[]): CategorySpendin
   return [...totals.entries()]
     .map(([category, total]) => ({
       category,
-      label: BANK_CATEGORY_LABELS[category],
+      label: bankCategoryLabel(category),
       total: Math.round(total * 100) / 100,
       share: sum > 0 ? total / sum : 0,
     }))

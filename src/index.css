@@ -3257,7 +3257,7 @@ a,
 }
 
 /* Finanse: kokpit, historia i analiza w układzie aplikacji Finanse. */
-.finance-reference {
+.finance-reference, .finance-reference-dock {
   --finance-bg: #f4f6f9;
   --finance-card: #fff;
   --finance-ink: #171d25;
@@ -3265,10 +3265,12 @@ a,
   --finance-edge: #dde2e8;
   --finance-accent: #316700;
   --finance-glow: rgb(163 218 100 / .37);
+}
+.finance-reference {
   background: radial-gradient(ellipse 440px 430px at 0 0, var(--finance-glow), transparent 100%), var(--finance-bg);
   color: var(--finance-ink);
 }
-.dark .finance-reference {
+.dark .finance-reference, .dark .finance-reference-dock {
   --finance-bg: #14191f;
   --finance-card: #1d242d;
   --finance-ink: #eef3f9;
@@ -3319,7 +3321,7 @@ a,
 .finance-reference-metrics { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
 .finance-reference-metrics h2, .finance-reference-metrics small { color: var(--finance-muted); font-size: .82rem; }
 .finance-reference-metrics strong { display: block; font-size: clamp(.98rem, 4vw, 1.38rem); margin-block: 4px; }
-.finance-reference-dock { position: fixed; z-index: var(--z-sticky); inset-inline: 10px; bottom: max(9px, env(safe-area-inset-bottom)); max-width: 490px; margin-inline: auto; display: flex; padding: 5px; border: 1px solid var(--finance-edge); border-radius: 32px; background: color-mix(in srgb, var(--finance-card) 88%, transparent); box-shadow: 0 8px 28px rgb(18 30 44 / .16); backdrop-filter: blur(20px); }
+.finance-reference-dock { position: fixed; z-index: var(--z-sticky); inset-inline: 10px; bottom: max(9px, env(safe-area-inset-bottom, 0px)); max-width: 490px; margin-inline: auto; display: flex; padding: 5px; border: 1px solid var(--finance-edge); border-radius: 32px; background: var(--finance-card); box-shadow: 0 8px 28px rgb(18 30 44 / .16); }
 .finance-reference-dock button { display: flex; flex: 1; min-width: 0; min-height: 52px; justify-content: center; align-items: center; flex-direction: column; gap: 4px; border-radius: 27px; font-size: clamp(.62rem, 2.7vw, .75rem); font-weight: 600; color: var(--finance-muted); }
 .finance-reference-dock button[aria-current=page] { color: var(--finance-ink); background: color-mix(in srgb, var(--finance-edge) 48%, transparent); }
 @media(min-width: 720px) { .finance-reference-start { grid-template-columns: repeat(2, minmax(0,1fr)); align-items: start; } .finance-reference-start > :last-child { grid-column: 1 / -1; } }

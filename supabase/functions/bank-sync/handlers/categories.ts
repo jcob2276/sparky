@@ -1,5 +1,5 @@
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { BANK_CATEGORY_LABELS, bankCounterpartyKey, bankOwnIbanKey, categorizeBankTransaction, type BankCategory } from '@vanguard/domain';
+import { isBankCategory, bankCounterpartyKey, bankOwnIbanKey, categorizeBankTransaction, type BankCategory } from '@vanguard/domain';
 import { HttpError } from '../../_shared/http.ts';
 import { safeExecute } from '../../_shared/supabase.ts';
 
@@ -11,7 +11,7 @@ async function context(db: SupabaseClient, userId: string) {
     .select('counterparty_key, category').eq('user_id', userId));
   return {
     ibans: accounts.flatMap(a => a.iban ? [a.iban] : []),
-    rules: new Map(rules.filter(r => Object.hasOwn(BANK_CATEGORY_LABELS, r.category)).map(r => [r.counterparty_key, r.category as BankCategory])),
+    rules: new Map(rules.filter(r => Object.hasOwn(isBankCategory, r.category)).map(r => [r.counterparty_key, r.category as BankCategory])),
   };
 }
 
@@ -53,7 +53,7 @@ export async function setCategory(db: SupabaseClient, userId: string | null,
   input: { transactionId?: unknown; category?: unknown; remember?: unknown; forgetRule?: unknown }): Promise<Record<string, unknown>> {
   if (!userId) throw new HttpError(400, 'Brak userId');
   const automatic = input.category === null;
-  if (!automatic && (typeof input.category !== 'string' || !Object.hasOwn(BANK_CATEGORY_LABELS, input.category))) throw new HttpError(400, 'Nieznana kategoria');
+  if (!automatic && (typeof input.category !== 'string' || !Object.hasOwn(isBankCategory, input.category))) throw new HttpError(400, 'Nieznana kategoria');
   const id = typeof input.transactionId === 'string' ? input.transactionId : '';
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, 'Niepoprawna transakcja');
   const tx = await safeExecute(db.from('bank_transactions').select('id, counterparty_name, counterparty_iban, remittance, direction, raw')

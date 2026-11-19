@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { Pressable } from '../ui/ControlPrimitives';
 
@@ -22,6 +23,8 @@ interface Props {
   centerLabel: string;
   center: ReactNode;
   ariaLabel: string;
+  expandedKey?: string;
+  expandedContent?: ReactNode;
   onSelect?: (key: string) => void;
 }
 
@@ -29,7 +32,7 @@ interface Props {
  * Donut with the total in the middle and a legend of coloured dots below: the pattern EveryDollar, Spendee and Wallet use.
  * The legend carries every number, so the chart never has to be read on its own.
  */
-export function FinanceDonut({ slices, centerLabel, center, ariaLabel, onSelect }: Props) {
+export function FinanceDonut({ slices, centerLabel, center, ariaLabel, onSelect, expandedKey, expandedContent }: Props) {
   const colorOf = (index: number, key: string) => (key === '__rest' ? REST : PALETTE[index % PALETTE.length]);
   return (
     <div>
@@ -58,8 +61,9 @@ export function FinanceDonut({ slices, centerLabel, center, ariaLabel, onSelect 
           return (
             <li key={slice.key}>
               {onSelect && slice.key !== '__rest'
-                ? <Pressable type="button" onClick={() => onSelect(slice.key)} className="flex min-h-11 w-full items-center gap-3 px-4 text-left hover:bg-text-primary/[0.04]">{row}</Pressable>
+                ? <Pressable type="button" aria-expanded={expandedKey === undefined ? undefined : expandedKey === slice.key} onClick={() => onSelect(slice.key)} className="flex min-h-11 w-full items-center gap-3 px-4 text-left hover:bg-text-primary/[0.04]">{row}{expandedKey !== undefined && <ChevronDown size={15} className={expandedKey === slice.key ? "rotate-180" : undefined} aria-hidden="true" />}</Pressable>
                 : <div className="flex min-h-11 items-center gap-3 px-4">{row}</div>}
+              {expandedKey === slice.key && expandedContent}
             </li>
           );
         })}

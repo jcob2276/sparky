@@ -15,7 +15,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   month: string;
   onPortfolio: () => void;
   onAccounts: () => void;
-  onTransactions: (category?: string) => void;
+  onTransactions: () => void;
   onSelect: (record: FinanceTransaction) => void;
 }) {
   const [includeSavings, setIncludeSavings] = useState(false);
@@ -58,7 +58,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
           <div key={account.id}><dt>{account.name}</dt><dd>{formatPln(account.balance, 2)}</dd></div>
         ))}</dl> : <p className="text-sm text-text-muted">Dodaj konto w ustawieniach finansów.</p>}
       </section>
-      <FinanceReferenceCategories transactions={records} onCategory={onTransactions} />
+      <FinanceReferenceCategories key={month} transactions={records} />
       <section className="finance-reference-card">
         <h2 className="finance-reference-label">Cashflow</h2>
         <p className={`finance-reference-number ${balance >= 0 ? 'finance-reference-positive' : ''}`}>{balance > 0 ? '+' : ''}{formatPln(balance, 2)}</p>

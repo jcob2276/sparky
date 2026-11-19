@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Pressable } from '../ui/ControlPrimitives';
 import { ArrowLeftRight, Briefcase, ChartNoAxesColumnIncreasing, Home } from 'lucide-react';
 import type { FinanceTabKey } from './FinanceTabContent';
@@ -13,7 +14,7 @@ export function FinanceBottomNav({ active, onChange }: {
   active: FinanceTabKey;
   onChange: (tab: FinanceTabKey) => void;
 }) {
-  return (
+  return createPortal(
     <nav className="finance-reference-dock" aria-label="Sekcje finansów">
       {ITEMS.map(({ key, label, icon: Icon }) => (
         <Pressable key={key} type="button" aria-current={active === key ? 'page' : undefined} onClick={() => onChange(key)}>
@@ -21,6 +22,7 @@ export function FinanceBottomNav({ active, onChange }: {
           <span>{label}</span>
         </Pressable>
       ))}
-    </nav>
+    </nav>,
+    document.body
   );
 }
