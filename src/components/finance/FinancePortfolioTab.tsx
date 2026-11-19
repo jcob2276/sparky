@@ -1,6 +1,6 @@
 import { FinanceHoldingHistory } from './FinanceHoldingHistory';
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useId, useState, type ReactNode } from 'react';
+import { ChevronDown, Plus } from 'lucide-react';
 import type { HoldingInput, PortfolioTotals, ValuedHolding } from '@vanguard/domain';
 import type { HoldingFormInput, HoldingMutations } from '../../lib/finance/holdingsApi';
 import type { FinanceAccount } from '../../lib/financeApi';
@@ -31,10 +31,27 @@ interface FinancePortfolioTabProps {
 const pct = (value: number | null) => (value == null ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(2).replace('.', ',')}%`);
 const tone = (value: number | null) => (value == null || value === 0 ? 'text-text-muted' : value > 0 ? 'text-success' : 'text-danger');
 
+function PortfolioDetails({ label, children }: { label: string; children: ReactNode }) {
+  const panelId = useId();
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="ios-group overflow-hidden">
+      <Pressable type="button" aria-expanded={expanded} aria-controls={panelId}
+        onClick={() => setExpanded((open) => !open)}
+        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 py-2 text-left font-semibold">
+        {label}<ChevronDown size={18} aria-hidden="true" className={expanded ? 'rotate-180' : ''} />
+      </Pressable>
+      <div id={panelId} hidden={!expanded} className="space-y-4 border-t border-border-custom/20 p-3">
+        {expanded && children}
+      </div>
+    </div>
+  );
+}
+
 function Summary({ totals, brokerCashPln }: { totals: PortfolioTotals; brokerCashPln: number }) {
   const dayKnown = !totals.unquotedCount;
   return (
-    <section className="space-y-4 pt-1 text-center" aria-label="Podsumowanie portfela">
+    <section className="space-y-2 pt-1 text-center" aria-label="Podsumowanie portfela">
       <div className="space-y-1.5">
         <p className="text-sm text-text-secondary">Wartość portfela</p>
         <p className="ui-num text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)] text-text-primary">
@@ -47,13 +64,13 @@ function Summary({ totals, brokerCashPln }: { totals: PortfolioTotals; brokerCas
         </p>
       </div>
       <dl className="ios-group divide-y divide-border-custom/20 text-left">
-        <div className="flex items-baseline justify-between gap-3 px-4 py-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 px-4 py-2.5">
           <dt className="text-sm text-text-muted">{totals.incompleteCostCount ? 'Wynik od zakupu (brak kosztu w PLN)' : 'Wynik od zakupu'}</dt>
           <dd className={`text-base font-semibold tabular-nums ${totals.incompleteCostCount ? 'text-text-muted' : tone(totals.pnlPln)}`}>
             {totals.incompleteCostCount ? '—' : `${formatPln(totals.pnlPln, 2)} · ${pct(totals.pnlPct)}`}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3 px-4 py-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 px-4 py-2.5">
           <dt className="text-sm text-text-muted">Wolne środki u brokera</dt>
           <dd className="text-base font-semibold tabular-nums text-text-primary">{formatPln(brokerCashPln, 2)}</dd>
         </div>
@@ -121,20 +138,17 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <Summary totals={totals} brokerCashPln={brokerCashPln} />
 
-      <FinanceRecordedPortfolio holdings={holdings} />
-
-      <FinanceHoldingHistory />
-
-      <FinanceAllocationCard accounts={fundingAccounts ?? []} holdings={holdings} />
-
       <section aria-label="Pozycje">
-        <header className="mb-2 flex items-center justify-between gap-3 px-1">
+        <header className="mb-2 flex flex-wrap items-center justify-between gap-2 px-1">
           <h2 className="ios-section-title">Pozycje</h2>
-          <Tabs tabs={[{ key: 'list', label: 'Lista' }, { key: 'map', label: 'Mapa' }]} active={view} onChange={(key) => setView(key as 'list' | 'map')} className="w-40" />
+          <Button variant="ghost" icon={<Plus size={16} />} onClick={() => setEditing('new')}>Dodaj pozycję</Button>
         </header>
+        <div className="mb-3">
+          <Tabs tabs={[{ key: 'list', label: 'Lista' }, { key: 'map', label: 'Mapa' }]} active={view} onChange={(key) => setView(key as 'list' | 'map')} className="w-full" />
+        </div>
         {view === 'map' ? <FinanceHoldingsHeatmap holdings={holdings} loading={false} bare /> : (
           <div className="ios-group">
             {holdings.length === 0 ? (
@@ -152,21 +166,29 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
             )}
           </div>
         )}
-        <Button variant="tonal" className="mt-3 w-full" icon={<Plus size={16} />} onClick={() => setEditing('new')}>
-          Dodaj pozycję
-        </Button>
       </section>
 
-      <FinanceRebalanceCard
-        holdings={holdings}
-        fundingAccounts={fundingAccounts}
-        pending={mutations.addPurchase.isPending}
-        onBought={(holding, units, pricePln, accountId) =>
-          void run(async () => {
-            await mutations.addPurchase.mutateAsync({ holding, units, pricePln, accountId });
-          })
-        }
-      />
+      <div className="space-y-2" aria-label="Szczegóły portfela">
+        <PortfolioDetails label="Historia portfela">
+          <FinanceRecordedPortfolio holdings={holdings} />
+          <FinanceHoldingHistory />
+        </PortfolioDetails>
+        <PortfolioDetails label="Struktura majątku">
+          <FinanceAllocationCard accounts={fundingAccounts ?? []} holdings={holdings} />
+        </PortfolioDetails>
+        <PortfolioDetails label="Kalkulator dopłaty">
+          <FinanceRebalanceCard
+            holdings={holdings}
+            fundingAccounts={fundingAccounts}
+            pending={mutations.addPurchase.isPending}
+            onBought={(holding, units, pricePln, accountId) =>
+              void run(async () => {
+                await mutations.addPurchase.mutateAsync({ holding, units, pricePln, accountId });
+              })
+            }
+          />
+        </PortfolioDetails>
+      </div>
 
       <Sheet
         open={editing != null}

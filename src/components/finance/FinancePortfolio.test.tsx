@@ -19,6 +19,16 @@ it('shows session and crypto daily changes with quote dates in position rows, in
     return <FinancePortfolioTab holdings={holdings} totals={computePortfolioTotals(holdings)} mutations={mutations} run={async fn => fn()} />;
   }
   render(<QueryClientProvider client={new QueryClient()}><Portfolio /></QueryClientProvider>);
+  expect(screen.getByRole('region', { name: 'Pozycje' })).toBeVisible();
+  expect(screen.queryByText('Gdzie jest majątek')).not.toBeInTheDocument();
+  const history = screen.getByRole('button', { name: 'Historia portfela' });
+  const historyPanel = document.getElementById(history.getAttribute('aria-controls') ?? '');
+  expect(historyPanel).not.toBeVisible();
+  fireEvent.click(history);
+  expect(history).toHaveAttribute('aria-expanded', 'true');
+  expect(historyPanel).toBeVisible();
+  fireEvent.click(history);
+  expect(historyPanel).not.toBeVisible();
   expect(screen.queryByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('tab', { name: 'Mapa' }));
   expect(screen.getByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).toBeVisible();
