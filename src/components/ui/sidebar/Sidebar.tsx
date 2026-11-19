@@ -6,6 +6,7 @@ export interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   side?: 'left' | 'right';
   children?: React.ReactNode;
   mobileTitle?: React.ReactNode;
+  mobileBottomSheet?: boolean;
 }
 
 export function Sidebar({
@@ -13,6 +14,7 @@ export function Sidebar({
   children,
   className = '',
   mobileTitle = 'Nawigacja',
+  mobileBottomSheet = false,
   style,
   ...props
 }: SidebarProps) {
@@ -21,8 +23,8 @@ export function Sidebar({
   // Mobile Drawer view using existing Sheet primitive
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} title={mobileTitle} side={side}>
-        <div className="flex h-full w-full flex-col">{children}</div>
+      <Sheet open={openMobile} onOpenChange={setOpenMobile} title={mobileTitle} side={mobileBottomSheet ? 'bottom' : side} compact={mobileBottomSheet} handleDragOnly={mobileBottomSheet}>
+        <div className={`flex h-full w-full flex-col ${mobileBottomSheet ? 'workspace-mobile-sheet' : ''}`}>{children}</div>
       </Sheet>
     );
   }

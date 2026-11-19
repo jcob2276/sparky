@@ -11,6 +11,7 @@ export interface WorkspaceSidebarProps {
   /** When false, parent must wrap with SidebarProvider (e.g. calendar mobile trigger in header). */
   provideContext?: boolean;
   mobileTitle?: string;
+  mobileBottomSheet?: boolean;
   /** Ukrywa przycisk zwijania w nagłówku panelu (gdy nagłówek strony ma własny). */
   hideTrigger?: boolean;
 }
@@ -20,33 +21,34 @@ function WorkspaceSidebarInner({
   className = '',
   onCollapse,
   mobileTitle = 'Kalendarz',
+  mobileBottomSheet = false,
   hideTrigger = false,
 }: {
   children: ReactNode;
   className?: string;
   onCollapse?: () => void;
   mobileTitle?: string;
+  mobileBottomSheet?: boolean;
   hideTrigger?: boolean;
 }) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
   return (
-    <Sidebar className={className} mobileTitle={mobileTitle}>
-      <SidebarHeader className={`flex items-center py-2 px-3 border-b border-border-custom/20 mb-1.5 ${isCollapsed ? 'justify-center px-1' : 'justify-between'}`}>
+    <Sidebar className={className} mobileTitle={mobileTitle} mobileBottomSheet={mobileBottomSheet}>
+      {!isMobile && <SidebarHeader className={`flex items-center py-2 px-3 border-b border-border-custom/20 mb-1.5 ${isCollapsed ? 'justify-center px-1' : 'justify-between'}`}>
         {!isCollapsed && (
-          <span className="pixel-label text-text-muted/60 tracking-wider">Workspace</span>
+          <span className="pixel-label text-text-muted/60 tracking-wider">Narzędzia</span>
         )}
-        {/* Mobile: toggle sheet via context. Desktop: sync external collapsed flag. */}
         {!hideTrigger && (
           <SidebarTrigger
-            onClick={isMobile ? undefined : onCollapse}
+            onClick={onCollapse}
             className="hover:bg-surface-2 rounded-lg"
           />
         )}
-      </SidebarHeader>
+      </SidebarHeader>}
       {children}
-      <SidebarRail />
+      {!isMobile && <SidebarRail />}
     </Sidebar>
   );
 }
@@ -60,10 +62,11 @@ export default function WorkspaceSidebar({
   variant = 'sidebar',
   provideContext = true,
   mobileTitle,
+  mobileBottomSheet,
   hideTrigger,
 }: WorkspaceSidebarProps) {
   const inner = (
-    <WorkspaceSidebarInner className={className} onCollapse={onCollapse} mobileTitle={mobileTitle} hideTrigger={hideTrigger}>
+    <WorkspaceSidebarInner className={className} onCollapse={onCollapse} mobileTitle={mobileTitle} mobileBottomSheet={mobileBottomSheet} hideTrigger={hideTrigger}>
       {children}
     </WorkspaceSidebarInner>
   );

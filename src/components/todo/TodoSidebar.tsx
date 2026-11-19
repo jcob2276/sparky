@@ -78,7 +78,7 @@ export default function TodoSidebar({
   };
 
   return (
-    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="todo-sidebar gap-3" provideContext={false} mobileTitle="Zadania">
+    <WorkspaceSidebar mobileBottomSheet collapsed={collapsed} onCollapse={onToggleCollapse} className="todo-sidebar gap-3" provideContext={false} mobileTitle="Zadania">
       {/* Workspace Section */}
       <div className="flex flex-col gap-0.5">
         <WorkspaceNavigation

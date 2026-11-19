@@ -76,7 +76,7 @@ export default function WorkspaceNavigation({
 
   if (isCollapsedIcon) {
     return (
-      <nav aria-label="Workspace" className={`flex flex-col items-center gap-1.5 ${className}`}>
+      <nav aria-label="Narzędzia Sparky" className={`flex flex-col items-center gap-1.5 ${className}`}>
         {ITEMS.map(({ id, label, icon: Icon }) => {
           const isActive = active === id;
           return (
@@ -103,7 +103,7 @@ export default function WorkspaceNavigation({
   }
 
   return (
-    <nav aria-label="Workspace" className={`flex flex-col gap-0.5 px-3 ${className}`}>
+    <nav aria-label="Narzędzia Sparky" className={`workspace-sidebar-links flex flex-col gap-0.5 px-3 ${className}`}>
       {ITEMS.map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
         return (

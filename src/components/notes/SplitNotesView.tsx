@@ -153,7 +153,7 @@ export default function SplitNotesView({
 
       {/* Editor Pane - Visible on desktop, or on mobile when a note IS selected */}
       {showEditor && (
-        <section className={`keep-split-editor-pane ${galleryMode ? 'gallery-note' : ''}`} aria-label="Edytor notatki">
+        <section className={`keep-split-editor-pane ${isMobile ? 'keep-editor-enter' : ''} ${galleryMode ? 'gallery-note' : ''}`} aria-label="Edytor notatki">
           {activeNote ? (
             <InlineEditor
               note={activeNote}

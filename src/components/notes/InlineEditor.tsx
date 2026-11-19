@@ -142,7 +142,7 @@ export default function InlineEditor({
           />
         </div>
       </div>
-      <div className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
+      <div data-note-scroll className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
         <div className="text-2xs text-text-muted font-medium text-center block">{noteFullDate(note.updated_at || note.created_at)}</div>
         <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
         {aiResult && (
