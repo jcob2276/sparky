@@ -78,7 +78,7 @@ function TerminyHeader({
   onExportAllICS,
 }: Pick<Props, 'onBack' | 'onAdd' | 'onExportAllICS'>) {
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-white/10 bg-background/70 backdrop-blur-xl transition-colors duration-200 dark:border-white/5">
+    <header className="terminy-page-toolbar sticky top-0 z-[var(--z-sticky)] border-b border-white/10 bg-background/70 backdrop-blur-xl transition-colors duration-200 dark:border-white/5">
       <div className="mx-auto flex max-w-[var(--content-wide)] items-center gap-3 px-4 py-3.5 md:px-8">
         <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90 cursor-pointer">
           <ArrowLeft size={18} strokeWidth={2.2} />

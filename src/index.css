@@ -1619,6 +1619,16 @@ body {
   padding-top: max(env(safe-area-inset-top), 2.25rem);
 }
 
+/* These workspace shells already reserve the top inset. */
+.capacitor-ios header.workspace-page-toolbar {
+  padding-top: 0;
+}
+
+.terminy-page-toolbar,
+.capacitor-ios header.terminy-page-toolbar {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 /* Performance optimization for Capacitor Native WebView (Android / iOS):
    Neutralize continuous GPU composite readbacks caused by CSS backdrop-blur during scrolling */
 .capacitor-native [class*="backdrop-blur"] {
