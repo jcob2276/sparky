@@ -22,7 +22,6 @@ interface TodoCardCollapsedRowProps {
   onEditCancel?: () => void;
   expanded: boolean;
   /** Click on the title starts inline editing. */
-  onTitlePress: () => void;
   onToggleExpand: () => void;
   onDelete: () => void;
   sections: { id: string; name: string }[];
@@ -47,7 +46,7 @@ interface TodoCardCollapsedRowProps {
 const PRIORITY_LABEL: Record<string, string> = { urgent: 'P1 · Pilne', high: 'P2 · Ważne', normal: 'P3', low: 'P4' };
 
 export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, dateInfo, today,
-  isEditing, editingTitle, onEditChange, onEditSave, onEditCancel, expanded, onTitlePress, onToggleExpand, onDelete, panelId, sections, onSetSchedule, onSetPriority, onMoveSection,
+  isEditing, editingTitle, onEditChange, onEditSave, onEditCancel, expanded, onToggleExpand, onDelete, panelId, sections, onSetSchedule, onSetPriority, onMoveSection,
   totalSubtaskCount, doneSubtaskCount, isLinkedToPlan, sectionName, dreamTitle, swipe,
 }: TodoCardCollapsedRowProps) {
   const notes = getPlainText(item.notes || '').replace(/\bsource:(?:note|link):[0-9a-f-]+/gi, '').trim();
@@ -98,10 +97,10 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
             onClick={e => e.stopPropagation()}
             className="min-w-0 w-full rounded-lg border border-primary/40 bg-surface-solid px-2 py-2 text-base text-text-primary focus-visible:shadow-focus" />
         ) : (
-          <Pressable onClick={e => { e.stopPropagation(); onTitlePress(); }}
-            className={`todo-instant todo-focus-title cursor-text min-h-11 min-w-0 flex-1 rounded-lg text-left text-base font-semibold leading-snug tracking-tight focus-visible:shadow-focus ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
+          <span
+            className={`todo-focus-title min-w-0 flex-1 text-left text-base font-semibold leading-snug ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
             {label}
-          </Pressable>
+          </span>
         )}
       </div>
       {!expanded && !!notes && <p className="todo-focus-note" title={notes}>{notes}</p>}

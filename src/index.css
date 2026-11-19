@@ -2528,7 +2528,7 @@ a,
 .todo-focus-priority { flex-shrink: 0; color: var(--text-secondary); font-size: 0.6875rem; font-weight: 600; }
 .todo-focus-important { padding: 0.125rem 0.5rem; border-radius: 999px; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 12%, transparent); }
 .todo-focus-title-row { grid-area: title; display: flex; align-items: center; justify-content: flex-start; gap: 0.25rem; min-width: 0; }
-.todo-focus-title-row > button:last-child, .todo-focus-title-row > input { font-weight: var(--todo-row-title-weight); font-size: var(--todo-row-title-size); letter-spacing: 0; }
+.todo-focus-title-row > .todo-focus-title, .todo-focus-title-row > input { font-weight: var(--todo-row-title-weight); font-size: var(--todo-row-title-size); letter-spacing: 0; }
 .todo-focus-check {
   width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center;
   border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-secondary) 55%, transparent);
@@ -2575,7 +2575,7 @@ a,
 }
 .todo-card-leaving { overflow: hidden; pointer-events: none; animation: todo-leave 200ms var(--ease-out) forwards; }
 .todo-card-leaving .todo-focus-check { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); }
-.todo-card-leaving .todo-focus-title-row > button:last-child { text-decoration: line-through; color: var(--text-secondary); }
+.todo-card-leaving .todo-focus-title-row > .todo-focus-title { text-decoration: line-through; color: var(--text-secondary); }
 @media (prefers-reduced-motion: reduce) {
   .todo-card-leaving { animation: none; opacity: 0; }
   .todo-focus-check.is-done { animation: none; }
@@ -2917,7 +2917,7 @@ a,
 @media (min-width: 640px) { .todo-kanban-col { width: var(--ds-w-220px); } }
 
 /* Wąskie ekrany i dotyk: tytuł dostaje całą szerokość, data/priorytet schodzą do osobnej linii. */
-.todo-focus-title-row > button:last-child { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.todo-focus-title-row > .todo-focus-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 .todo-focus-top:empty { display: none; }
 @media (max-width: 40rem), (pointer: coarse) {
   .todo-focus-card {
@@ -2926,7 +2926,7 @@ a,
   }
   .todo-focus-top { justify-content: flex-start; margin-left: 2.875rem; margin-bottom: 0.5rem; }
   /* Wielolinijkowy tytuł dostaje oddech, żeby chip pod nim go nie dociskał. */
-  .todo-focus-title-row > button:last-child { padding-block: 0.5rem; }
+  .todo-focus-title-row > .todo-focus-title { padding-block: 0.5rem; }
   .todo-focus-top:empty { display: block; }
 }
 
@@ -3668,5 +3668,17 @@ progress,
   @keyframes calendar-day-enter {
     from { opacity: 0.72; }
     to { opacity: 1; }
+  }
+}
+
+
+/* Keep iOS from magnifying focused task controls while retaining pinch zoom. */
+@supports (-webkit-touch-callout: none) {
+  :is(.todoist-theme, .todo-details-panel, .todo-pop, .todo-action-menu) :is(input, textarea, select) {
+    font-size: max(16px, 1rem);
+  }
+
+  :is(.todoist-theme, .todo-details-panel, .todo-pop, .todo-action-menu) :is(button, input, textarea, select) {
+    touch-action: manipulation;
   }
 }

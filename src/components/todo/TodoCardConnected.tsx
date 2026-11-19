@@ -192,10 +192,6 @@ export default function TodoCardConnected({
       sections={sections}
       isEditing={editingId === item.id}
       editingTitle={editingTitle}
-      onEditStart={(t: string) => {
-        setEditingId(item.id);
-        setEditingTitle(t);
-      }}
       onEditChange={setEditingTitle}
       onEditSave={() => saveEditTitle(item)}
       onEditCancel={() => { setEditingId(null); setEditingTitle(''); }}
