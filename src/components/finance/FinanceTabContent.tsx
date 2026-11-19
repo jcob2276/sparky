@@ -8,7 +8,7 @@ import { FinanceAccountsTab } from './FinanceAccountsTab';
 import { FlowsTab } from './FlowsTab';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
-export type FinanceTabKey = 'dashboard' | 'portfolio' | 'accounts' | 'flows';
+export type FinanceTabKey = 'dashboard' | 'portfolio' | 'accounts' | 'flows' | 'analysis' | 'tools';
 
 interface FinanceTabContentProps {
   tab: FinanceTabKey;
@@ -26,8 +26,13 @@ interface FinanceTabContentProps {
 export function FinanceTabContent(props: FinanceTabContentProps) {
   const { tab, data, metrics, holdings, portfolio, mutations, holdingMutations, run, saveProfilePatch, onNavigate } = props;
 
-  if (tab === 'dashboard') {
+  if (tab === 'tools') {
     return (
+      <>
+      <FlowsTab data={data} metrics={metrics} mutations={mutations} run={run} saveProfilePatch={saveProfilePatch}
+        onNavigate={onNavigate} initialSegment="planning" />
+      <details className="finance-reference-card">
+      <summary>Cele, poduszka i kalkulatory</summary>
       <FinanceHome
         data={data}
         metrics={metrics}
@@ -38,6 +43,8 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
         mutations={mutations}
         run={run}
       />
+      </details>
+      </>
     );
   }
 
@@ -58,7 +65,5 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
     return <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />;
   }
 
-  return (
-    <FlowsTab data={data} metrics={metrics} mutations={mutations} run={run} saveProfilePatch={saveProfilePatch} onNavigate={onNavigate} />
-  );
+  return null;
 }

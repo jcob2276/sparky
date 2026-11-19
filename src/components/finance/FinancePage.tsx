@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { useFinanceMutations } from '../../lib/financeApi';
+import { useFinanceMutations, type FinanceTransaction } from '../../lib/financeApi';
+import { useBankData } from '../../lib/finance/bankApi';
 import { useCashEntryMutation, type CashEntryInput } from '../../lib/finance/cashEntryApi';
 import { useHoldingMutations } from '../../lib/finance/holdingsApi';
 import { useNetWorthSnapshotSync } from '../../lib/finance/netWorthSnapshots';
 import { notify } from '../../lib/notify';
 import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
-import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { FinanceSkeleton } from './FinanceSkeleton';
 import { Pressable } from '../ui/ControlPrimitives';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
@@ -20,13 +19,18 @@ import { useFinancePageData } from './useFinancePageData';
 import { FinanceAccountsTab } from './FinanceAccountsTab';
 import { FinancePortfolioTab } from './FinancePortfolioTab';
 import { FinanceBankCard } from './FinanceBankCard';
-import { FinanceManualHistory } from './FinanceManualHistory';
+import { FinanceReferenceHeader, FinanceReferenceTransactionSheet } from './FinanceReferenceChrome';
+import { FinanceMonthPicker, FinanceReferenceTransactions } from './FinanceReferenceViews';
+import FinanceReferenceStart from './FinanceReferenceStart';
+import FinanceReferenceAnalysis from './FinanceReferenceAnalysis';
 
 const TITLES: Record<FinanceTabKey, string> = {
-  dashboard: 'Finanse',
+  dashboard: 'Twój kapitał. Twój kierunek.',
   portfolio: 'Portfel',
   accounts: 'Ustawienia finansów',
-  flows: 'Przepływy',
+  flows: 'Transakcje',
+  analysis: 'Twoje finanse w liczbach',
+  tools: 'Narzędzia finansowe',
 };
 
 const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
@@ -34,6 +38,8 @@ const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
   portfolio: 'default',
   accounts: 'default',
   flows: 'wide',
+  analysis: 'wide',
+  tools: 'wide',
 };
 
 function FinancePage() {
@@ -43,6 +49,10 @@ function FinancePage() {
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
+  const bank = useBankData(userId);
+  const [month, setMonth] = useState(() => getTodayWarsaw().slice(0, 7));
+  const [category, setCategory] = useState('');
+  const [selected, setSelected] = useState<FinanceTransaction | null>(null);
   // Powrót z banku (?bank=connected|denied) otwiera ustawienia, gdzie karta Bank obsługuje wynik.
   const [tab, setTab] = useState<FinanceTabKey>(() => (new URLSearchParams(window.location.search).has('bank') ? 'accounts' : 'dashboard'));
   const [returnTab, setReturnTab] = useState<Exclude<FinanceTabKey, 'accounts'>>('dashboard');
@@ -72,6 +82,13 @@ function FinancePage() {
     }
   };
 
+  const openQuickEntry = () => setQuickEntry({ open: true, kind: 'expense' });
+  const openTransactions = (filter = '', at = month) => {
+    setCategory(filter);
+    setMonth(at);
+    navigate('flows');
+  };
+
   const currentMonth = `${getTodayWarsaw().slice(0, 7)}-01`;
   const storedSnapshot = data?.snapshots.find((item) => item.snapshot_month.startsWith(currentMonth.slice(0, 7)));
   useNetWorthSnapshotSync(
@@ -93,22 +110,17 @@ function FinancePage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-text-primary">
-      {(tab === 'dashboard' || tab === 'portfolio') && <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />}
+    <div className="finance-reference min-h-screen">
+      <FinanceReferenceHeader userId={userId} tab={tab} bankConnected={bank.data?.connection?.status === 'active'}
+        onBack={() => tab === 'accounts' || tab === 'tools' ? navigate(tab === 'tools' ? 'accounts' : returnTab) : goToday('/dzis')}
+        onAccounts={() => navigate('accounts')} onQuickEntry={openQuickEntry} />
 
-      <WorkspaceHeader
-        title={TITLES[tab]}
-        onBack={() => (tab === 'accounts' ? navigate(returnTab) : goToday('/dzis'))}
-        backLabel={tab === 'accounts' ? 'Wróć do finansów' : 'Wróć do Sparky'}
-        actions={(
-          <Pressable type="button" onClick={() => navigate('accounts')} aria-label="Ustawienia finansów" aria-current={tab === 'accounts' ? 'page' : undefined}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-primary">
-            <Settings size={18} aria-hidden="true" />
-          </Pressable>
-        )}
-      />
-
-      <ContentContainer width={WIDTH_BY_TAB[tab]} className="relative space-y-6 pb-32 pt-2">
+      <ContentContainer width={WIDTH_BY_TAB[tab]} className="finance-reference-content relative space-y-5 pb-32 pt-2">
+        <div className="finance-reference-heading">
+          <p className="finance-reference-label">{tab === 'dashboard' ? 'Majątek i rozwój' : tab === 'flows' ? 'Historia' : tab === 'analysis' ? 'Analiza' : 'Finanse Sparky'}</p>
+          <h1>{TITLES[tab]}</h1>
+        </div>
+        {(tab === 'dashboard' || tab === 'flows') && <FinanceMonthPicker month={month} onChange={(value) => { setMonth(value); setCategory(''); }} />}
         {(bundleQuery.isLoading || bankLoading) && <FinanceSkeleton />}
         {bundleQuery.error && (
           <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
@@ -124,12 +136,21 @@ function FinancePage() {
         {notice && <p role="status" className="rounded-2xl bg-surface-1 px-4 py-3 text-sm text-text-secondary ring-1 ring-border-custom/25">{notice}</p>}
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
-        {data && !metrics && tab === 'flows' && <div className="space-y-6">
-          <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => navigate('accounts')} />
-          <FinanceManualHistory transactions={data.transactions.filter(tx => tx.source !== 'bank')} />
-        </div>}
+        {data && tab === 'dashboard' && <FinanceReferenceStart data={data} metrics={metrics} month={month}
+          onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={openTransactions} onSelect={setSelected} />}
+        {data && tab === 'flows' && (
+          <>
+            <FinanceReferenceTransactions data={data} month={month} category={category} onCategory={setCategory} onQuickEntry={openQuickEntry} onSelect={setSelected} />
+            {bank.data?.connection ? <details className="finance-reference-card">
+              <summary>Operacje bankowe i kategoryzacja</summary>
+              <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => navigate('accounts')} />
+            </details> : <Pressable type="button" onClick={() => navigate('accounts')} className="finance-reference-link">Przejdź do ustawień finansów</Pressable>}
+          </>
+        )}
+        {data && tab === 'analysis' && <FinanceReferenceAnalysis transactions={data.transactions} onCategory={openTransactions} />}
+        {tab === 'accounts' && metrics && <Pressable type="button" className="finance-reference-link" onClick={() => navigate('tools')}>Budżet, cele i stałe płatności</Pressable>}
 
-        {metrics && data && (
+        {metrics && data && (tab === 'portfolio' || tab === 'accounts' || tab === 'tools') && (
           <AnimatePresence initial={false}>
             <motion.div
               key={tab}
@@ -166,7 +187,8 @@ function FinancePage() {
           onSubmit={saveCashEntry}
         />
       )}
-      <FinanceBottomNav active={tab} onChange={navigate} onAdd={() => setQuickEntry({ open: true, kind: 'expense' })} />
+      <FinanceReferenceTransactionSheet selected={selected} onClose={() => setSelected(null)} />
+      <FinanceBottomNav active={tab} onChange={navigate} />
     </div>
   );
 }
