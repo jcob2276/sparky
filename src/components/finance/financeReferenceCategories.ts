@@ -42,6 +42,7 @@ export function financeCategory(value: string) {
 
 export function financeTransactionCategory(item: FinanceTransaction) {
   const kind = movement(item);
+  if (kind === 'transfer') return { group: 'Oszczędności', detail: item.note ?? UNCLASSIFIED_DETAIL };
   if (kind === 'expense') return financeCategory(item.category);
   return { group: kind === 'refund' ? 'Zwroty' : 'Wpływy', detail: item.category.trim() || UNCLASSIFIED_DETAIL };
 }

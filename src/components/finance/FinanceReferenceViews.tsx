@@ -55,7 +55,7 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
   onSelect: (record: FinanceTransaction) => void;
 }) {
   const days = new Map<string, FinanceTransaction[]>();
-  for (const tx of records) {
+  for (const tx of [...records].sort((a, b) => b.transaction_date.localeCompare(a.transaction_date) || b.id.localeCompare(a.id))) {
     const group = days.get(tx.transaction_date) ?? [];
     group.push(tx);
     days.set(tx.transaction_date, group);
@@ -70,7 +70,7 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
           </div>
           <ul className="finance-reference-list">
             {items.map((tx) => {
-              const outgoing = movement(tx) === 'expense';
+              const outgoing = tx.kind === 'expense';
               const Icon = outgoing ? ArrowUpRight : ArrowDownLeft;
               const account = accounts.find((item) => item.id === tx.account_id)?.name;
               return (
@@ -108,8 +108,9 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
   const [account, setAccount] = useState('');
   const [limit, setLimit] = useState(50);
   const [view, setView] = useState<'list' | 'categories'>('list');
-  const records = range ? financeRecordsInRange(data.transactions, range)
-    : data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
+  const history = [...data.transactions, ...(data.savingsTransfers ?? [])];
+  const records = range ? financeRecordsInRange(history, range)
+    : history.filter((tx) => tx.transaction_date.startsWith(month));
   const hasFilters = Boolean(query || kind || account || category || detail);
   const resetFilters = () => {
     setQuery('');
@@ -127,7 +128,7 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
     const classified = financeTransactionCategory(tx);
     return (!category || category === classified.group) && (!detail || detail === classified.detail) && (!kind || kind === movement(tx))
       && (!account || account === tx.account_id) && text.includes(query.trim().toLocaleLowerCase('pl'));
-  });
+  }).sort((a, b) => b.transaction_date.localeCompare(a.transaction_date) || b.id.localeCompare(a.id));
   return (
     <div className="space-y-4">
       <div className="finance-reference-segment" aria-label="Widok historii">
@@ -142,7 +143,7 @@ export function FinanceReferenceTransactions({ data, month, range, category, onC
           </div>
           <div className="finance-reference-filters">
             <ControlSelect aria-label="Rodzaj transakcji" value={kind} onChange={(event) => setKind(event.target.value)}>
-              <option value="">Wszystkie rodzaje</option><option value="expense">Wydatki</option><option value="income">Wpływy</option><option value="refund">Zwroty</option>
+              <option value="">Wszystkie rodzaje</option><option value="expense">Wydatki</option><option value="income">Wpływy</option><option value="refund">Zwroty</option><option value="transfer">Przelewy oszczędnościowe</option>
             </ControlSelect>
             <ControlSelect aria-label="Konto transakcji" value={account} onChange={(event) => setAccount(event.target.value)}>
               <option value="">Wszystkie konta</option>{data.accounts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}

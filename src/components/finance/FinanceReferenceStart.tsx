@@ -27,6 +27,8 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   const totalPortfolio = portfolioValue + brokerCash;
   const otherInvestments = metrics ? metrics.investments - totalPortfolio - (savings - liquidSavings) : 0;
   const records = data.transactions.filter((tx) => tx.transaction_date.startsWith(month));
+  const recent = [...records, ...(data.savingsTransfers ?? []).filter((tx) => tx.transaction_date.startsWith(month))]
+    .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date) || b.id.localeCompare(a.id)).slice(0, 5);
   const { income, expenses, refunds, balance } = financePeriodTotals(records);
   const accounts = data.accounts.filter((account) => account.account_type !== 'broker_cash');
   return (
@@ -66,7 +68,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
       </section>
       <section className="finance-reference-card">
         <header><h2 className="finance-reference-label">Ostatnie operacje</h2><Pressable type="button" className="finance-reference-link" onClick={() => onTransactions()}>Wszystkie transakcje ›</Pressable></header>
-        {records.length ? <FinanceReferenceHistory records={records.slice(0, 5)} accounts={data.accounts} onSelect={onSelect} />
+        {recent.length ? <FinanceReferenceHistory records={recent} accounts={data.accounts} onSelect={onSelect} />
           : <p className="text-sm text-text-muted">Brak transakcji w tym miesiącu.</p>}
       </section>
     </div>
