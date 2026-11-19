@@ -136,7 +136,7 @@ function FinancePage() {
         {notice && <p role="status" className="rounded-2xl bg-surface-1 px-4 py-3 text-sm text-text-secondary ring-1 ring-border-custom/25">{notice}</p>}
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
-        {data && tab === 'dashboard' && <FinanceReferenceStart data={data} metrics={metrics} month={month}
+        {data && tab === 'dashboard' && <FinanceReferenceStart data={data} metrics={metrics} portfolioValue={portfolio.valuePln} month={month}
           onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={openTransactions} onSelect={setSelected} />}
         {data && tab === 'flows' && (
           <>

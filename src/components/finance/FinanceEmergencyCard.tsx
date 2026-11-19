@@ -9,7 +9,7 @@ export function FinanceEmergencyCard({ metrics }: { metrics: FinanceMetrics }) {
     <section aria-label="Poduszka finansowa">
       <h3 className="px-5 pt-5 text-base font-semibold">Poduszka finansowa</h3>
       {emergency.months == null ? (
-        <FinanceEmpty>Wpisz miesięczne wydatki w Przepływach, żeby policzyć poduszkę.</FinanceEmpty>
+        <FinanceEmpty>Ustaw miesięczne wydatki w budżecie, żeby policzyć poduszkę.</FinanceEmpty>
       ) : (
         <div className="space-y-2 px-5 pb-5 pt-2">
           <div className="flex items-baseline justify-between gap-3">
