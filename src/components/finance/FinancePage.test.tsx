@@ -166,6 +166,24 @@ describe('FinancePage', () => {
     expect(screen.queryByRole('heading', { name: 'Kategorie' })).not.toBeInTheDocument();
   });
 
+  it('keeps a fully refunded purchase in history and excludes both entries from analysis', () => {
+    vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
+    const entry = { user_id: 'u', category: 'Zakup zwrócony w całości', source: 'bank' as const, created_at: '' };
+    bundle.transactions = [
+      { ...entry, id: 'payment', amount: -3279.99, note: 'PayU test', transaction_date: '2026-11-12', kind: 'expense' },
+      { ...entry, id: 'refund', amount: 3279.99, note: 'Pekao test', transaction_date: '2026-11-16', kind: 'income', flow_kind: 'refund' },
+    ];
+    openFinance();
+    fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
+    expect(screen.getByText('PayU test')).toBeInTheDocument();
+    expect(screen.getByText('Pekao test')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
+    const totals = screen.getByRole('region', { name: 'Zestawienie okresu' });
+    expect(within(totals).getAllByText(/^0,00/)).toHaveLength(3);
+    expect(screen.queryByText('PayU test')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pekao test')).not.toBeInTheDocument();
+  });
+
   it('classifies an uncertain transaction with a new category and remembers its counterparty', async () => {
     vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
     state.bankRows = [{ id: 'unknown', account_id: 'bank', booking_date: '2026-11-02', amount: -40,

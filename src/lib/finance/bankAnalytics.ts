@@ -1,4 +1,4 @@
-import { normalizeBankText } from '@vanguard/domain';
+import { normalizeBankText, RETURNED_PURCHASE_CATEGORY } from '@vanguard/domain';
 import type { BankTransaction } from './bankApi';
 import { summarizeSpending } from './bankSpending';
 
@@ -20,7 +20,7 @@ export function bankMovement(tx: Pick<BankTransaction, 'category' | 'amount'>): 
   if (tx.category === 'przelewy_wlasne') return 'transfer';
   if (tx.category === 'inwestycje') return 'investment';
   if (tx.category === 'gotowka') return 'cash';
-  if (tx.category === 'zwrot' && tx.amount > 0) return 'refund';
+  if ((tx.category === 'zwrot' || tx.category === RETURNED_PURCHASE_CATEGORY) && tx.amount > 0) return 'refund';
   return tx.amount > 0 ? 'income' : 'expense';
 }
 
