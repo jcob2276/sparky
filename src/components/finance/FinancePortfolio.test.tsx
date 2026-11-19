@@ -1,9 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
-import { computePortfolioTotals, valueHoldings, type HoldingInput } from '@vanguard/domain';
+import { valueHoldings, type HoldingInput } from '@vanguard/domain';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
-import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
 import type { FinanceAccount } from '../../lib/financeApi';
 import { FinancePortfolioTab } from './FinancePortfolioTab';
@@ -16,7 +15,7 @@ it('shows session and crypto daily changes with quote dates in position rows, in
   ], { 'BTC-USD': { pricePln: 200000, changePct: -0.12, asOf: '2026-11-07T12:00:00Z' }, ABC: { pricePln: 150, changePct: 2.5, asOf: '2026-11-06T20:00:00Z' } });
   function Portfolio() {
     const mutations = useHoldingMutations(undefined);
-    return <FinancePortfolioTab holdings={holdings} totals={computePortfolioTotals(holdings)} mutations={mutations} run={async fn => fn()} />;
+    return <FinancePortfolioTab holdings={holdings} mutations={mutations} run={async fn => fn()} />;
   }
   render(<QueryClientProvider client={new QueryClient()}><Portfolio /></QueryClientProvider>);
   expect(screen.getByRole('region', { name: 'Pozycje' })).toBeVisible();
@@ -30,7 +29,11 @@ it('shows session and crypto daily changes with quote dates in position rows, in
   fireEvent.click(history);
   expect(historyPanel).not.toBeVisible();
   expect(screen.getByRole('tab', { name: 'Mapa' })).toHaveAttribute('aria-selected', 'true');
-  expect(screen.getByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).toBeVisible();
+  for (const group of ['Akcje i ETF-y', 'Kryptowaluty']) {
+    expect(within(screen.getByRole('region', { name: `Pozycje: ${group}` }))
+      .getByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).toBeVisible();
+  }
+  expect(screen.queryByRole('button', { name: 'Kalkulator dopłaty' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('tab', { name: 'Lista' }));
   const crypto = screen.getByRole('button', { name: /BTC-USD/ });
   expect(within(crypto).getByText(/Zmiana dzienna/)).toHaveTextContent('2026-11-07');
@@ -60,29 +63,6 @@ describe('FinanceHoldingsHeatmap', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('+0,61%')).toBeInTheDocument();
     expect(screen.getByText('-0,77%')).toBeInTheDocument();
-  });
-});
-
-describe('FinanceRebalanceCard', () => {
-  it('asks for targets when none are set', () => {
-    render(<FinanceRebalanceCard holdings={valueHoldings([holding('a')], {})} onBought={vi.fn()} />);
-    expect(screen.getByText(/Ustaw cel wagi/)).toBeInTheDocument();
-  });
-
-  it('lists the underweight position and lets the user record the purchase', () => {
-    const rows = valueHoldings(
-      [holding('a', { targetWeightPct: 50 }), holding('b', { targetWeightPct: 50 })],
-      { A: { pricePln: 150, changePct: null, asOf: null }, B: { pricePln: 50, changePct: null, asOf: null } },
-    );
-    const onBought = vi.fn();
-    render(<FinanceRebalanceCard holdings={rows} onBought={onBought} />);
-
-    fireEvent.change(screen.getByLabelText('Kwota dopłaty'), { target: { value: '500' } });
-
-    expect(screen.getByText('B')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Źródło środków na zakup'), { target: { value: 'external' } });
-    fireEvent.click(screen.getByRole('button', { name: /Kupione/ }));
-    expect(onBought).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }), 10, 50, null);
   });
 });
 
