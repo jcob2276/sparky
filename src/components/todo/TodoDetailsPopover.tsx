@@ -1,3 +1,4 @@
+import { motion, useIsPresent, useReducedMotion } from 'framer-motion';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { createPortal } from 'react-dom';
@@ -55,6 +56,8 @@ function blurPanelField(panel: HTMLElement | null) {
 }
 
 export default function TodoDetailsPopover({ anchorRef, label, onClose, children }: Props) {
+  const isPresent = useIsPresent();
+  const reduceMotion = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; });
@@ -79,6 +82,7 @@ export default function TodoDetailsPopover({ anchorRef, label, onClose, children
   }, [anchorRef]);
 
   useEffect(() => {
+    if (!isPresent) return;
     const panel = ref.current;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
@@ -95,26 +99,31 @@ export default function TodoDetailsPopover({ anchorRef, label, onClose, children
       const active = document.activeElement;
       if (active === document.body || (panel && active && panel.contains(active))) returnFocusTo?.focus({ preventScroll: true });
     };
-  }, [anchorRef]);
+  }, [anchorRef, isPresent]);
 
   const sheet = placement.mode === 'sheet';
   return createPortal(
     <>
-      <Pressable type="button" tabIndex={-1} aria-label="Zamknij edycję zadania"
+      {isPresent && <Pressable type="button" tabIndex={-1} aria-label="Zamknij edycję zadania"
         className={`ios-glass-scrim todo-details-backdrop ${sheet ? '' : 'todo-details-backdrop-clear'}`}
         onClick={(event) => {
           event.stopPropagation();
           blurPanelField(ref.current);
           onClose();
         }}
-      />
-      <div ref={ref} role="dialog" aria-label={label} data-mode={placement.mode} data-side={placement.side}
+      />}
+      <motion.div ref={ref}
+        inert={!isPresent}
+        initial={reduceMotion ? false : { opacity: 0, y: sheet ? 10 : 0 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: sheet && !reduceMotion ? 8 : 0 }}
+        transition={{ duration: reduceMotion ? 0 : 0.16, ease: 'easeOut' }} role="dialog" aria-label={label} data-mode={placement.mode} data-side={placement.side}
         data-no-view-swipe
         onClick={(event) => event.stopPropagation()}
         style={sheet ? undefined : { left: placement.left, top: placement.top, width: Math.min(WIDTH, window.innerWidth - 2 * MARGIN), ['--arrow' as string]: `${placement.arrow}px` }}
         className="ios-glass ios-glass-pop todo-details-panel fixed">
         <div className="ios-glass-scroll">{children}</div>
-      </div>
+      </motion.div>
     </>,
     document.body,
   );

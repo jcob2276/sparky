@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { STORAGE_KEYS } from '../../../lib/constants';
 
 interface UseKeepPageEffectsProps {
+  userId: string;
+  setSidebarTab: (tab: 'notes') => void;
   search: string;
   activeTag: string | null;
   sidebarTab: 'notes' | 'archive' | 'trash';
@@ -15,10 +18,13 @@ interface UseKeepPageEffectsProps {
 }
 
 export function useKeepPageEffects({
-  search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
+  userId, setSidebarTab, search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
   setVisibleCount, setColumns, handleNewNote, handleCreate,
 }: UseKeepPageEffectsProps) {
-  const autoNewNote = new URLSearchParams(window.location.search).get('new') === '1'
+  const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const requestedNewNote = pathname === '/keep' && params.get('new') === '1';
+  const autoNewNote = requestedNewNote
     || localStorage.getItem(STORAGE_KEYS.KEEP_NEW_DRAFT) === '1';
 
   useEffect(() => {
@@ -53,15 +59,28 @@ export function useKeepPageEffects({
   // Auto-open new note when navigated with ?new=1 (Telegram shortcut)
   const autoNewNoteHandled = useRef(false);
   useEffect(() => {
-    if (autoNewNote && !autoNewNoteHandled.current) {
+    if (!autoNewNote) {
+      autoNewNoteHandled.current = false;
+      return;
+    }
+    if (userId && !autoNewNoteHandled.current) {
       autoNewNoteHandled.current = true;
-      window.history.replaceState({}, '', window.location.pathname);
+      if (requestedNewNote) {
+        setParams((current) => {
+          const next = new URLSearchParams(current);
+          next.delete('new');
+          return next;
+        }, { replace: true });
+      }
       try { localStorage.removeItem(STORAGE_KEYS.KEEP_NEW_DRAFT); } catch (err) { console.debug('[useKeepPageEffects] failed to remove new note draft', err); }
       void handleNewNote().then(id => {
-        if (id) setEditingId(id);
-      });
+        if (id) {
+          setSidebarTab('notes');
+          setEditingId(id);
+        }
+      }).catch(() => undefined);
     }
-  }, [autoNewNote, handleNewNote, setEditingId]);
+  }, [autoNewNote, requestedNewNote, userId, handleNewNote, setSidebarTab, setEditingId, setParams]);
 
   const linkedNoteHandled = useRef(false);
   useEffect(() => {

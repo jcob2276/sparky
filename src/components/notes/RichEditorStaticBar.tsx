@@ -1,3 +1,4 @@
+import { useIsPresent } from 'framer-motion';
 /**
  * @component RichEditorStaticBar
  * @role Stały pasek narzędzi edytora, wydzielony z RichEditor.tsx pod limit 300 linii.
@@ -47,6 +48,7 @@ const GROUPS: BarButton[][] = [
 ];
 
 export default function RichEditorStaticBar({ activeState, showStaticBar, onAction, docked }: Props) {
+  const isPresent = useIsPresent();
   const originRef = useRef<HTMLSpanElement>(null);
   const staticBarRef = useRef<HTMLDivElement>(null);
   const [viewportBounds, setViewportBounds] = useState({ bottom: 0, left: 0, right: 0 });
@@ -99,7 +101,7 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     return () => observer.disconnect();
   }, [showStaticBar, docked]);
 
-  if (!showStaticBar) return null;
+  if (!showStaticBar || !isPresent) return null;
 
   const bar = (
     <div

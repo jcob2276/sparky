@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { notesKeys } from '../../../lib/queryKeys';
 import { useCallback } from 'react';
 import { Note, createNoteApi, updateNoteApi, moveNoteToTrashApi, restoreNoteApi, sortNotes } from '../../../lib/notesApi';
 import { notify, dismissToast } from '../../../lib/notify';
@@ -170,14 +172,16 @@ async function newNoteAction(
   userId: string,
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>,
   setBusy: (busy: boolean) => void,
-  setError: (err: string | null) => void
+  setError: (err: string | null) => void,
+  cancelNotesFetch: () => Promise<void>
 ): Promise<string> {
   setBusy(true);
   setError(null);
   const empty = { title: '', content: NEW_NOTE_DRAFT_CONTENT, color: 'default', is_pinned: false, is_archived: false, tags: [] as string[] };
   try {
     const data = await createNoteApi(userId, empty);
-    setNotes((prev) => sortNotes([data, ...prev]));
+    await cancelNotesFetch();
+    setNotes((prev) => sortNotes([data, ...prev.filter(note => note.id !== data.id)]));
     return data.id;
   } catch (err) {
     setError('Nie utworzono notatki w chmurze. Sprawdź połączenie.');
@@ -200,6 +204,7 @@ export function useNotesMutations({
   setBusy,
   setError,
 }: UseNotesMutationsProps) {
+  const queryClient = useQueryClient();
   const handleCreate = useCallback(async (partial: Partial<Note>) => {
     await createNoteAction(userId, partial, setNotes, setBusy, setError);
   }, [userId, setNotes, setBusy, setError]);
@@ -213,8 +218,8 @@ export function useNotesMutations({
     await togglePinAction(note, setNotes, setError);
   }, [setNotes, setError]);
   const handleNewNote = useCallback(async () => {
-    return await newNoteAction(userId, setNotes, setBusy, setError);
-  }, [userId, setNotes, setBusy, setError]);
+    return await newNoteAction(userId, setNotes, setBusy, setError, () => queryClient.cancelQueries({ queryKey: notesKeys.list(userId), exact: true }));
+  }, [queryClient, userId, setNotes, setBusy, setError]);
 
   return { handleCreate, handleUpdate, handleDelete, handleTogglePin, handleNewNote };
 }

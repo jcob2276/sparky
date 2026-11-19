@@ -4,6 +4,7 @@
  * @composes NoteRow (lista), InlineEditor (panel edycji)
  * @usedBy Keep (gdy viewMode === 'split')
  */
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useResizableListWidth } from './hooks/useResizableListWidth';
 import SplitListResizer from './SplitListResizer';
@@ -79,10 +80,11 @@ export default function SplitNotesView({
     }
   }, !!activeNoteId && isMobile);
 
+  const reduceMotion = useReducedMotion();
   const activeNote = notes.find(n => n.id === activeNoteId) || null;
   const galleryMode = collectionView === 'gallery';
-  const showCollection = galleryMode ? !activeNoteId : (!isMobile || !activeNoteId);
-  const showEditor = galleryMode ? !!activeNoteId : (!isMobile || !!activeNoteId);
+  const showCollection = galleryMode ? !activeNote : (!isMobile || !activeNote);
+  const showEditor = galleryMode ? !!activeNote : (!isMobile || !!activeNote);
   const visibleSections: NoteSection[] = sections ?? [
     ...(pinned.length ? [{ key: 'pinned', label: 'Przypięte', notes: pinned }] : []),
     ...(others.length ? [{ key: 'all', label: 'Notatki', notes: others }] : []),
@@ -103,7 +105,7 @@ export default function SplitNotesView({
   };
 
   return (
-    <div className="keep-split-container">
+    <div className="keep-split-container relative">
       {/* List Pane - Visible on desktop, or on mobile when no note is selected */}
       {showCollection && (
         <section
@@ -152,8 +154,13 @@ export default function SplitNotesView({
       {showCollection && showEditor && !galleryMode && !isMobile && <SplitListResizer width={listWidth} bounds={bounds} onStart={startResize} onCommit={commitListWidth} />}
 
       {/* Editor Pane - Visible on desktop, or on mobile when a note IS selected */}
+      <AnimatePresence initial={false} mode="popLayout">
       {showEditor && (
-        <section className={`keep-split-editor-pane ${isMobile ? 'keep-editor-enter' : ''} ${galleryMode ? 'gallery-note' : ''}`} aria-label="Edytor notatki">
+        <motion.section key="note-editor"
+          initial={isMobile && !reduceMotion ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          exit={isMobile && !reduceMotion ? { opacity: 0, pointerEvents: 'none' } : undefined}
+          transition={{ duration: 0.16, ease: 'easeOut' }} className={`keep-split-editor-pane ${galleryMode ? 'gallery-note' : ''}`} aria-label="Edytor notatki">
           {activeNote ? (
             <InlineEditor
               note={activeNote}
@@ -182,8 +189,9 @@ export default function SplitNotesView({
               <p className="text-sm mt-1 max-w-xs">Kliknij dowolną notatkę po lewej stronie lub utwórz nową przyciskiem „+”.</p>
             </div>
           )}
-        </section>
+        </motion.section>
       )}
+      </AnimatePresence>
       {actionMenu && (
         <NoteActionMenuHost menu={actionMenu} onClose={() => setActionMenu(null)} onTogglePin={onTogglePin} onUpdate={onUpdate}
           onDelete={onDelete} onMove={note => { void requestMove(note); }} onLockNote={onLockNote} onShareNote={onShareNote} />

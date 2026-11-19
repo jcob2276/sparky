@@ -82,11 +82,12 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
     setViewMode,
   });
 
+  const hasOpenNote = notes.some(note => note.id === editingId);
   if (!userId) return null;
 
   return (
     <SidebarProvider defaultOpen={window.innerWidth >= 1100}>
-    <div className={`keep-root ${editingId ? 'keep-mobile-note-open' : ''}`}>
+    <div className={`keep-root ${hasOpenNote ? 'keep-mobile-note-open' : ''}`}>
       <KeepSidebar
           notes={notes}
           trashCount={trashedNotes.length}

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 /**
  * @component TodoCard
  * @role Prezentacyjna powłoka karty (collapsed row, attachments) — logikę dostarcza TodoCardConnected.
@@ -135,11 +136,13 @@ export default function TodoCard({
   const doneSubtaskCount = childTasks.filter((c) => c.status === 'done').length;
   const isDone = item.status === 'done' || pendingDone;
 
+  const reduceMotion = useReducedMotion();
   const { icon, label } = splitEmoji(item.title);
   const dateInfo = relativeDate(item.due_date, today);
 
   return (
-    <div
+    <motion.div layout={reduceMotion || isDragging ? false : 'position'}
+      transition={{ layout: { duration: 0.18, ease: 'easeOut' } }}
       ref={wrapRef}
       data-no-swipe-nav="true"
       className={`todo-swipe-wrap todo-card-enter group relative ${isDragging ? 'todo-is-dragging' : ''}`}
@@ -184,8 +187,9 @@ export default function TodoCard({
         />
       </div>
 
+      <AnimatePresence initial={false}>
       {expanded && (
-        <TodoDetailsPopover anchorRef={wrapRef} label={`Szczegóły: ${item.title}`} onClose={() => onToggleExpand(item.id)}>
+        <TodoDetailsPopover key="details" anchorRef={wrapRef} label={`Szczegóły: ${item.title}`} onClose={() => onToggleExpand(item.id)}>
           <div id={panelId} className="contents">
             <TodoCardExpandedPanel
               item={item}
@@ -216,6 +220,7 @@ export default function TodoCard({
           </div>
         </TodoDetailsPopover>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }

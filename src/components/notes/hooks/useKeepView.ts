@@ -105,6 +105,7 @@ export function useKeepView({
   const [visibleCount, setVisibleCount] = useState(30);
 
   useKeepPageEffects({
+    userId, setSidebarTab,
     search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
     setVisibleCount, setColumns, handleNewNote, handleCreate,
   });
