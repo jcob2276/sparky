@@ -52,10 +52,9 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
     return (
       <FinancePortfolioTab
         holdings={holdings}
-        totals={portfolio}
         mutations={holdingMutations}
         run={run}
-        fundingAccounts={data.accounts}
+        accounts={data.accounts}
         brokerCashPln={data.accounts.filter((a) => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)}
       />
     );
