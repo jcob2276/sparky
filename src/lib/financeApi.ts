@@ -88,7 +88,7 @@ export interface FinanceTransaction {
   kind: 'expense' | 'income';
   account_id?: string | null;
   created_at: string;
-  flow_kind?: 'income' | 'expense' | 'refund';
+  flow_kind?: 'income' | 'expense' | 'refund' | 'transfer';
   source?: 'bank';
   bank_transaction_id?: string | null;
   bank_reconciled?: boolean;
@@ -124,6 +124,7 @@ export interface FinanceBundle {
   subscriptions: FinanceSubscription[];
   bills: FinanceBill[];
   transactions: FinanceTransaction[];
+  savingsTransfers?: FinanceTransaction[];
   incomeSources: FinanceIncomeSource[];
   snapshots: FinanceSnapshot[];
   bankReconciliationPending?: number;

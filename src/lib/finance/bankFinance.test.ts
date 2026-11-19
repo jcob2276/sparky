@@ -38,3 +38,22 @@ describe('bank-finance availability', () => {
     expect(result.transactions.map(t => t.id)).toEqual(['manual']);
   });
 });
+
+it('shows both savings transfer directions for the confirmed IBAN outside income and expenses', () => {
+  const confirmed = 'PL62109010140000071219812874';
+  const result = mergeBankFinance(bundle, {
+    ...bank,
+    savingsIbanKeys: [`savings-iban:${confirmed}`],
+    transactions: [
+      ...bank.transactions,
+      { ...bank.transactions[0], id: 'deposit', category: 'przelewy_wlasne', amount: -500, counterparty_iban: confirmed },
+      { ...bank.transactions[0], id: 'withdrawal', category: 'przelewy_wlasne', amount: 300, counterparty_iban: confirmed },
+      { ...bank.transactions[0], id: 'other-bank', category: 'przelewy_wlasne', amount: 250, counterparty_iban: 'PL00000000000000000000000000' },
+    ],
+  }, '2026-11-07');
+  expect(result.transactions.map(tx => tx.id)).toEqual(['bank:refund', 'bank:t']);
+  expect(result.savingsTransfers?.map(({ note, amount, flow_kind }) => [note, amount, flow_kind])).toEqual([
+    ['Wpłata na oszczędności', -500, 'transfer'],
+    ['Wypłata z oszczędności', 300, 'transfer'],
+  ]);
+});

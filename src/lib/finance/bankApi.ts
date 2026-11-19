@@ -25,6 +25,7 @@ export interface BankData {
   accounts: BankAccount[];
   hiddenAccounts?: BankAccount[];
   transactions: BankTransaction[];
+  savingsIbanKeys?: string[];
   transactionCount: number;
 }
 export interface BankChoice { name: string; country: string }
@@ -45,12 +46,14 @@ export interface BankCategoryAssignment { transactionId: string; category: strin
 const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, counterparty_iban, remittance, category, category_source, status:raw->>status';
 
 async function fetchBankData(userId: string): Promise<BankData> {
-  const [connectionRes, accountsRes] = await Promise.all([
+  const [connectionRes, accountsRes, savingsRes] = await Promise.all([
     supabase.from('bank_connections').select('id, aspsp_name, status, valid_until, last_synced_at, last_error, last_note')
       .eq('user_id', userId).in('status', ['active', 'expired']).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('bank_accounts')
       .select('id, iban, name, currency, balance, balance_type, balance_synced_at, history_complete, history_cursor, transactions_synced_at, transactions_from, hidden')
       .eq('user_id', userId).order('created_at'),
+    supabase.from('bank_category_rules').select('counterparty_key').eq('user_id', userId)
+      .eq('category', 'przelewy_wlasne').like('counterparty_key', 'savings-iban:%'),
   ]);
   const allAccounts = unwrapList(accountsRes);
   const accounts = allAccounts.filter(a => !a.hidden);
@@ -71,7 +74,7 @@ async function fetchBankData(userId: string): Promise<BankData> {
     }
   }
   return { connection: unwrapMaybe(connectionRes) as BankConnection | null, accounts,
-    hiddenAccounts, transactions, transactionCount: transactions.length };
+    hiddenAccounts, transactions, savingsIbanKeys: unwrapList(savingsRes).map(row => row.counterparty_key), transactionCount: transactions.length };
 }
 
 export function useBankData(userId: string | undefined) {
