@@ -959,7 +959,37 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
     const hint=keys?"":`<p class="small muted pretty" style="margin:.75rem 0 0">Most i lustro są uruchomione, ale nie mają jeszcze kluczy Sparky’ego (plik <code>/opt/memos/bridge.env</code>), więc niczego nie przesyłają.</p>`;
     setHTML($("#sparky"),rows.map(r=>row(r[1][0],r[0],r[1][1])).join("")+hint);
   }
-  const go=()=>{if(page==="dash"){loadHealth();loadSparky()}};
+  const renewButton=$("#sparkyIosRenew"),profileStatus=$("#sparkyIosStatus");
+  const profileLabels={"app.vanguard.os":"Sparky","app.vanguard.os.widgets":"Widżety i Live Activity"};
+  const resultLabels={renewed:"odnowiono",current:"profil nadal ważny",offline:"iPhone niedostępny",timeout:"przekroczono czas oczekiwania",failed:"błąd odnowienia"};
+  const formatDate=new Intl.DateTimeFormat("pl-PL",{dateStyle:"short",timeStyle:"short",timeZone:"Europe/Warsaw"});
+  const profileDate=value=>{
+    const date=value?new Date(value):null;
+    return date&&!isNaN(date)?formatDate.format(date):"—";
+  };
+  let renewing=false;
+  async function loadIosStatus(){
+    try{
+      const snapshot=await api("/api/sparky-ios");
+      if(!snapshot.profiles)throw new Error("Missing profiles");
+      const details=Object.entries(profileLabels).map(([id,label])=>{
+        const profile=snapshot.profiles[id]||{};
+        return `<div class="row"><div><b>${esc(label)}</b><div class="small muted">Ostatnie odnowienie: ${esc(profileDate(profile.lastRenewed))} · Ważny do: ${esc(profileDate(profile.expires))}</div></div><span class="pill" data-k="${["renewed","current"].includes(profile.result)?"ok":"warn"}">${esc(resultLabels[profile.result]||"brak próby")}</span></div>`;
+      });
+      const last=Object.values(snapshot.profiles).map(p=>p.lastAttempt).filter(Boolean).sort().at(-1);
+      setHTML(profileStatus,details.join("")+`<p class="small muted">${snapshot.busy||renewing?"Odnawiam profile…":"Ostatnia próba: "+esc(profileDate(last))}</p>`);
+      renewButton.disabled=renewing||snapshot.busy;
+    }catch(e){
+      profileStatus.textContent="Nie udało się odczytać stanu podpisów.";
+      renewButton.disabled=renewing;
+    }
+  }
+  renewButton.onclick=async()=>{
+    renewing=true;renewButton.disabled=true;renewButton.textContent="Odnawiam…";
+    try{await doAction({type:"sparky-ios"})}
+    finally{renewing=false;renewButton.textContent="Odnów teraz";await loadIosStatus()}
+  };
+  const go=()=>{if(page==="dash"){loadHealth();loadSparky();loadIosStatus()}};
   document.addEventListener("click",e=>{if(e.target.closest('[data-page="dash"]'))setTimeout(go,50)});
   setInterval(go,60000);setTimeout(go,800);
 })();

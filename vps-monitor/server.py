@@ -475,8 +475,24 @@ def api_logs(kind, name):
 PROT_COMM = re.compile(r"^(sshd|tailscaled|systemd.*|dockerd|containerd.*|init|kthreadd)$")
 
 
+SPARKY_IOS_COMMAND = "/usr/sbin/runuser -u ubuntu -- /usr/bin/python3 /opt/vps-control-center/sparky_ios.py"
+
+
 def act(b):
     t, force = b.get("type"), bool(b.get("force"))
+    if t == "sparky-ios":
+        rc, out, _ = run_rc(SPARKY_IOS_COMMAND + " force", 75)
+        if rc == 75:
+            return {"ok": False, "msg": "Odnowienie już trwa."}
+        try:
+            results = {profile["result"] for profile in json.loads(out)["profiles"].values()}
+        except (KeyError, ValueError, TypeError):
+            results = set()
+        if rc == 0:
+            return {"ok": True, "msg": "Odnowiono Sparky i widżety na iPhonie."}
+        if results == {"offline"}:
+            return {"ok": False, "msg": "iPhone jest niedostępny. Sprawdź Wi-Fi i Tailscale na telefonie."}
+        return {"ok": False, "msg": "Nie udało się odnowić obu profili. Sprawdź wyniki na karcie Sparky iOS."}
     if t == "docker":
         a, name = b.get("action"), str(b.get("name", ""))
         if a not in ("start", "stop", "restart") or not re.fullmatch(r"[A-Za-z0-9_.-]+", name):
@@ -663,6 +679,11 @@ class H(BaseHTTPRequestHandler):
                 return self.js(api_health())
             if u.path == "/api/sparky":
                 return self.js(api_sparky())
+            if u.path == "/api/sparky-ios":
+                rc, out, _ = run_rc(SPARKY_IOS_COMMAND + " status", 8)
+                if rc != 0:
+                    raise ApiError("Nie udało się odczytać stanu podpisów Sparky.")
+                return self.js(json.loads(out))
             if u.path == "/api/backup":
                 return self.js(api_backup())
             if u.path == "/api/logs":
