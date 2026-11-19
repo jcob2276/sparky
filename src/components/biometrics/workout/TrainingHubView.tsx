@@ -41,6 +41,7 @@ function ActiveDraftBanner({
           onClick={onDiscard}
           className="py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-border-custom bg-surface text-text-muted hover:text-danger text-xs font-bold ui-interactive cursor-pointer"
           title="Odrzuć szkic"
+          aria-label="Odrzuć szkic"
         >
           <RotateCcw size={13} />
         </Pressable>
@@ -54,8 +55,7 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
     <section className="trening-panel space-y-3 rounded-[var(--tren-radius-card)] border-primary/25 p-4">
       {showStart && (
         <div className="space-y-1">
-          <p className="text-2xs font-semibold tracking-normal text-primary">Poczekalnia</p>
-          <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-text-primary">Gotowy na sesję?</h2>
+          <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-text-primary">Nowy trening</h2>
         </div>
       )}
       <div className="flex gap-2">
@@ -67,7 +67,7 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
         )}
         <Pressable
           onClick={onSauna}
-          aria-label="Zaloguj saunę"
+          aria-label="Zapisz sesję sauny"
           className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-border-custom bg-surface-1 text-sm font-bold text-text-primary ${showStart ? 'px-5' : 'flex-1'}`}
         >
           <Flame size={16} className="text-warning" />
@@ -120,9 +120,10 @@ export default function TrainingHubView({
         <div className="flex items-center gap-2 min-w-0">
           <Pressable
             onClick={onBack}
-            className="p-2 -ml-1 rounded-full bg-surface/80 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            aria-label="Wróć do Sparky"
+            className="grid h-11 w-11 shrink-0 place-items-center -ml-1 rounded-full bg-surface/80 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} aria-hidden="true" />
           </Pressable>
           <div className="min-w-0">
             <p className="text-2xs font-semibold tracking-normal text-primary">Trening</p>
@@ -134,7 +135,7 @@ export default function TrainingHubView({
         <Pressable
           type="button"
           onClick={() => setAppearanceOpen(true)}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface text-text-secondary hover:text-primary hover:border-primary/40 cursor-pointer"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface text-text-secondary hover:text-primary hover:border-primary/40 cursor-pointer"
           aria-label="Wygląd treningu"
           title="Wygląd"
         >

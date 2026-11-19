@@ -3,7 +3,6 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
-import { useHaptics } from '../../hooks/useHaptics';
 import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 
 interface FastCaptureItem {
@@ -47,8 +46,6 @@ function SectionTitle({ children }: { children: string }) {
 }
 
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
-  const { selection } = useHaptics();
-
   const logTiles = useMemo<Tile[]>(
     () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color })),
     [items],
@@ -58,7 +55,6 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
     [tools],
   );
   const run = (tile: Tile) => {
-    selection();
     tile.action();
     onClose();
   };
@@ -75,11 +71,12 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       side="bottom"
       title="Szybkie akcje"
       compact
+      handleDragOnly
     >
       <div className="space-y-6 pb-2">
         {logTiles.length > 0 && (
-          <section className="space-y-3" aria-label="Zaloguj">
-            <SectionTitle>Zaloguj</SectionTitle>
+          <section className="space-y-3" aria-label="Rejestruj">
+            <SectionTitle>Rejestruj</SectionTitle>
             <div className="grid grid-cols-2 gap-3">
               {logTiles.map((tile) => {
                 const Icon = tile.icon;
@@ -131,7 +128,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                         </span>
                       )}
                     </span>
-                    <span className="w-full truncate text-xs font-medium text-text-secondary">{tile.label}</span>
+                    <span className="w-full break-words text-xs font-medium text-text-secondary">{tile.label}</span>
                   </Pressable>
                 );
               })}

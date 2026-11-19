@@ -28,7 +28,7 @@ export function useChronicle(goal: ChronicleGoal, period: ChroniclePeriod, offse
   const to = win.end > win.prevEnd ? win.end : win.prevEnd;
 
   const query = useQuery({
-    queryKey: ['chronicle', goal, userId ?? '', period, win.start, win.prevStart, targets, closerTargets],
+    queryKey: ['chronicle', goal, userId ?? '', period, win.start, win.end, win.prevStart, win.prevEnd, targets, closerTargets],
     queryFn: async (): Promise<ChronicleSummaryData> => {
       if (goal === 'cialo') return buildCialoSummary(await fetchCialoRows(userId!, from, to), win, targets);
       if (goal === 'duch') return buildDuchSummary(await fetchDuchRows(userId!, from, to), win);

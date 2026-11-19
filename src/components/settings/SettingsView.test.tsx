@@ -26,7 +26,7 @@ vi.mock('../../hooks/useSyncActions', () => ({ useSyncActions: () => ({
 
 it('preserves synchronization failure feedback without appending a success message', async () => {
   render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><SettingsView /></MemoryRouter></QueryClientProvider>);
-  fireEvent.click(screen.getByRole('button', { name: 'Sync teraz' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Synchronizuj teraz' }));
   await waitFor(() => expect(notify).toHaveBeenCalledWith('Google Calendar rozłączony', 'error'));
   expect(vi.mocked(notify).mock.calls.some(([, kind]) => kind === 'success')).toBe(false);
 });

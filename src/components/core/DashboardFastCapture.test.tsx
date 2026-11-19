@@ -35,7 +35,7 @@ describe('DashboardFastCaptureMenu', () => {
         badges={{ todo: 3 }}
       />,
     );
-    expect(screen.getByRole('region', { name: 'Zaloguj' })).toHaveTextContent('Trening');
+    expect(screen.getByRole('region', { name: 'Rejestruj' })).toHaveTextContent('Trening');
     expect(screen.getByRole('region', { name: 'Przejdź do' })).toHaveTextContent('Zadania');
     expect(screen.getByRole('button', { name: 'Zadania, 3 pilnych' })).toHaveTextContent('3');
   });

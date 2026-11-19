@@ -52,6 +52,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
                 <Pressable
                   variant="ghost"
                   onClick={() => onTabChange(id)}
+                  aria-pressed={isActive}
                   className={`w-full flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-xs font-bold ui-interactive text-left ${
                     isActive
                       ? 'bg-primary/10 text-primary font-semibold border border-primary/20 shadow-xs'

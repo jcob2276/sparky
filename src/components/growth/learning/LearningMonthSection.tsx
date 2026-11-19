@@ -49,12 +49,12 @@ export default function LearningMonthSection({
             Ten miesiąc ({monthName})
           </h2>
           <p className="text-xs text-text-muted">
-            Maksymalnie {MAX_ACTIVE_PER_MONTH} pozycje. Codziennie jeden slot i jedno kliknięcie.
+            {activeCount} z {MAX_ACTIVE_PER_MONTH} miejsc zajętych
           </p>
         </div>
-        <Button onClick={onAdd} disabled={full} size="sm" icon={<Plus size={14} />} title={full ? 'Limit pozycji na miesiąc' : undefined}>
+        {(loading || assignments.length > 0) && <Button onClick={onAdd} disabled={full || loading} size="sm" icon={<Plus size={14} />} title={full ? 'Limit pozycji na miesiąc' : undefined}>
           Dodaj
-        </Button>
+        </Button>}
       </div>
 
       {error && <DataStateNotice tone="warning" title="Nie udało się wczytać planu nauki" detail={error.message} />}
@@ -65,7 +65,7 @@ export default function LearningMonthSection({
         <div className="rounded-lg border border-dashed border-border-custom/60 p-6 text-center space-y-3">
           <p className="text-sm font-bold text-text-primary">Nic nie jest zaplanowane na ten miesiąc.</p>
           <p className="text-xs text-text-muted">
-            Wybierz książkę, kurs albo materiał z Pocketa. Aplikacja sama policzy, ile dziennie.
+            Wybierz książkę, kurs lub link z Pocketa.
           </p>
           <Button onClick={onAdd} size="sm" icon={<Plus size={14} />}>Wybierz materiał</Button>
         </div>

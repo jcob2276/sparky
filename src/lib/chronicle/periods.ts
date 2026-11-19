@@ -145,12 +145,19 @@ export function buildComparisonWindow(
   const win = buildPeriodWindow(period, anchor, sprint);
   const other = buildPeriodWindow(period, compareAnchor, sprint);
   const isCurrent = today >= win.start && today <= win.end;
+  const otherIsCurrent = today >= other.start && today <= other.end;
+  const activeWeekStart = period === 'week' && (isCurrent || otherIsCurrent) ? getWeekStartWarsaw(today) : null;
+  const elapsedDays = activeWeekStart ? daysBetween(activeWeekStart, today) : null;
+  const end = elapsedDays === null ? win.end : shiftDateStr(win.start, elapsedDays);
+  const prevEnd = elapsedDays === null ? other.end : shiftDateStr(other.start, elapsedDays);
   return {
     ...win,
+    end,
+    buckets: win.buckets.filter((bucket) => bucket.start <= end),
     prevStart: other.start,
-    prevEnd: other.end,
-    title: isCurrent ? win.title : periodLabel(win),
-    compareLabel: periodLabel(other),
+    prevEnd,
+    title: isCurrent ? win.title : periodLabel({ ...win, end }),
+    compareLabel: periodLabel({ ...other, end: prevEnd }),
   };
 }
 

@@ -1,9 +1,11 @@
 import { useBackHandler } from '../../lib/native/backStack';
 import { Pressable } from '../ui/ControlPrimitives';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { VisionCalibration } from './VisionCalibration';
+import { useVisionCamera } from './hooks/useVisionCamera';
 import { useFaceDistance } from './hooks/useFaceDistance';
 import { insertEndmyopiaMeasurement } from '../../lib/endmyopiaApi';
-import { ArrowLeft, Ruler } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import VisionJournal from './VisionJournal';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -22,12 +24,10 @@ export default function EndMyopiaCalculator() {
   const navigate = useNavigate();
   const haptics = useHaptics();
   const userId = useUserId();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const pipVideoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability, faceDetected } = useFaceDistance(videoRef);
-
   const [phase, setPhase] = useState<Phase>('calibrate');
+  const camera = useVisionCamera(phase);
+  const { videoRef, pipVideoRef } = camera;
+  const { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability, faceDetected } = useFaceDistance(videoRef);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [calibFailed, setCalibFailed] = useState(false);
   const calibTimerRef = useRef<number | null>(null);
@@ -54,10 +54,10 @@ export default function EndMyopiaCalculator() {
 
   // Skip calibrate phase if already calibrated
   useEffect(() => {
-    if (calibrationFactor && phase === 'calibrate') {
+    if (calibrationFactor && phase === 'calibrate' && camera.state === 'ready') {
       void (async () => { startMeasure('left'); })();
     }
-  }, [calibrationFactor, phase, startMeasure]);
+  }, [calibrationFactor, phase, startMeasure, camera.state]);
 
   // Bez kalibracji pomiar nie ma sensu: wracamy do ekranu kalibracji zamiast zostawiać pusty widok pomiaru.
   useEffect(() => {
@@ -99,31 +99,6 @@ export default function EndMyopiaCalculator() {
     setAutoCapture(!autoCapture);
     localStorage.setItem(STORAGE_KEYS.ENDMYOPIA_AUTO_CAPTURE, String(!autoCapture));
   };
-
-  // Camera setup
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    async function setupCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-        if (pipVideoRef.current) pipVideoRef.current.srcObject = stream;
-      } catch (err: unknown) {
-      console.warn('[EndMyopiaCalculator] Failed to setup camera stream:', err);
-    }
-    }
-    setupCamera();
-    return () => { stream?.getTracks().forEach(t => t.stop()); };
-  }, []);
-
-  // PIP <video> unmounts/remounts every time we leave/re-enter the measure phase
-  // (it's only rendered inside that phase) — reattach the live stream each time.
-  useEffect(() => {
-    if ((phase === 'measure' || phase === 'calibrate') && pipVideoRef.current && streamRef.current) {
-      pipVideoRef.current.srcObject = streamRef.current;
-    }
-  }, [phase]);
 
   // Odliczanie 3-2-1 daje czas, żeby wyciągnąć rękę na 40 cm; kalibracja łapie klatkę dopiero na końcu.
   const handleCalibrate = () => {
@@ -244,7 +219,7 @@ export default function EndMyopiaCalculator() {
               <ArrowLeft size={18} />
             </Pressable>
             <div>
-              <h1 className="text-base font-semibold tracking-tight leading-none">Sparky Optics</h1>
+              <h1 className="text-base font-semibold tracking-tight leading-none">Wzrok</h1>
               <p className="text-xs text-text-muted mt-0.5">
                 {phase === 'calibrate' ? 'Kalibracja wymagana' : 'Wybierz oko do pomiaru'}
               </p>
@@ -255,41 +230,8 @@ export default function EndMyopiaCalculator() {
 
             {/* Calibration */}
             {phase === 'calibrate' && (
-              <div className="w-full max-w-sm bg-surface border border-border-custom rounded-3xl p-7 text-center shadow-xl">
-                <div className="w-14 h-14 rounded-lg bg-warning/10 flex items-center justify-center mx-auto mb-5">
-                  <Ruler className="text-warning" size={24} />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Kalibracja jednorazowa</h2>
-                <p className="text-sm text-text-muted mb-6 leading-relaxed">
-                  Wyciągnij rękę, trzymaj telefon dokładnie <span className="text-text-primary font-bold">40 cm</span> od twarzy. Twarz prosto w kamerę.
-                  Po kliknięciu masz 3 sekundy na ustawienie się.
-                </p>
-                <video ref={pipVideoRef} autoPlay playsInline muted className="mx-auto mb-5 aspect-[3/4] w-40 -scale-x-100 rounded-2xl bg-scrim/10 object-cover" />
-                {calibFailed && (
-                  <p role="alert" className="mb-5 rounded-lg border border-danger/20 bg-danger/10 px-3 py-2.5 text-xs text-danger">
-                    Nie widzę twarzy. Ustaw się przed kamerą i spróbuj jeszcze raz.
-                  </p>
-                )}
-                {isReady && !faceDetected && (
-                  <div className="flex items-center gap-2 text-xs text-warning/80 mb-5 bg-warning/10 border border-warning/20 rounded-lg px-3 py-2.5">
-                    <div className="w-2 h-2 rounded-full bg-warning animate-pulse shrink-0" />
-                    Skieruj twarz na kamerę
-                  </div>
-                )}
-                {isReady && faceDetected && (
-                  <div className="flex items-center gap-2 text-xs text-success mb-5 bg-success/10 border border-success/20 rounded-lg px-3 py-2.5">
-                    <div className="w-2 h-2 rounded-full bg-success shrink-0" />
-                    Twarz wykryta — gotowy do kalibracji
-                  </div>
-                )}
-                <Pressable
-                  onClick={handleCalibrate}
-                  disabled={!isReady || !faceDetected || countdown !== null}
-                  className="w-full bg-primary text-background font-bold py-4 rounded-lg disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
-                >
-                  {!isReady ? 'Ładowanie AI...' : countdown !== null ? `Trzymaj 40 cm… ${countdown}` : 'Skalibruj na 40 cm'}
-                </Pressable>
-              </div>
+              <VisionCalibration previewRef={pipVideoRef} cameraState={camera.state} retryCamera={camera.retry}
+                onCalibrate={handleCalibrate} calibFailed={calibFailed} isReady={isReady} faceDetected={faceDetected} countdown={countdown} />
             )}
 
             {/* Eye selection */}

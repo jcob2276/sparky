@@ -50,7 +50,7 @@ export default function ChronicleControls({ goal, onGoal, period, onPeriod, onEx
           Eksport
         </Button>
       </div>
-      <div className="flex items-center gap-1.5" role="group" aria-label="Okres">
+      <div className="flex items-center gap-1.5" role="group" aria-label="Długość okresu">
         {PERIODS.map((id) => {
           const active = id === period;
           return (

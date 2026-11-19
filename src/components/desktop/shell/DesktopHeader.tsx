@@ -49,8 +49,8 @@ export default function DesktopHeader({
         </div>
         <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2 sm:p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
         <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2 sm:p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />
-        <Button onClick={() => navigate('/')} variant="outline" size="sm" icon={<Smartphone size={12} />} className="px-2.5 py-1 text-xs">
-          <span className="hidden sm:inline">Mobile</span>
+        <Button onClick={() => navigate('/dzis')} variant="outline" size="sm" icon={<Smartphone size={14} aria-hidden="true" />} aria-label="Wróć do widoku Dziś" title="Wróć do widoku Dziś" className="min-h-11 min-w-11 px-2.5 text-xs">
+          <span className="hidden sm:inline">Dziś</span>
         </Button>
       </div>
     </header>

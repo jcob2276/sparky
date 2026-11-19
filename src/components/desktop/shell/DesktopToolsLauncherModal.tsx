@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { LayoutGrid, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { WORKSPACE_TOOLS, type WorkspaceToolDef } from '../../shared/UnifiedToolsCatalog';
@@ -9,6 +9,11 @@ interface Props {
   onClose: () => void;
 }
 
+const TOOL_GROUPS = [
+  { category: 'operacje', label: 'Na co dzień' },
+  { category: 'strategia_zdrowie', label: 'Rozwój, zdrowie i historia' },
+] as const;
+
 export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
   const navigate = useNavigate();
 
@@ -17,94 +22,36 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
     onClose();
   };
 
-  const operacje = WORKSPACE_TOOLS.filter((t) => t.category === 'operacje');
-  const strategia = WORKSPACE_TOOLS.filter((t) => t.category === 'strategia_zdrowie');
-
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className="flex items-center gap-2">
-          <LayoutGrid size={18} className="text-primary" />
-          <span>Katalog Narzędzi Sparky OS</span>
-        </div>
-      }
-      subtitle="Zintegrowany dostęp do wszystkich modułów i aplikacji systemu."
-      size="lg"
-    >
-      <div className="space-y-6 pt-2 pb-1">
-        {/* Codzienny obieg */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xs font-semibold tracking-wide text-text-muted">
-              Codzienne Narzędzia Operacyjne
-            </span>
-            <div className="h-px flex-1 bg-border-custom/50" />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {operacje.map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <Pressable
-                  key={tool.id}
-                  variant="ghost"
-                  onClick={() => handleSelect(tool)}
-                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] ui-interactive text-left group"
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">
-                      <Icon size={18} />
-                    </div>
-                    <ChevronRight size={14} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
-                    {tool.label}
-                  </span>
-                  <span className="text-2xs text-text-secondary line-clamp-1 mt-0.5">
-                    {tool.description}
-                  </span>
-                </Pressable>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Strategia, Zdrowie i Pamięć */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xs font-semibold tracking-wide text-text-muted">
-              Strategia, Zdrowie & Pamięć Długoterminowa
-            </span>
-            <div className="h-px flex-1 bg-border-custom/50" />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {strategia.map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <Pressable
-                  key={tool.id}
-                  variant="ghost"
-                  onClick={() => handleSelect(tool)}
-                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] ui-interactive text-left group relative"
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">
-                      <Icon size={18} />
-                    </div>
-                    <ChevronRight size={14} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
-                    {tool.label}
-                  </span>
-                  <span className="text-2xs text-text-secondary line-clamp-1 mt-0.5">
-                    {tool.description}
-                  </span>
-                </Pressable>
-              );
-            })}
-          </div>
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose} title="Katalog narzędzi Sparky" size="lg">
+      <div className="space-y-5 pt-2 pb-1">
+        {TOOL_GROUPS.map(({ category, label }) => (
+          <section key={category} aria-labelledby={`desktop-tools-${category}`}>
+            <h4 id={`desktop-tools-${category}`} className="mb-2 text-xs font-semibold text-text-muted">
+              {label}
+            </h4>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {WORKSPACE_TOOLS.filter((tool) => tool.category === category).map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <Pressable
+                    key={tool.id}
+                    variant="ghost"
+                    onClick={() => handleSelect(tool)}
+                    className="group flex min-h-11 items-center gap-3 rounded-xl border border-border-custom/60 bg-surface-solid/5 px-3 py-2 text-left hover:border-primary/40 hover:bg-surface-solid/15 ui-interactive"
+                  >
+                    <Icon size={18} aria-hidden="true" className="shrink-0 text-primary" />
+                    <span className="min-w-0 flex flex-1 flex-col">
+                      <span className="text-sm font-semibold text-text-primary">{tool.label}</span>
+                      <span className="text-xs text-text-secondary">{tool.description}</span>
+                    </span>
+                    <ChevronRight size={14} aria-hidden="true" className="shrink-0 text-text-muted" />
+                  </Pressable>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </Modal>
   );

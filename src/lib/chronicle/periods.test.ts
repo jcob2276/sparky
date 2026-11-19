@@ -62,9 +62,20 @@ describe('periodLabel', () => {
 describe('buildComparisonWindow', () => {
   it('zestawia wybrany tydzień z dowolnym innym, a nie tylko z poprzednim', () => {
     const w = buildComparisonWindow('week', '2026-10-21', '2026-09-23', '2026-10-24', sprint);
-    expect([w.start, w.end, w.prevStart, w.prevEnd]).toEqual(['2026-10-19', '2026-10-25', '2026-09-21', '2026-09-27']);
+    expect([w.start, w.end, w.prevStart, w.prevEnd]).toEqual(['2026-10-19', '2026-10-24', '2026-09-21', '2026-09-26']);
     expect(w.title).toBe('Ten tydzień');
-    expect(w.compareLabel).toBe('21–27 wrz');
+    expect(w.compareLabel).toBe('21–26 wrz');
+  });
+
+  it('przycina oba tygodnie także wtedy, gdy bieżący jest okresem porównania', () => {
+    const w = buildComparisonWindow('week', '2026-11-10', '2026-11-19', '2026-11-19', sprint);
+    expect([w.start, w.end, w.prevStart, w.prevEnd]).toEqual(['2026-11-09', '2026-11-12', '2026-11-16', '2026-11-19']);
+    expect(w.buckets.map(bucket => bucket.label)).toEqual(['pn', 'wt', 'śr', 'cz']);
+  });
+
+  it('zostawia pełne tygodnie przy porównaniu dwóch zakończonych okresów', () => {
+    const w = buildComparisonWindow('week', '2026-11-10', '2026-11-03', '2026-11-19', sprint);
+    expect([w.end, w.prevEnd]).toEqual(['2026-11-15', '2026-11-08']);
   });
 
   it('nazywa okno etykietą, gdy nie zawiera dzisiejszej daty', () => {
