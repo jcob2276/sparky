@@ -32,7 +32,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   return (
     <div className="finance-reference-start">
       <section className="finance-reference-card finance-reference-worth" aria-label="Wartość netto">
-        <header><h2 className="finance-reference-label">Wartość netto</h2><Pressable className="finance-reference-link" type="button" onClick={onPortfolio}>Zarządzaj majątkiem ↗</Pressable></header>
+        <header><h2 className="finance-reference-label">Aktualna wartość netto</h2><Pressable className="finance-reference-link" type="button" onClick={onPortfolio}>Zarządzaj majątkiem ↗</Pressable></header>
         <p className="finance-reference-number">{metrics ? formatPln(metrics.netWorth - (includeSavings ? 0 : savings), 2) : '—'}</p>
         {metrics && (
           <>

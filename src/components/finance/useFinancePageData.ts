@@ -49,13 +49,15 @@ export function useFinancePageData(userId: string | undefined) {
   const quotesSettled = !holdingsQuery.isLoading && !quotesQuery.isLoading;
   const valuationNotice = quotesSettled && portfolio.unvaluedCount ? 'Brakuje wyceny części portfela. Otwórz Portfel; majątek czeka na kompletne dane.' : null;
   const notice = bankProjection?.notice || valuationNotice;
-  const bankLoading = (bankProjection?.loading ?? false) || !quotesSettled;
+  const historyLoading = bankProjection?.loading ?? false;
+  const bankLoading = historyLoading || !quotesSettled;
   const bankError = bankProjection?.error ?? null;
   const metrics = useFinanceMetrics(bankLoading || bankError || notice ? undefined : enrichedData, portfolio.valuePln);
 
   return {
     bundleQuery,
     bankLoading,
+    historyLoading,
     quotesSettled,
     bankError,
     notice,
