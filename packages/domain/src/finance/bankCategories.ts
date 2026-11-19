@@ -31,6 +31,9 @@ export const BANK_CATEGORY_LABELS = {
   do_sprawdzenia: 'Do sprawdzenia',
 } as const;
 
+export const RETURNED_PURCHASE_LABEL = 'Zakup zwrócony w całości';
+export const RETURNED_PURCHASE_CATEGORY = `custom:${RETURNED_PURCHASE_LABEL}` as const;
+
 export type BankCategory = keyof typeof BANK_CATEGORY_LABELS | `custom:${string}`;
 
 export function customBankCategoryLabel(value: unknown): string | null {

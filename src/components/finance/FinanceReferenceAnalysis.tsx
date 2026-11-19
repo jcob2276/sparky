@@ -1,4 +1,5 @@
 import { Pressable } from '../ui/ControlPrimitives';
+import { RETURNED_PURCHASE_LABEL } from '@vanguard/domain';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
@@ -50,8 +51,9 @@ export default function FinanceReferenceAnalysis({ transactions }: { transaction
   const elapsed = (Date.parse(today) - Date.parse(start)) / 86_400_000;
   const previousLimit = partial ? [previousEnd, shiftDateStr(previousStart, elapsed)].sort()[0] : previousEnd;
   const currentRange = { from: start, to: partial ? today : end };
-  const current = financeRecordsInRange(transactions, currentRange);
-  const earlier = financeRecordsInRange(transactions, { from: previousStart, to: previousLimit });
+  const included = transactions.filter((tx) => tx.source !== 'bank' || tx.category !== RETURNED_PURCHASE_LABEL);
+  const current = financeRecordsInRange(included, currentRange);
+  const earlier = financeRecordsInRange(included, { from: previousStart, to: previousLimit });
   const value = financePeriodTotals(current);
   const previous = financePeriodTotals(earlier);
   const saving = (period: typeof value) => period.income > 0 ? `${(100 * period.balance / period.income).toLocaleString('pl-PL', { maximumFractionDigits: 1 })}%` : '—';
@@ -93,7 +95,7 @@ export default function FinanceReferenceAnalysis({ transactions }: { transaction
       <FinanceRanking title="Najwięksi odbiorcy wydatków" rows={rank(expenses)} />
       <FinanceRanking title="Największe źródła wpływów" rows={rank(partyTotals(current, 'income'))} />
       {earlier.length > 0 && <FinanceRanking title="Co się zmieniło w wydatkach" rows={changes} />}
-      <FinanceMonthlyFlowsChart transactions={transactions} />
+      <FinanceMonthlyFlowsChart transactions={included} />
     </div>
   );
 }
