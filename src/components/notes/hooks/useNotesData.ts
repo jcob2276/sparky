@@ -67,7 +67,7 @@ export function useNotesData(userId: string) {
 
   const setNotes = useCallback<React.Dispatch<React.SetStateAction<Note[]>>>((updater) => {
     queryClient.setQueryData<Note[]>(notesKeys.list(userId), (old) => {
-      const base = old ?? [];
+      const base = old ?? readLocalFallback(userId);
       return typeof updater === 'function' ? (updater as (prev: Note[]) => Note[])(base) : updater;
     });
   }, [queryClient, userId]);

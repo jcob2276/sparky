@@ -170,18 +170,16 @@ async function togglePinAction(
 
 async function newNoteAction(
   userId: string,
-  setNotes: React.Dispatch<React.SetStateAction<Note[]>>,
   setBusy: (busy: boolean) => void,
   setError: (err: string | null) => void,
-  cancelNotesFetch: () => Promise<void>
+  reconcileNotes: (note: Note) => Promise<void>
 ): Promise<string> {
   setBusy(true);
   setError(null);
   const empty = { title: '', content: NEW_NOTE_DRAFT_CONTENT, color: 'default', is_pinned: false, is_archived: false, tags: [] as string[] };
   try {
     const data = await createNoteApi(userId, empty);
-    await cancelNotesFetch();
-    setNotes((prev) => sortNotes([data, ...prev.filter(note => note.id !== data.id)]));
+    await reconcileNotes(data);
     return data.id;
   } catch (err) {
     setError('Nie utworzono notatki w chmurze. Sprawdź połączenie.');
@@ -218,7 +216,12 @@ export function useNotesMutations({
     await togglePinAction(note, setNotes, setError);
   }, [setNotes, setError]);
   const handleNewNote = useCallback(async () => {
-    return await newNoteAction(userId, setNotes, setBusy, setError, () => queryClient.cancelQueries({ queryKey: notesKeys.list(userId), exact: true }));
+    const query = { queryKey: notesKeys.list(userId), exact: true };
+    return await newNoteAction(userId, setBusy, setError, async (note) => {
+      await queryClient.cancelQueries(query);
+      setNotes((prev) => sortNotes([note, ...prev.filter(item => item.id !== note.id)]));
+      void queryClient.invalidateQueries(query);
+    });
   }, [queryClient, userId, setNotes, setBusy, setError]);
 
   return { handleCreate, handleUpdate, handleDelete, handleTogglePin, handleNewNote };
