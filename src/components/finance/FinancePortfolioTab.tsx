@@ -15,6 +15,7 @@ import { FinanceEmpty } from './financeUi';
 import { FinanceHoldingForm } from './FinanceHoldingForm';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceAllocationCard } from './FinanceAllocationCard';
+import { FinancePortfolioChart } from './FinancePortfolioChart';
 import { FinanceRecordedPortfolio } from './FinanceRecordedPortfolio';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 import { formatWarsawDate } from '../../lib/date';
@@ -114,7 +115,7 @@ function HoldingRow({ item, onOpen }: { item: ValuedHolding; onOpen: () => void 
 
 export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCashPln = 0, fundingAccounts = [] }: FinancePortfolioTabProps) {
   const [editing, setEditing] = useState<HoldingInput | 'new' | null>(null);
-  const [view, setView] = useState<'list' | 'map'>('list');
+  const [view, setView] = useState<'list' | 'map'>('map');
   const close = () => setEditing(null);
 
   const save = async (input: HoldingFormInput) => {
@@ -147,7 +148,7 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
           <Button variant="ghost" icon={<Plus size={16} />} onClick={() => setEditing('new')}>Dodaj pozycję</Button>
         </header>
         <div className="mb-3">
-          <Tabs tabs={[{ key: 'list', label: 'Lista' }, { key: 'map', label: 'Mapa' }]} active={view} onChange={(key) => setView(key as 'list' | 'map')} className="w-full" />
+          <Tabs tabs={[{ key: 'map', label: 'Mapa' }, { key: 'list', label: 'Lista' }]} active={view} onChange={(key) => setView(key as 'list' | 'map')} className="w-full" />
         </div>
         {view === 'map' ? <FinanceHoldingsHeatmap holdings={holdings} loading={false} bare /> : (
           <div className="ios-group">
@@ -171,7 +172,8 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
       <div className="space-y-2" aria-label="Szczegóły portfela">
         <PortfolioDetails label="Historia portfela">
           <FinanceRecordedPortfolio holdings={holdings} />
-          <FinanceHoldingHistory />
+          <PortfolioDetails label="Operacje portfela"><FinanceHoldingHistory /></PortfolioDetails>
+          <PortfolioDetails label="Symulacja obecnego składu"><FinancePortfolioChart holdings={holdings} /></PortfolioDetails>
         </PortfolioDetails>
         <PortfolioDetails label="Struktura majątku">
           <FinanceAllocationCard accounts={fundingAccounts ?? []} holdings={holdings} />
