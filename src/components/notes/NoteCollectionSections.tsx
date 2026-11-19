@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'framer-motion';
 import { Pin } from 'lucide-react';
 import type { Note } from '../../lib/notesApi';
 import MasonryGrid from './MasonryGrid';
@@ -36,6 +37,7 @@ export default function NoteCollectionSections({
   onToggleSelectId,
   search = '',
 }: NoteCollectionSectionsProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <div className={collectionView === 'gallery' ? 'keep-note-sections gallery' : 'keep-note-sections'}>
       {sections.map(section => (
@@ -55,7 +57,8 @@ export default function NoteCollectionSections({
           ) : (
             <div className="keep-note-section-surface">
               {section.notes.map((note, index) => (
-                <div key={note.id}>
+                <motion.div key={note.id} layout={reduceMotion ? false : 'position'}
+                  transition={{ layout: { duration: 0.18, ease: 'easeOut' } }}>
                   <SwipeableNoteRow
                     isPinned={note.is_pinned}
                     onTogglePin={() => onTogglePin?.(note)}
@@ -74,7 +77,7 @@ export default function NoteCollectionSections({
                     />
                   </SwipeableNoteRow>
                   {index < section.notes.length - 1 && <div className="keep-note-section-divider" />}
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

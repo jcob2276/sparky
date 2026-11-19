@@ -3,6 +3,8 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { STORAGE_KEYS } from '../../../lib/constants';
 
 interface UseKeepPageEffectsProps {
+  userId: string;
+  setSidebarTab: (tab: 'notes') => void;
   search: string;
   activeTag: string | null;
   sidebarTab: 'notes' | 'archive' | 'trash';
@@ -16,7 +18,7 @@ interface UseKeepPageEffectsProps {
 }
 
 export function useKeepPageEffects({
-  search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
+  userId, setSidebarTab, search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
   setVisibleCount, setColumns, handleNewNote, handleCreate,
 }: UseKeepPageEffectsProps) {
   const [params, setParams] = useSearchParams();
@@ -61,7 +63,7 @@ export function useKeepPageEffects({
       autoNewNoteHandled.current = false;
       return;
     }
-    if (!autoNewNoteHandled.current) {
+    if (userId && !autoNewNoteHandled.current) {
       autoNewNoteHandled.current = true;
       if (requestedNewNote) {
         setParams((current) => {
@@ -72,10 +74,13 @@ export function useKeepPageEffects({
       }
       try { localStorage.removeItem(STORAGE_KEYS.KEEP_NEW_DRAFT); } catch (err) { console.debug('[useKeepPageEffects] failed to remove new note draft', err); }
       void handleNewNote().then(id => {
-        if (id) setEditingId(id);
-      });
+        if (id) {
+          setSidebarTab('notes');
+          setEditingId(id);
+        }
+      }).catch(() => undefined);
     }
-  }, [autoNewNote, requestedNewNote, handleNewNote, setEditingId, setParams]);
+  }, [autoNewNote, requestedNewNote, userId, handleNewNote, setSidebarTab, setEditingId, setParams]);
 
   const linkedNoteHandled = useRef(false);
   useEffect(() => {
