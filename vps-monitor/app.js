@@ -83,6 +83,7 @@ const PAGES={
   backup:["Kopie zapasowe","Zaszyfrowane kopie ważnych danych na Dysku Google, co noc"],
   soft:["Oprogramowanie","Wszystko, co jest zainstalowane na serwerze"],
   audit:["Dziennik akcji","Co zostało zmienione z tego panelu"],
+  ios:["Sparky iOS","Odnawianie podpisów aplikacji na iPhonie"],
 };
 let page="dash";
 /* Historia przeglądarki: każdy krok (strona, folder, kosz, mapa dysku, podgląd pliku) to wpis w historii,
@@ -105,7 +106,7 @@ function navPush(replace){
   try{(replace?history.replaceState:history.pushState).call(history,s,"",h)}catch(e){}
 }
 /* Menu ma cztery grupy; w grupie z kilkoma stronami nad treścią pokazują się zakładki */
-const GROUPS=[{id:"dash",pages:["dash"]},{id:"files",pages:["files","backup"]},{id:"server",pages:["containers","services","procs","soft"]},{id:"net",pages:["net","audit"]}];
+const GROUPS=[{id:"dash",pages:["dash"]},{id:"files",pages:["files","backup"]},{id:"server",pages:["containers","services","procs","soft","ios"]},{id:"net",pages:["net","audit"]}];
 const groupOf=p=>GROUPS.find(g=>g.pages.includes(p))||GROUPS[0],lastIn={};
 function renderSubtabs(){
   const g=groupOf(page),cnt={containers:"#nbContainers",services:"#nbServices"};
@@ -865,6 +866,8 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
     if(f.length)out.push({k:"bad",t:`Usługi z błędem: ${f.slice(0,3).map(s=>s.name||s.unit).join(", ")}${f.length>3?"…":""}`,go:"services"});
     const dn=(S.docker?.containers||[]).filter(c=>c.state!=="running");
     if(dn.length)out.push({k:"warn",t:`Kontenery nie działają: ${dn.slice(0,3).map(c=>c.name).join(", ")}${dn.length>3?"…":""}`,go:"containers"});
+    const exp=Object.values((S.ios&&S.ios.profiles)||{}).map(p=>p.expires&&new Date(p.expires).getTime()).filter(t=>t&&!isNaN(t)).sort()[0];
+    if(exp){const h=(exp-Date.now())/36e5;if(h<48)out.push({k:h<0?"bad":"warn",t:h<0?"Podpis Sparky’ego na iPhonie wygasł":`Podpis Sparky’ego na iPhonie wygasa za ${Math.max(1,Math.round(h))} h, iPhone nie był dostępny do odnowienia`,go:"ios"})}
     return out;
   }
   const rd=renderDash;
@@ -972,6 +975,7 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
     try{
       const snapshot=await api("/api/sparky-ios");
       if(!snapshot.profiles)throw new Error("Missing profiles");
+      S.ios=snapshot;
       const details=Object.entries(profileLabels).map(([id,label])=>{
         const profile=snapshot.profiles[id]||{};
         return `<div class="row"><div><b>${esc(label)}</b><div class="small muted">Ostatnie odnowienie: ${esc(profileDate(profile.lastRenewed))} · Ważny do: ${esc(profileDate(profile.expires))}</div></div><span class="pill" data-k="${["renewed","current"].includes(profile.result)?"ok":"warn"}">${esc(resultLabels[profile.result]||"brak próby")}</span></div>`;
@@ -989,8 +993,8 @@ addEventListener("popstate",e=>navApply(e.state&&e.state.page?e.state:navParse()
     try{await doAction({type:"sparky-ios"})}
     finally{renewing=false;renewButton.textContent="Odnów teraz";await loadIosStatus()}
   };
-  const go=()=>{if(page==="dash"){loadHealth();loadSparky();loadIosStatus()}};
-  document.addEventListener("click",e=>{if(e.target.closest('[data-page="dash"]'))setTimeout(go,50)});
+  const go=()=>{if(page==="dash"){loadHealth();loadSparky();loadIosStatus()}else if(page==="ios")loadIosStatus()};
+  document.addEventListener("click",e=>{if(e.target.closest('[data-page="dash"],[data-page="ios"]'))setTimeout(go,50)});
   setInterval(go,60000);setTimeout(go,800);
 })();
 boot();
