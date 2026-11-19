@@ -57,7 +57,11 @@ describe('bank view', () => {
     render(<FinanceBankView {...props} onAssignCategory={save} />);
     fireEvent.change(screen.getByLabelText('Miesiąc'), { target: { value: '2026-11' } });
     fireEvent.click(screen.getByRole('button', { name: 'Zmień kategorię: Sklep' }));
-    fireEvent.change(screen.getByLabelText('Nowa kategoria'), { target: { value: 'zdrowie' } });
+    expect(screen.queryByRole('button', { name: 'Zdrowie' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Wszystkie kategorie' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Szukaj kategorii' }), { target: { value: 'zdrowie' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zdrowie' }));
+    expect(screen.getByRole('button', { name: 'Zdrowie' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Zapisz kategorię' }));
     await waitFor(() => expect(save).toHaveBeenCalledWith({ transactionId: 't', category: 'zdrowie', remember: false }));
   });

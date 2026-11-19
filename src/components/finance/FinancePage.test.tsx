@@ -172,6 +172,7 @@ describe('FinancePage', () => {
     bundle.transactions = [
       { ...entry, id: 'payment', amount: -3279.99, note: 'PayU test', transaction_date: '2026-11-12', kind: 'expense' },
       { ...entry, id: 'refund', amount: 3279.99, note: 'Pekao test', transaction_date: '2026-11-16', kind: 'income', flow_kind: 'refund' },
+      { ...entry, id: 'previous', category: 'Zakupy', amount: -50, note: 'Sklep z poprzedniego miesiąca', transaction_date: '2026-10-10', kind: 'expense' },
     ];
     openFinance();
     fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
@@ -180,6 +181,8 @@ describe('FinancePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
     const totals = screen.getByRole('region', { name: 'Zestawienie okresu' });
     expect(within(totals).getAllByText(/^0,00/)).toHaveLength(3);
+    const changes = screen.getByRole('region', { name: 'Co się zmieniło w wydatkach' });
+    expect(within(changes).getByText('Sklep z poprzedniego miesiąca')).toBeInTheDocument();
     expect(screen.queryByText('PayU test')).not.toBeInTheDocument();
     expect(screen.queryByText('Pekao test')).not.toBeInTheDocument();
   });
@@ -193,9 +196,9 @@ describe('FinancePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
     fireEvent.click(screen.getByRole('button', { name: 'Kategoryzacja' }));
     fireEvent.click(screen.getByRole('button', { name: /^Warsztat/ }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'Nowa kategoria' }), { target: { value: '__new' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Dodaj własną' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Nazwa własnej kategorii' }), { target: { value: 'Naprawy' } });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Zakres zmiany' }), { target: { value: 'remember' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Zapamiętaj dla tego kontrahenta' }));
     fireEvent.click(screen.getByRole('button', { name: 'Zapisz kategorię' }));
     await waitFor(() => expect(state.assign).toHaveBeenCalledWith({ transactionId: 'unknown', category: 'custom:Naprawy', remember: true }));
   });
