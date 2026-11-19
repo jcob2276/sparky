@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { STORAGE_KEYS } from '../../../lib/constants';
 
 interface UseKeepPageEffectsProps {
@@ -18,7 +19,10 @@ export function useKeepPageEffects({
   search, activeTag, sidebarTab, viewMode, editingId, setEditingId,
   setVisibleCount, setColumns, handleNewNote, handleCreate,
 }: UseKeepPageEffectsProps) {
-  const autoNewNote = new URLSearchParams(window.location.search).get('new') === '1'
+  const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const requestedNewNote = pathname === '/keep' && params.get('new') === '1';
+  const autoNewNote = requestedNewNote
     || localStorage.getItem(STORAGE_KEYS.KEEP_NEW_DRAFT) === '1';
 
   useEffect(() => {
@@ -53,15 +57,25 @@ export function useKeepPageEffects({
   // Auto-open new note when navigated with ?new=1 (Telegram shortcut)
   const autoNewNoteHandled = useRef(false);
   useEffect(() => {
-    if (autoNewNote && !autoNewNoteHandled.current) {
+    if (!autoNewNote) {
+      autoNewNoteHandled.current = false;
+      return;
+    }
+    if (!autoNewNoteHandled.current) {
       autoNewNoteHandled.current = true;
-      window.history.replaceState({}, '', window.location.pathname);
+      if (requestedNewNote) {
+        setParams((current) => {
+          const next = new URLSearchParams(current);
+          next.delete('new');
+          return next;
+        }, { replace: true });
+      }
       try { localStorage.removeItem(STORAGE_KEYS.KEEP_NEW_DRAFT); } catch (err) { console.debug('[useKeepPageEffects] failed to remove new note draft', err); }
       void handleNewNote().then(id => {
         if (id) setEditingId(id);
       });
     }
-  }, [autoNewNote, handleNewNote, setEditingId]);
+  }, [autoNewNote, requestedNewNote, handleNewNote, setEditingId, setParams]);
 
   const linkedNoteHandled = useRef(false);
   useEffect(() => {

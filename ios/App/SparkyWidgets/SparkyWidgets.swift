@@ -119,5 +119,11 @@ struct SparkyWidgets: WidgetBundle {
         QuickActionsWidget()
         CameraShortcutWidget()
         WorkoutRestLiveActivity()
+        if #available(iOS 18.0, *) {
+            SparkyNoteControl()
+            SparkyTaskControl()
+            SparkyCameraControl()
+            SparkyBarcodeControl()
+        }
     }
 }

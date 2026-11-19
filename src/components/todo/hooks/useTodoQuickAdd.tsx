@@ -1,5 +1,6 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useTodoContext } from '../context/TodoContext';
 import TodoQuickCapture from '../TodoQuickCapture';
 import TodoInlineCapture from '../TodoInlineCapture';
@@ -48,23 +49,24 @@ export function useTodoQuickAdd() {
     return () => window.removeEventListener(TODO_QUICK_ADD_EVENT, handler);
   }, []);
 
-  // Auto-open quick capture when navigated with ?new=1 (PWA shortcut / Telegram)
+  const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const requestedNewTask = pathname === '/todo' && params.get('new') === '1';
   const autoNewTaskHandled = useRef(false);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('new') === '1' && !autoNewTaskHandled.current) {
-      autoNewTaskHandled.current = true;
-      window.history.replaceState({}, '', window.location.pathname);
-      setActiveAddSectionId('today');
-      setIsExpanded(true);
-      setForm({
-        title: '', notes: '', priority: 'normal', tagsText: '',
-        due_date: today, deadline_date: '', recurrence: '', section_id: '',
-        scheduled_time: '', reminder_at: '',
-      });
+    if (!requestedNewTask) {
+      autoNewTaskHandled.current = false;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (autoNewTaskHandled.current) return;
+    autoNewTaskHandled.current = true;
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('new');
+      return next;
+    }, { replace: true });
+    openQuickAddRef.current('today');
+  }, [requestedNewTask, setParams]);
 
   const closeCapture = () => {
     setIsExpanded(false);

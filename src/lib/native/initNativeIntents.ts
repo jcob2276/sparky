@@ -10,6 +10,8 @@ const PATH_PREFIX = '__path__=';
 const widgetRoutes = new Map([
   ['/keep', '/keep'],
   ['/todo', '/todo'],
+  ['/new-note', '/keep?new=1'],
+  ['/new-task', '/todo?new=1'],
   ['/workout', '/trening?live=1'],
   ['/camera', '/posilek?akcja=aparat'],
   ['/barcode', '/posilek?akcja=skaner'],

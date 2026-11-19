@@ -22,6 +22,9 @@
 		A175EC000000000000000105 /* WorkoutRestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000102; };
 		A175EC000000000000000106 /* WorkoutRestLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000103; };
 		A175EC000000000000000107 /* WorkoutRestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000102; };
+		A175EC00000000000000010A /* SparkyCaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000108; };
+		A175EC00000000000000010B /* SparkyCaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000108; };
+		A175EC00000000000000010C /* SparkyCaptureControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = A175EC000000000000000109; };
 /* End PBXBuildFile section */
 
 
@@ -65,6 +68,8 @@
 		A175EC000000000000000101 /* WorkoutRestActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRestActivityPlugin.swift; sourceTree = "<group>"; };
 		A175EC000000000000000102 /* WorkoutRestAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/WorkoutRestAttributes.swift; sourceTree = SOURCE_ROOT; };
 		A175EC000000000000000103 /* WorkoutRestLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRestLiveActivity.swift; sourceTree = "<group>"; };
+		A175EC000000000000000108 /* SparkyCaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/SparkyCaptureIntent.swift; sourceTree = SOURCE_ROOT; };
+		A175EC000000000000000109 /* SparkyCaptureControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkyCaptureControls.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +110,7 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				A175EC000000000000000101 /* WorkoutRestActivityPlugin.swift */,
 				A175EC000000000000000102 /* WorkoutRestAttributes.swift */,
+				A175EC000000000000000108 /* SparkyCaptureIntent.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -118,7 +124,7 @@
 
 		A175EC000000000000000007 /* SparkyWidgets */ = {
 			isa = PBXGroup;
-			children = (A175EC000000000000000001, A175EC000000000000000002, A175EC000000000000000103, );
+			children = (A175EC000000000000000001, A175EC000000000000000002, A175EC000000000000000103, A175EC000000000000000109, );
 			path = SparkyWidgets;
 			sourceTree = "<group>";
 		};
@@ -221,6 +227,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A175EC000000000000000104 /* WorkoutRestActivityPlugin.swift in Sources */,
 				A175EC000000000000000105 /* WorkoutRestAttributes.swift in Sources */,
+				A175EC00000000000000010A /* SparkyCaptureIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +235,7 @@
 		A175EC00000000000000000E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (A175EC000000000000000004, A175EC000000000000000106, A175EC000000000000000107, );
+			files = (A175EC000000000000000004, A175EC000000000000000106, A175EC000000000000000107, A175EC00000000000000010B, A175EC00000000000000010C, );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -373,7 +380,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -395,7 +402,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -417,7 +424,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SparkyWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -425,6 +432,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = app.vanguard.os.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SPARKY_WIDGET_EXTENSION";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -436,7 +444,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SparkyWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -444,6 +452,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = app.vanguard.os.widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SPARKY_WIDGET_EXTENSION";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
