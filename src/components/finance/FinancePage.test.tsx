@@ -1,11 +1,12 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { BankTransaction } from '../../lib/finance/bankApi';
 import type { FinanceBundle } from '../../lib/financeApi';
 import { useFinanceMetrics } from './useFinanceMetrics';
 import FinancePage from './FinancePage';
 
-const state = vi.hoisted(() => ({ loggedIn: false, withMetrics: false, historyLoading: false }));
+const state = vi.hoisted(() => ({ loggedIn: false, withMetrics: false, historyLoading: false, bankRows: [] as BankTransaction[], assign: vi.fn() }));
 const bundle: FinanceBundle = {
   hasProfile: false,
   profile: { user_id: 'u', monthly_expenses: 0, monthly_income: 0, expected_return_pct: 0, inflation_pct: 0,
@@ -45,8 +46,8 @@ vi.mock('../../lib/finance/holdingsApi', () => ({
 }));
 
 vi.mock('../../lib/finance/bankApi', () => ({
-  useBankData: () => ({ data: undefined, isLoading: false }),
-  useBankActions: () => ({ connect: {}, sync: { mutate: vi.fn() }, assignCategory: {}, toggleVisibility: {} }),
+  useBankData: () => ({ data: { connection: null, accounts: [], transactions: state.bankRows }, isLoading: false }),
+  useBankActions: () => ({ connect: {}, sync: { mutate: vi.fn() }, assignCategory: { mutateAsync: state.assign }, toggleVisibility: {} }),
 }));
 
 vi.mock('../../lib/finance/categoryBudgetsApi', () => ({
@@ -79,6 +80,8 @@ beforeEach(() => {
   state.withMetrics = false;
   state.historyLoading = false;
   bundle.transactions = [];
+  state.bankRows = [];
+  state.assign.mockReset().mockResolvedValue(undefined);
   window.history.replaceState(null, '', '/finanse');
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
@@ -139,28 +142,44 @@ describe('FinancePage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Transakcje' })).toBeInTheDocument();
   });
 
-  it('opens an annual category in history without losing expenses from other months', () => {
+  it('expands the selected category on Start and ranks recipients across the analysis period', () => {
     vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
     bundle.transactions = [
-      { id: 'nov', user_id: 'u', amount: 40, category: 'Transport', note: 'Bilet listopad', transaction_date: '2026-11-02', kind: 'expense', created_at: '' },
-      { id: 'oct', user_id: 'u', amount: 30, category: 'Transport i paliwo', note: 'Bilet październik', transaction_date: '2026-10-20', kind: 'expense', created_at: '' },
-      { id: 'other', user_id: 'u', amount: 60, category: 'Jedzenie', note: 'Obiad', transaction_date: '2026-11-05', kind: 'expense', created_at: '' },
+      { id: 'nov', user_id: 'u', amount: 40, category: 'Transport i paliwo', note: 'Przewoźnik', transaction_date: '2026-11-02', kind: 'expense', created_at: '' },
+      { id: 'oct', user_id: 'u', amount: 30, category: 'Transport i paliwo', note: 'PRZEWOŹNIK', transaction_date: '2026-10-20', kind: 'expense', created_at: '' },
     ];
     openFinance();
-    fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Rok' }));
-    fireEvent.click(screen.getByRole('button', { name: /^Transport/ }));
+    const category = screen.getByRole('button', { name: /^Transport/ });
+    expect(category).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(category);
+    expect(category).toHaveAttribute('aria-expanded', 'true');
+    const categories = screen.getByRole('heading', { name: 'Kategorie' }).closest('section')!;
+    expect(within(categories).getByText('Transport i paliwo')).toBeInTheDocument();
+    fireEvent.click(category);
+    expect(within(categories).queryByText('Transport i paliwo')).not.toBeInTheDocument();
 
-    expect(screen.getByText('Bilet listopad')).toBeInTheDocument();
-    expect(screen.getByText('Bilet październik')).toBeInTheDocument();
-    expect(screen.queryByText('Obiad')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Podkategoria transakcji' }), { target: { value: 'Transport i paliwo' } });
-    expect(screen.getByText('Bilet październik')).toBeInTheDocument();
-    expect(screen.queryByText('Bilet listopad')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Wyczyść filtry' }));
-    expect(screen.getByText('Obiad')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Wróć do widoku miesiąca' }));
-    expect(screen.queryByText('Bilet październik')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Analiza' }));
+    const ranking = screen.getByRole('region', { name: 'Najwięksi odbiorcy wydatków' });
+    expect(within(ranking).getByText(/40,00/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Rok' }));
+    expect(within(ranking).getByText(/70,00/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Kategorie' })).not.toBeInTheDocument();
+  });
+
+  it('classifies an uncertain transaction with a new category and remembers its counterparty', async () => {
+    vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
+    state.bankRows = [{ id: 'unknown', account_id: 'bank', booking_date: '2026-11-02', amount: -40,
+      currency: 'PLN', counterparty_name: 'Warsztat', remittance: null, category: 'do_sprawdzenia' }];
+    openFinance();
+    expect(screen.getByRole('navigation', { name: 'Sekcje finansów' }).parentElement).toBe(document.body);
+    fireEvent.click(screen.getByRole('button', { name: 'Transakcje' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kategoryzacja' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Warsztat/ }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Nowa kategoria' }), { target: { value: '__new' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nazwa własnej kategorii' }), { target: { value: 'Naprawy' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Zakres zmiany' }), { target: { value: 'remember' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zapisz kategorię' }));
+    await waitFor(() => expect(state.assign).toHaveBeenCalledWith({ transactionId: 'unknown', category: 'custom:Naprawy', remember: true }));
   });
 
   it('does not display an empty analysis while linked bank data is loading', () => {

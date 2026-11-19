@@ -5,6 +5,12 @@ const debit = (counterparty: string | null, remittance: string | null = 'TRANSAK
   categorizeBankTransaction({ counterparty, remittance, direction: 'debit' });
 
 describe('categorizeBankTransaction', () => {
+  it('reuses a remembered custom label for the same counterparty and payment direction', () => {
+    const rules = new Map<string, BankCategory>([[bankCounterpartyKey('Warsztat', 'debit'), 'custom:Naprawy']]);
+    expect(categorizeBankTransaction({ counterparty: 'Warsztat', remittance: null, direction: 'debit' }, rules)).toBe('custom:Naprawy');
+    expect(categorizeBankTransaction({ counterparty: 'Warsztat', remittance: null, direction: 'credit' }, rules)).toBe('wplyw');
+  });
+
   it.each<[string, BankCategory]>([
     ['JMP S.A. BIEDRONKA 309 RZESZOW', 'zakupy_spozywcze'],
     ['ZABKA Z8349 K.1        RZESZOW', 'zakupy_spozywcze'],
@@ -148,7 +154,7 @@ describe('categorizeBankTransaction', () => {
 
   it('każda kategoria ma polską etykietę', () => {
     for (const key of Object.keys(BANK_CATEGORY_LABELS)) {
-      expect(BANK_CATEGORY_LABELS[key as BankCategory].length).toBeGreaterThan(2);
+      expect(BANK_CATEGORY_LABELS[key as keyof typeof BANK_CATEGORY_LABELS].length).toBeGreaterThan(2);
     }
   });
 });

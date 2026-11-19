@@ -31,7 +31,18 @@ export const BANK_CATEGORY_LABELS = {
   do_sprawdzenia: 'Do sprawdzenia',
 } as const;
 
-export type BankCategory = keyof typeof BANK_CATEGORY_LABELS;
+export type BankCategory = keyof typeof BANK_CATEGORY_LABELS | `custom:${string}`;
+
+export function customBankCategoryLabel(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.startsWith('custom:')) return null;
+  const label = value.slice(7);
+  return label.trim() === label && label.length > 0 && label.length <= 60 && !/\p{C}/u.test(label) ? label : null;
+}
+
+export function isBankCategory(value: unknown): value is BankCategory {
+  return typeof value === 'string' && (Object.hasOwn(BANK_CATEGORY_LABELS, value) || customBankCategoryLabel(value) !== null);
+}
+
 
 export interface BankCategoryInput {
   counterparty: string | null;

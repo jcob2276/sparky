@@ -8,7 +8,7 @@ import { useCashEntryMutation, type CashEntryInput } from '../../lib/finance/cas
 import { useHoldingMutations } from '../../lib/finance/holdingsApi';
 import { useNetWorthSnapshotSync } from '../../lib/finance/netWorthSnapshots';
 import { notify } from '../../lib/notify';
-import { getTodayWarsaw, formatWarsawDate } from '../../lib/date';
+import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
 import { FinanceSkeleton } from './FinanceSkeleton';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -18,11 +18,10 @@ import { FinanceQuickEntry } from './FinanceQuickEntry';
 import { useFinancePageData } from './useFinancePageData';
 import { FinanceAccountsTab } from './FinanceAccountsTab';
 import { FinancePortfolioTab } from './FinancePortfolioTab';
-import { FinanceBankCard } from './FinanceBankCard';
+import { FinanceClassification } from './FinanceClassification';
 import { FinanceReferenceHeader, FinanceReferenceTransactionSheet } from './FinanceReferenceChrome';
 import { FinanceMonthPicker, FinanceReferenceTransactions } from './FinanceReferenceViews';
 import FinanceReferenceStart from './FinanceReferenceStart';
-import type { FinanceDateRange } from './financeReferencePeriods';
 import FinanceReferenceAnalysis from './FinanceReferenceAnalysis';
 
 const TITLES: Record<FinanceTabKey, string> = {
@@ -52,8 +51,6 @@ function FinancePage() {
   const cashEntry = useCashEntryMutation(userId);
   const bank = useBankData(userId);
   const [month, setMonth] = useState(() => getTodayWarsaw().slice(0, 7));
-  const [category, setCategory] = useState('');
-  const [historyRange, setHistoryRange] = useState<FinanceDateRange | null>(null);
   const [selected, setSelected] = useState<FinanceTransaction | null>(null);
   // Powrót z banku (?bank=connected|denied) otwiera ustawienia, gdzie karta Bank obsługuje wynik.
   const [tab, setTab] = useState<FinanceTabKey>(() => (new URLSearchParams(window.location.search).has('bank') ? 'accounts' : 'dashboard'));
@@ -85,12 +82,6 @@ function FinancePage() {
   };
 
   const openQuickEntry = () => setQuickEntry({ open: true, kind: 'expense' });
-  const openTransactions = (filter = '', range: FinanceDateRange | null = null) => {
-    setCategory(filter);
-    setHistoryRange(range);
-    navigate('flows');
-  };
-
   const historyAvailable = !historyLoading && !bankError && !data?.bankReconciliationPending;
   const currentMonth = `${getTodayWarsaw().slice(0, 7)}-01`;
   const storedSnapshot = data?.snapshots.find((item) => item.snapshot_month.startsWith(currentMonth.slice(0, 7)));
@@ -123,11 +114,7 @@ function FinancePage() {
           <p className="finance-reference-label">{tab === 'dashboard' ? 'Majątek i rozwój' : tab === 'flows' ? 'Historia' : tab === 'analysis' ? 'Analiza' : 'Finanse Sparky'}</p>
           <h1>{TITLES[tab]}</h1>
         </div>
-        {(tab === 'dashboard' || (tab === 'flows' && !historyRange)) && <FinanceMonthPicker month={month} onChange={(value) => { setMonth(value); setCategory(''); }} />}
-        {tab === 'flows' && historyRange && <div className="finance-reference-card flex flex-wrap items-center justify-between gap-x-3">
-          <span>Okres analizy · {formatWarsawDate(historyRange.from)} – {formatWarsawDate(historyRange.to)}</span>
-          <Pressable type="button" className="finance-reference-link" onClick={() => setHistoryRange(null)}>Wróć do widoku miesiąca</Pressable>
-        </div>}
+        {(tab === 'dashboard' || tab === 'flows') && <FinanceMonthPicker month={month} onChange={setMonth} />}
         {(bundleQuery.isLoading || bankLoading) && <FinanceSkeleton />}
         {bundleQuery.error && (
           <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
@@ -144,18 +131,13 @@ function FinancePage() {
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
         {data && historyAvailable && tab === 'dashboard' && <FinanceReferenceStart data={data} metrics={metrics} portfolioValue={portfolio.valuePln} month={month}
-          onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={openTransactions} onSelect={setSelected} />}
-        {data && tab === 'flows' && (
-          <>
-            {historyAvailable && <FinanceReferenceTransactions key={historyRange?.from ?? month} data={data} month={month} range={historyRange} category={category}
-              onCategory={setCategory} onQuickEntry={openQuickEntry} onSelect={setSelected} />}
-            {bank.data?.connection ? <details className="finance-reference-card">
-              <summary>Operacje bankowe i kategoryzacja</summary>
-              <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => navigate('accounts')} />
-            </details> : <Pressable type="button" onClick={() => navigate('accounts')} className="finance-reference-link">Przejdź do ustawień finansów</Pressable>}
-          </>
-        )}
-        {data && historyAvailable && tab === 'analysis' && <FinanceReferenceAnalysis transactions={data.transactions} onCategory={openTransactions} />}
+          onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={() => navigate('flows')} onSelect={setSelected} />}
+        {data && historyAvailable && tab === 'flows' && <FinanceReferenceTransactions data={data} month={month}
+          classification={<FinanceClassification userId={userId} transactions={bank.data?.transactions ?? []} month={month} />}
+          onQuickEntry={openQuickEntry} onSelect={setSelected} />}
+        {data && tab === 'flows' && !bank.data?.connection && <Pressable type="button" onClick={() => navigate('accounts')}
+          className="finance-reference-link">Przejdź do ustawień finansów</Pressable>}
+        {data && historyAvailable && tab === 'analysis' && <FinanceReferenceAnalysis transactions={data.transactions} />}
         {tab === 'accounts' && metrics && <Pressable type="button" className="finance-reference-link" onClick={() => navigate('tools')}>Budżet, cele i stałe płatności</Pressable>}
 
         {metrics && data && (tab === 'portfolio' || tab === 'accounts' || tab === 'tools') && (
