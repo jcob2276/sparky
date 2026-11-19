@@ -20,7 +20,7 @@ import { FinanceAccountsTab } from './FinanceAccountsTab';
 import { FinancePortfolioTab } from './FinancePortfolioTab';
 import { FinanceClassification } from './FinanceClassification';
 import { FinanceReferenceHeader, FinanceReferenceTransactionSheet } from './FinanceReferenceChrome';
-import { FinanceMonthPicker, FinanceReferenceTransactions } from './FinanceReferenceViews';
+import { FinanceMonthPicker, FinanceReferenceTransactions, type FinanceCategoryFilter } from './FinanceReferenceViews';
 import FinanceReferenceStart from './FinanceReferenceStart';
 import FinanceReferenceAnalysis from './FinanceReferenceAnalysis';
 
@@ -51,13 +51,15 @@ function FinancePage() {
   const cashEntry = useCashEntryMutation(userId);
   const bank = useBankData(userId);
   const [month, setMonth] = useState(() => getTodayWarsaw().slice(0, 7));
+  const [historyFilter, setHistoryFilter] = useState<FinanceCategoryFilter>();
   const [selected, setSelected] = useState<FinanceTransaction | null>(null);
   // Powrót z banku (?bank=connected|denied) otwiera ustawienia, gdzie karta Bank obsługuje wynik.
   const [tab, setTab] = useState<FinanceTabKey>(() => (new URLSearchParams(window.location.search).has('bank') ? 'accounts' : 'dashboard'));
   const [returnTab, setReturnTab] = useState<Exclude<FinanceTabKey, 'accounts'>>('dashboard');
   const [quickEntry, setQuickEntry] = useState<{ open: boolean; kind: 'expense' | 'income' }>({ open: false, kind: 'expense' });
   const reduceMotion = useReducedMotion();
-  const navigate = (next: FinanceTabKey) => {
+  const navigate = (next: FinanceTabKey, filter?: FinanceCategoryFilter) => {
+    if (next === 'flows') setHistoryFilter(filter);
     if (next === 'accounts' && tab !== 'accounts') setReturnTab(tab);
     setTab(next);
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -131,8 +133,8 @@ function FinancePage() {
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} mutations={holdingMutations} run={run} accounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
         {data && historyAvailable && tab === 'dashboard' && <FinanceReferenceStart data={data} metrics={metrics} portfolioValue={portfolio.valuePln} month={month}
-          onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={() => navigate('flows')} onSelect={setSelected} />}
-        {data && historyAvailable && tab === 'flows' && <FinanceReferenceTransactions data={data} month={month}
+          onPortfolio={() => navigate('portfolio')} onAccounts={() => navigate('accounts')} onTransactions={(filter) => navigate('flows', filter)} onSelect={setSelected} />}
+        {data && historyAvailable && tab === 'flows' && <FinanceReferenceTransactions data={data} month={month} initialFilter={historyFilter}
           classification={<FinanceClassification userId={userId} transactions={bank.data?.transactions ?? []} month={month} />}
           onQuickEntry={openQuickEntry} onSelect={setSelected} />}
         {data && tab === 'flows' && !bank.data?.connection && <Pressable type="button" onClick={() => navigate('accounts')}

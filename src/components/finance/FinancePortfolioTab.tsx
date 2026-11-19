@@ -193,6 +193,7 @@ export function FinancePortfolioTab({ holdings, mutations, run, brokerCashPln = 
         title={editing === 'new' ? 'Nowa pozycja' : 'Edytuj pozycję'}
         side="bottom"
         compact
+        handleDragOnly
       >
         {editing != null && (
           <FinanceHoldingForm

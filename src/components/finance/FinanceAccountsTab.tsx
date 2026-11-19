@@ -184,6 +184,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
         title={editing === 'new' ? 'Nowe konto lub środki' : selected?.name || 'Konto'}
         side="bottom"
         compact
+        handleDragOnly
       >
         {editing === 'new' && (
           <AccountForm

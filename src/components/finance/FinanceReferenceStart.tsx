@@ -6,7 +6,7 @@ import type { FinanceBundle, FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import type { FinanceMetrics } from './useFinanceMetrics';
 import { financePeriodTotals, financeStatisticsRecords } from './financeReferencePeriods';
-import { FinanceReferenceCategories, FinanceReferenceHistory } from './FinanceReferenceViews';
+import { FinanceReferenceCategories, FinanceReferenceHistory, type FinanceCategoryFilter } from './FinanceReferenceViews';
 
 const SAVINGS_CUSHION_TARGET = 15_000;
 
@@ -17,7 +17,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
   month: string;
   onPortfolio: () => void;
   onAccounts: () => void;
-  onTransactions: () => void;
+  onTransactions: (filter?: FinanceCategoryFilter) => void;
   onSelect: (record: FinanceTransaction) => void;
 }) {
   const [includeSavings, setIncludeSavings] = useState(false);
@@ -64,7 +64,7 @@ export default function FinanceReferenceStart({ data, metrics, portfolioValue, m
           <div key={account.id}><dt>{account.name}</dt><dd>{formatPln(account.balance, 2)}</dd></div>
         ))}</dl> : <p className="text-sm text-text-muted">Dodaj konto w ustawieniach finansów.</p>}
       </section>
-      <FinanceReferenceCategories key={month} transactions={statistics} />
+      <FinanceReferenceCategories key={month} transactions={statistics} onDetail={onTransactions} />
       <section className="finance-reference-card">
         <h2 className="finance-reference-label">Cashflow</h2>
         <p className={`finance-reference-number ${balance >= 0 ? 'finance-reference-positive' : ''}`}>{balance > 0 ? '+' : ''}{formatPln(balance, 2)}</p>

@@ -20,7 +20,12 @@ export function FinanceMonthPicker({ month, onChange }: { month: string; onChang
   );
 }
 
-export function FinanceReferenceCategories({ transactions }: { transactions: FinanceTransaction[] }) {
+export type FinanceCategoryFilter = { group: string; detail: string };
+
+export function FinanceReferenceCategories({ transactions, onDetail }: {
+  transactions: FinanceTransaction[];
+  onDetail: (filter: FinanceCategoryFilter) => void;
+}) {
   const [expanded, setExpanded] = useState('');
   const groups = summarizeFinanceCategories(transactions);
   const expenses = groups.reduce((sum, group) => sum + group.amount, 0);
@@ -32,11 +37,15 @@ export function FinanceReferenceCategories({ transactions }: { transactions: Fin
       <h2 className="finance-reference-label">Kategorie</h2>
       {slices.length ? <FinanceDonut slices={slices} ariaLabel="Wydatki według kategorii" centerLabel="Wydatki" center={formatPln(expenses, 2)}
         expandedKey={expanded} onSelect={(key) => setExpanded(expanded === key ? '' : key)}
-        expandedContent={<dl className="finance-reference-breakdown px-4 pb-3">
+        expandedContent={<ul className="finance-reference-subcategories">
           {groups.find(({ group }) => group === expanded)?.details.map(({ detail, amount }) => (
-            <div key={detail}><dt>{detail}</dt><dd>{formatPln(amount, 2)}</dd></div>
+            <li key={detail}>
+              <Pressable type="button" className="finance-reference-subcategory" onClick={() => onDetail({ group: expanded, detail })}>
+                <span>{detail}</span><strong>{formatPln(amount, 2)}</strong><ChevronRight size={16} aria-hidden="true" />
+              </Pressable>
+            </li>
           ))}
-        </dl>} /> : <p className="text-text-muted">Brak wydatków w tym okresie.</p>}
+        </ul>} /> : <p className="text-text-muted">Brak wydatków w tym okresie.</p>}
     </section>
   );
 }
@@ -97,17 +106,18 @@ export function FinanceReferenceHistory({ records, accounts, onSelect }: {
   );
 }
 
-export function FinanceReferenceTransactions({ data, month, classification, onQuickEntry, onSelect }: {
+export function FinanceReferenceTransactions({ data, month, initialFilter, classification, onQuickEntry, onSelect }: {
   data: FinanceBundle;
   month: string;
+  initialFilter?: FinanceCategoryFilter;
   classification: ReactNode;
   onQuickEntry: () => void;
   onSelect: (record: FinanceTransaction) => void;
 }) {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
-  const [category, onCategory] = useState('');
-  const [detail, setDetail] = useState('');
+  const [category, onCategory] = useState(initialFilter?.group ?? '');
+  const [detail, setDetail] = useState(initialFilter?.detail ?? '');
   const [account, setAccount] = useState('');
   const [limit, setLimit] = useState(50);
   const [view, setView] = useState<'list' | 'categories'>('list');

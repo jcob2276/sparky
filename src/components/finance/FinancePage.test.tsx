@@ -166,6 +166,26 @@ describe('FinancePage', () => {
     expect(screen.queryByRole('heading', { name: 'Kategorie' })).not.toBeInTheDocument();
   });
 
+  it('opens a subcategory with both transaction filters already selected', () => {
+    vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
+    const entry = { user_id: 'u', amount: 40, transaction_date: '2026-11-02', kind: 'expense' as const, created_at: '' };
+    bundle.transactions = [
+      { ...entry, id: 'course', category: 'Kursy', note: 'Kurs testowy' },
+      { ...entry, id: 'book', category: 'Książki', note: 'Książka testowa' },
+      { ...entry, id: 'sauna', category: 'Sauna', note: 'WR Sport' },
+    ];
+    openFinance();
+    fireEvent.click(screen.getByRole('button', { name: /^Zdrowie/ }));
+    expect(screen.getByRole('button', { name: /^Sauna/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^Rozwój/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Kursy/ }));
+    expect(screen.getByRole('heading', { name: 'Transakcje', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Kategoria transakcji' })).toHaveValue('Rozwój');
+    expect(screen.getByRole('combobox', { name: 'Podkategoria transakcji' })).toHaveValue('Kursy');
+    expect(screen.getByText('Kurs testowy')).toBeInTheDocument();
+    expect(screen.queryByText('Książka testowa')).not.toBeInTheDocument();
+  });
+
   it('keeps a fully refunded purchase in history and excludes both entries from analysis', () => {
     vi.setSystemTime(new Date('2026-11-19T12:00:00Z'));
     const entry = { user_id: 'u', category: 'Zakup zwrócony w całości', source: 'bank' as const, created_at: '' };

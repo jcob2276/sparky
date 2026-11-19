@@ -3328,8 +3328,8 @@ a,
 .finance-reference-metrics h2, .finance-reference-metrics small { color: var(--finance-muted); font-size: .82rem; }
 .finance-reference-metrics strong { display: block; font-size: clamp(.98rem, 4vw, 1.38rem); margin-block: 4px; }
 .finance-reference-dock { position: fixed; z-index: var(--z-sticky); inset-inline: 10px; bottom: max(9px, env(safe-area-inset-bottom, 0px)); max-width: 490px; margin-inline: auto; display: flex; padding: 5px; border: 1px solid var(--finance-edge); border-radius: 32px; background: var(--finance-card); box-shadow: 0 8px 28px rgb(18 30 44 / .16); }
-.finance-reference-dock button { display: flex; flex: 1; min-width: 0; min-height: 52px; justify-content: center; align-items: center; flex-direction: column; gap: 4px; border-radius: 27px; font-size: clamp(.62rem, 2.7vw, .75rem); font-weight: 600; color: var(--finance-muted); }
-.finance-reference-dock button[aria-current=page] { color: var(--finance-ink); background: color-mix(in srgb, var(--finance-edge) 48%, transparent); }
+.finance-reference-dock button { position: relative; display: flex; flex: 1; min-width: 0; min-height: 52px; justify-content: center; align-items: center; flex-direction: column; gap: 4px; border-radius: 27px; font-size: clamp(.62rem, 2.7vw, .75rem); font-weight: 600; color: var(--finance-muted); }
+.finance-reference-dock button[aria-current=page] { color: var(--finance-ink); }
 @media(min-width: 720px) { .finance-reference-start { grid-template-columns: repeat(2, minmax(0,1fr)); align-items: start; } .finance-reference-start > :last-child { grid-column: 1 / -1; } }
 
 /* ═══ Premium motion & depth layer (shell, skeleton, entrance, numerals) ═══ */
@@ -3526,4 +3526,47 @@ progress,
   --note-hl-violet: #e9d5ff; --note-hl-pink: #fecdd3; --note-hl-orange: #fed7aa; --note-hl-mint: #a7f3d0; --note-hl-blue: #bfdbfe;
   --note-hl-dot-violet: #a855f7; --note-hl-dot-pink: #f43f5e; --note-hl-dot-orange: #f97316; --note-hl-dot-mint: #14b8a6; --note-hl-dot-blue: #3b82f6;
   --note-text-on-highlight: #1c1c1e;
+}
+
+.finance-reference-dock-indicator {
+  position: absolute;
+  inset-block: 5px;
+  inset-inline-start: 5px;
+  width: calc((100% - 10px) / 4);
+  border-radius: 27px;
+  background: color-mix(in srgb, var(--finance-edge) 60%, var(--finance-card));
+  pointer-events: none;
+}
+.finance-reference-subcategories { padding: 0 12px 8px 25px; }
+.finance-reference-subcategory {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 8px;
+  border-radius: 12px;
+  text-align: start;
+  color: var(--finance-muted);
+  font-size: .875rem;
+}
+.finance-reference-subcategory strong { color: var(--finance-ink); font-variant-numeric: tabular-nums; }
+.finance-reference-subcategory:active { background: color-mix(in srgb, var(--finance-edge) 55%, transparent); }
+.finance-reference button, .finance-reference-dock button, [data-touch-sheet] button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.finance-sheet-grabber { display: grid; place-items: center; min-height: 34px; flex-shrink: 0; touch-action: none; cursor: grab; }
+.finance-sheet-grabber::before { content: ''; width: 36px; height: 5px; border-radius: 999px; background: var(--text-muted); opacity: .34; }
+[data-touch-sheet] > :last-child { overscroll-behavior-y: contain; }
+@media (any-pointer: coarse) {
+  .finance-reference input, .finance-reference select, [data-touch-sheet] input, [data-touch-sheet] select, [data-touch-sheet] textarea { font-size: max(16px, 1rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finance-reference button:active, .finance-reference-dock button:active, [data-touch-sheet] button:active { scale: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .finance-reference-subcategories { animation: finance-subcategories-in var(--motion-fast) var(--ease-out) both; }
+}
+@keyframes finance-subcategories-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
 }

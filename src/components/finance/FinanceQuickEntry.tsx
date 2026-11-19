@@ -185,7 +185,7 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
 export function FinanceQuickEntry({ accounts, pending, open, initialKind, onOpenChange, onSubmit }: FinanceQuickEntryProps) {
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} title="Szybki wpis" side="bottom" compact>
+      <Sheet open={open} onOpenChange={onOpenChange} title="Szybki wpis" side="bottom" compact handleDragOnly>
         {open && <EntryForm accounts={accounts} pending={pending} initialKind={initialKind} onSubmit={onSubmit} onDone={() => onOpenChange(false)} />}
       </Sheet>
     </>
