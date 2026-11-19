@@ -154,6 +154,9 @@ export default function RichEditor({
       <div
         ref={editorRef}
         contentEditable
+        role="textbox"
+        aria-label="Treść notatki"
+        aria-multiline="true"
         onInput={() => {
           handleInput();
           triggers.checkTriggers();

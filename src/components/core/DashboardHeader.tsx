@@ -118,8 +118,8 @@ export function DashboardHeader({
             onTouchStart={handlePrefetchDashboard}
             onFocus={handlePrefetchDashboard}
             className={ICON_BUTTON_CLASS}
-            aria-label="Desktop dashboard"
-            title="Desktop dashboard"
+            aria-label="Pulpit Sparky"
+            title="Pulpit Sparky"
           >
             <LayoutDashboard size={15} strokeWidth={1.8} />
           </Link>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { PencilLine, Search } from 'lucide-react';
 import type { SavedLink } from '../../../lib/linksApi';
 import DataStateNotice from '../../core/DataStateNotice';
@@ -8,23 +8,21 @@ import Skeleton from '../../ui/Skeleton';
 
 interface LearningPocketPickerProps {
   links: SavedLink[] | undefined;
+  query: string;
+  onQueryChange: (query: string) => void;
   loading: boolean;
   error: Error | null;
   onPick: (link: SavedLink) => void;
   onCustom: () => void;
 }
 
-const MAX_VISIBLE = 30;
-
 /** Pierwszy krok dodawania: nieprzeczytane z Pocketa albo materiał własny. */
-export default function LearningPocketPicker({ links, loading, error, onPick, onCustom }: LearningPocketPickerProps) {
-  const [query, setQuery] = useState('');
+export default function LearningPocketPicker({ links, loading, error, query, onQueryChange, onPick, onCustom }: LearningPocketPickerProps) {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const filtered = (links ?? []).filter(
+    return (links ?? []).filter(
       (link) => !needle || link.title.toLowerCase().includes(needle) || link.domain.toLowerCase().includes(needle),
     );
-    return filtered.slice(0, MAX_VISIBLE);
   }, [links, query]);
 
   return (
@@ -40,10 +38,10 @@ export default function LearningPocketPicker({ links, loading, error, onPick, on
           <ControlInput
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Szukaj w Pocket…"
             aria-label="Szukaj w Pocket"
-            className="w-full rounded-lg border border-border-custom/60 bg-surface-2 py-2 pl-9 pr-3 text-sm text-text-primary"
+            className="w-full rounded-lg border border-border-custom/60 bg-surface-2 py-2 pl-9 pr-3 text-base text-text-primary"
           />
         </div>
 
@@ -55,7 +53,7 @@ export default function LearningPocketPicker({ links, loading, error, onPick, on
             {query ? 'Brak pasujących linków.' : 'Brak nieprzeczytanych linków w Pocket.'}
           </p>
         ) : (
-          <ul className="max-h-72 space-y-1 overflow-y-auto" aria-label="Nieprzeczytane z Pocketa">
+          <ul className="space-y-1" aria-label="Nieprzeczytane z Pocketa">
             {visible.map((link) => (
               <li key={link.id}>
                 <Pressable

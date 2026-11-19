@@ -26,7 +26,7 @@ function Metric({ tile, onOpen }: { tile: ChronicleTile; onOpen: () => void }) {
         {tile.hint && <span className="ml-1 text-2xs font-bold text-text-muted">{tile.hint}</span>}
       </p>
       <p className={`text-2xs font-bold tabular-nums ${TONE_CLASS[tile.tone]}`}>
-        {tile.delta ? `${tile.delta} vs poprzedni` : 'brak porównania'}
+        {tile.delta ? `${tile.delta} względem poprzedniego` : 'brak porównania'}
       </p>
     </Pressable>
   );
@@ -67,7 +67,7 @@ export default function WeeklyComparePulse() {
           ))}
         </div>
       )}
-      <p className="text-2xs font-medium text-text-muted">Ten tydzień jeszcze trwa, a poprzedni jest pełny, więc zmiany w trakcie tygodnia wyglądają gorzej.</p>
+      <p className="text-2xs font-medium text-text-muted">Porównanie obejmuje te same dni tygodnia, do dziś.</p>
 
       <div className="flex gap-2">
         <Pressable

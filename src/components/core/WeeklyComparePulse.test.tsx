@@ -42,7 +42,7 @@ describe('WeeklyComparePulse', () => {
   it('pokazuje kilka liczb z porównaniem do poprzedniego tygodnia', () => {
     render(<WeeklyComparePulse />);
     expect(screen.getByText('Umówieni')).toBeTruthy();
-    expect(screen.getByText('+5 vs poprzedni')).toBeTruthy();
+    expect(screen.getByText('+5 względem poprzedniego')).toBeTruthy();
     expect(screen.getAllByText('brak porównania')).toHaveLength(1);
     expect(screen.getByText('Treningi')).toBeTruthy();
   });

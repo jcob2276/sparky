@@ -38,7 +38,7 @@ export const ChronicleExportModal = memo(function ChronicleExportModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Eksport & Kopia Danych"
+      title="Eksport danych"
       subtitle="Pobierz pełny raport w formacie Markdown lub skopiuj do schowka"
       size="lg"
       padding="p-4 sm:p-6"

@@ -3554,8 +3554,8 @@ progress,
 .finance-reference-subcategory strong { color: var(--finance-ink); font-variant-numeric: tabular-nums; }
 .finance-reference-subcategory:active { background: color-mix(in srgb, var(--finance-edge) 55%, transparent); }
 .finance-reference button, .finance-reference-dock button, [data-touch-sheet] button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.finance-sheet-grabber { display: grid; place-items: center; min-height: 34px; flex-shrink: 0; touch-action: none; cursor: grab; }
-.finance-sheet-grabber::before { content: ''; width: 36px; height: 5px; border-radius: 999px; background: var(--text-muted); opacity: .34; }
+.ui-sheet-grabber { display: grid; place-items: center; min-height: 34px; flex-shrink: 0; touch-action: none; cursor: grab; }
+.ui-sheet-grabber::before { content: ''; width: 36px; height: 5px; border-radius: 999px; background: var(--text-muted); opacity: .34; }
 [data-touch-sheet] > :last-child { overscroll-behavior-y: contain; }
 @media (any-pointer: coarse) {
   .finance-reference input, .finance-reference select, [data-touch-sheet] input, [data-touch-sheet] select, [data-touch-sheet] textarea { font-size: max(16px, 1rem); }

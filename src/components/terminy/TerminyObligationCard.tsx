@@ -134,36 +134,21 @@ export function TerminyObligationCard({
     ? 'bg-warning/15 text-warning ring-1 ring-warning/30'
     : 'bg-surface-3/60 text-text-secondary ring-1 ring-border-custom/30';
 
+  const Details = onEdit ? Pressable : 'div';
+  const name = [row.item.title, row.item.related_name].filter(Boolean).join(' · ');
+
   return (
     <article
-      role={onEdit ? 'button' : undefined}
-      tabIndex={onEdit ? 0 : undefined}
-      onClick={onEdit}
-      onKeyDown={
-        onEdit
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onEdit();
-              }
-            }
-          : undefined
-      }
       className={`group relative flex flex-wrap items-center sm:flex-nowrap ${
         compact ? 'gap-2.5 rounded-lg p-2.5' : 'gap-3.5 rounded-[20px] p-3.5'
-      } border border-border-custom/30 bg-surface-solid/70 shadow-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
-        onEdit ? 'cursor-pointer' : ''
-      }`}
+      } border border-border-custom/30 bg-surface-solid/70 shadow-xs transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md`}
     >
       {/* Apple Reminders Completion Button */}
       {onComplete && (
         <Pressable
-          onClick={(e) => {
-            e.stopPropagation();
-            onComplete();
-          }}
+          onClick={() => onComplete()}
           aria-label="Oznacz jako odnowione/zrealizowane"
-          className="group/check shrink-0 rounded-full p-1 text-text-muted hover:text-primary transition-colors"
+          className="group/check grid h-11 w-11 shrink-0 place-items-center rounded-full text-text-muted hover:text-primary transition-colors"
         >
           <Circle size={20} className="block group-hover/check:hidden text-text-muted/60" strokeWidth={1.75} />
           <CheckCircle2 size={20} className="hidden group-hover/check:block text-primary" strokeWidth={2.2} />
@@ -173,19 +158,20 @@ export function TerminyObligationCard({
       <ObligationProgressRing row={row} kind={kind} compact={compact} reduceMotion={reduceMotion} />
 
       {/* Info Block */}
-      <div className="min-w-0 flex-1 basis-[calc(100%-6rem)] space-y-0.5 sm:basis-auto">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-semibold tracking-tight text-text-primary">
+      <Details onClick={onEdit} aria-label={onEdit ? `Edytuj termin: ${name}` : undefined}
+        className="block min-h-11 min-w-0 flex-1 basis-[calc(100%-6rem)] space-y-0.5 text-left sm:basis-auto">
+        <span className="flex items-center gap-2">
+          <span className="truncate text-sm font-semibold tracking-tight text-text-primary">
             {row.item.title}
-          </p>
+          </span>
           {row.item.related_name && (
             <span className="truncate text-xs font-normal text-text-muted">
               · {row.item.related_name}
             </span>
           )}
-        </div>
+        </span>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-muted">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-muted">
           <span>{LIFE_OBLIGATION_KIND_LABELS[row.item.kind as LifeObligationKind]}</span>
           <span>·</span>
           <span>{formatLongDateWarsaw(row.nextDate)}</span>
@@ -195,15 +181,15 @@ export function TerminyObligationCard({
               (row.item.recurrence as LifeObligationRecurrence) || 'yearly'
             ]}
           </span>
-        </div>
+        </span>
 
         {row.item.notes && (
-          <p className="flex items-center gap-1 text-xs text-text-muted/90 truncate pt-0.5">
+          <span className="flex items-center gap-1 text-xs text-text-muted/90 truncate pt-0.5">
             <FileSpreadsheet size={11} strokeWidth={2} className="shrink-0 text-primary/80" />
             <span className="truncate">{row.item.notes}</span>
-          </p>
+          </span>
         )}
-      </div>
+      </Details>
 
       {/* Actions & Urgency Pill */}
       <div className="flex w-full shrink-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end">
@@ -214,10 +200,7 @@ export function TerminyObligationCard({
 
         {onConvertToTodo && (
           <Pressable
-            onClick={(e) => {
-              e.stopPropagation();
-              onConvertToTodo();
-            }}
+            onClick={() => onConvertToTodo()}
             className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj zadanie do Todo"
             aria-label="Dodaj zadanie do Todo"
@@ -228,10 +211,7 @@ export function TerminyObligationCard({
 
         {onAddToCalendar && (
           <Pressable
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCalendar(row);
-            }}
+            onClick={() => onAddToCalendar(row)}
             className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj do Kalendarza Sparky"
             aria-label="Dodaj do Kalendarza Sparky"
@@ -242,10 +222,7 @@ export function TerminyObligationCard({
 
         {onExportICS && (
           <Pressable
-            onClick={(e) => {
-              e.stopPropagation();
-              onExportICS(row);
-            }}
+            onClick={() => onExportICS(row)}
             className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Eksportuj do pliku iCal (.ics)"
             aria-label="Eksportuj do pliku iCal (.ics)"
@@ -255,10 +232,7 @@ export function TerminyObligationCard({
         )}
 
         <Pressable
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
+          onClick={() => onDelete()}
           className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-60 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out hover:bg-danger/10 hover:text-danger hover:opacity-100 active:scale-90 group-hover:opacity-100"
           aria-label="Usuń termin"
         >

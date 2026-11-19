@@ -109,7 +109,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
             {side === 'bottom' && (
               <div
                 aria-label="Przeciągnij, aby zamknąć"
-                className={handleDragOnly ? 'finance-sheet-grabber' : 'ios-sheet-handle'}
+                className={handleDragOnly ? 'ui-sheet-grabber' : 'ios-sheet-handle'}
                 onPointerDown={handleDragOnly && !reduceMotion ? (event) => dragControls.start(event) : undefined}
               />
             )}

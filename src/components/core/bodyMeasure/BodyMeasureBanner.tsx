@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { AlertTriangle, Ruler, Scale } from 'lucide-react';
+import { Ruler, Scale } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useBodyReminders, useSaveBodyEntry } from '../../../lib/health/bodyRemindersApi';
 import { isActionable, type BodyReminder, type BodyReminderKind } from '../../../lib/health/bodyReminders';
 import BodyMeasureSheet from './BodyMeasureSheet';
 
-const LABEL: Record<BodyReminderKind, string> = { weight: 'wagę i talię', tape: 'obwody (klatka, brzuch, biodra, ramię, udo, łydka, szyja)' };
+const LABEL: Record<BodyReminderKind, string> = { weight: 'Waga i talia', tape: 'Obwody ciała' };
 
 function ageText(item: BodyReminder): string {
   if (item.ageDays === null) return 'Jeszcze nic nie wpisano.';
@@ -19,21 +19,22 @@ function Row({ item, onOpen }: { item: BodyReminder; onOpen: () => void }) {
     <div
       role={overdue ? 'alert' : undefined}
       className={`flex items-center gap-3 rounded-[var(--radius-grouped)] border p-3.5 ${
-        overdue ? 'border-danger/60 bg-danger/10 motion-safe:animate-pulse' : 'border-warning/40 bg-warning/10'
+        overdue ? 'border-danger/30 bg-danger/5' : 'border-warning/40 bg-warning/10'
       }`}
     >
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${overdue ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'}`}>
-        {overdue ? <AlertTriangle size={17} /> : <Icon size={17} />}
+        <Icon size={17} aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-semibold ${overdue ? 'text-danger' : 'text-text-primary'}`}>
-          {overdue ? `Obowiązek: wpisz ${LABEL[item.kind]}` : `Czas wpisać ${LABEL[item.kind]}`}
+          {LABEL[item.kind]}
         </p>
-        <p className="text-xs text-text-secondary">{ageText(item)} Mierzymy co {item.everyDays} dni.</p>
+        <p className="text-xs text-text-secondary">{overdue ? 'Po terminie' : 'Do wpisania dziś'} · {ageText(item)}</p>
       </div>
       <Pressable
         type="button"
         onClick={onOpen}
+        aria-label={`Wpisz pomiar: ${LABEL[item.kind]}`}
         className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold active:scale-95 ${overdue ? 'bg-danger text-on-accent' : 'bg-primary text-on-accent'}`}
       >
         Wpisz
@@ -42,7 +43,7 @@ function Row({ item, onOpen }: { item: BodyReminder; onOpen: () => void }) {
   );
 }
 
-/** Na Dziś: spokojne przypomnienie w dniu terminu, a po jego przekroczeniu czerwony, pulsujący obowiązek aż do wpisu. */
+/** Na Dziś: spokojne przypomnienie w dniu terminu, a po jego przekroczeniu oznaczenie zaległości aż do wpisu. */
 export default function BodyMeasureBanner({ userId }: { userId: string }) {
   const { reminders, rows, loading } = useBodyReminders(userId);
   const save = useSaveBodyEntry(userId, rows);

@@ -36,12 +36,6 @@ import { SidebarProvider, SidebarTrigger } from '../ui/sidebar';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import SidebarSection from '../shared/SidebarSection';
 
-const STATUS_TABS: { id: 'unread' | 'read' | 'all'; label: string }[] = [
-  { id: 'unread', label: 'Nieprzeczytane' },
-  { id: 'read',   label: 'Przeczytane' },
-  { id: 'all',    label: 'Wszystkie' },
-];
-
 export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?: (dest: string) => void }) {
   const haptics = useHaptics();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -142,7 +136,10 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
           onBack={onBack}
           leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz nawigację" />}
           center={isNarrow ? undefined : searchField}
-          secondaryRow={isNarrow ? <div className="px-[var(--space-4)] pt-2">{searchField}</div> : undefined}
+          secondaryRow={<div className="mx-auto w-full max-w-[var(--ds-maxw-640px)] space-y-1 px-5 py-2">
+            {isNarrow && searchField}
+            <LinksFilterPills activeFilter={d.quickFilter} onChangeFilter={d.setQuickFilter} counts={d.filterCounts} />
+          </div>}
           actions={
             <>
               <Pressable
@@ -178,36 +175,20 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
               <Pressable
                 variant="tonal"
                 size="sm"
-                onClick={() => { d.setShowAddForm(p => !p); d.setAddUrl(''); }}
+                onClick={() => d.setShowAddForm(p => !p)}
+                aria-expanded={d.showAddForm}
+                aria-controls="pocket-quick-capture"
                 aria-label={d.showAddForm ? 'Zamknij formularz dodawania linku' : 'Dodaj link'}
                 icon={d.showAddForm ? <X size={15} /> : <Plus size={15} />}
               />
             </>
           }
-          tabs={{
-            items: STATUS_TABS.map((tab) => ({ key: tab.id, label: tab.label })),
-            active: (d.quickFilter === 'read' || d.quickFilter === 'unread' || d.quickFilter === 'all') ? d.quickFilter : 'all',
-            onChange: (key) => {
-              haptic([4]);
-              d.setQuickFilter(key as 'unread' | 'read' | 'all');
-            },
-          }}
         />
 
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-[var(--ds-maxw-640px)] mx-auto px-5 py-4 pb-24 space-y-3.5">
-            {/* Quick Capture Bar & Smart Filter Pills */}
-            <div className="space-y-2.5 pb-1">
-              <LinksQuickCapture
-                onAddLink={async (url) => { await d.handleAddLink(url); }}
-                loading={d.addLoading}
-              />
-              <LinksFilterPills
-                activeFilter={d.quickFilter}
-                onChangeFilter={d.setQuickFilter}
-                counts={d.filterCounts}
-              />
-            </div>
+            <LinksQuickCapture expanded={d.showAddForm} setExpanded={d.setShowAddForm} url={d.addUrl}
+              setUrl={d.setAddUrl} onAddLink={d.handleAddLink} loading={d.addLoading} />
 
             {d.sharingStatus && (
               <div className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary text-sm font-semibold rounded-[var(--radius-md)]">

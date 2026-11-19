@@ -51,8 +51,7 @@ export default function MedicalHeader({ series, documents, onImportClick, onView
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold font-display tracking-tight">Badania i Analizy</h1>
-          <p className="text-sm text-text-muted mt-1">Zaufane centrum dokumentacji zdrowotnej i decyzji</p>
+          <h2 className="text-3xl font-semibold font-display tracking-tight">Wyniki badań</h2>
         </div>
         <Button
           variant="outline"

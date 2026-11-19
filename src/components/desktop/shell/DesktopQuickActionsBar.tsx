@@ -33,7 +33,8 @@ export default function DesktopQuickActionsBar({
               key={id}
               variant="ghost"
               onClick={() => onTabChange(id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold ui-interactive min-w-0 ${
+              aria-pressed={isActive}
+              className={`flex-1 flex items-center justify-center gap-1.5 min-h-11 py-2 px-2 rounded-lg text-xs font-bold ui-interactive min-w-0 ${
                 isActive
                   ? 'bg-primary text-on-accent shadow-sm font-semibold'
                   : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'

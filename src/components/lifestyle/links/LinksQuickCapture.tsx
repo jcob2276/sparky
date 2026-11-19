@@ -1,20 +1,18 @@
-import { useState } from 'react';
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import { ClipboardPaste, Link2, Plus, X } from 'lucide-react';
 import Spinner from '../../ui/Spinner';
 import { notify } from '../../../lib/notify';
-import { CATEGORIES } from './linksUtils';
 
 interface LinksQuickCaptureProps {
-  onAddLink: (url: string, category?: string) => Promise<void>;
+  onAddLink: (url: string) => Promise<void>;
+  expanded: boolean;
+  setExpanded: (value: boolean) => void;
+  url: string;
+  setUrl: (value: string) => void;
   loading: boolean;
 }
 
-export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [url, setUrl] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Inne');
-
+export function LinksQuickCapture({ expanded, setExpanded, url, setUrl, onAddLink, loading }: LinksQuickCaptureProps) {
   const handlePasteClipboard = async () => {
     if (!navigator.clipboard?.readText) {
       notify('Schowek jest niedostępny na tym urządzeniu.', 'error');
@@ -36,32 +34,31 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     const raw = url.trim();
     const match = raw.match(/https?:\/\/[^\s]+/);
     if (!match) {
       notify('Podaj prawidłowy adres URL zaczynający się od http:// lub https://', 'error');
       return;
     }
-    await onAddLink(match[0], selectedCategory);
-    setUrl('');
-    setExpanded(false);
+    await onAddLink(match[0]);
   };
 
   return (
-    <div
+    <div id="pocket-quick-capture"
       className={`mx-auto w-full max-w-[var(--ds-maxw-640px)] rounded-lg border border-border-custom/40 bg-surface-solid/40 transition-all duration-[var(--motion-medium)] backdrop-blur-md shadow-xs ${
         expanded ? 'p-3.5 shadow-md border-border-custom' : 'px-3.5 py-2 hover:border-border-custom'
       }`}
     >
       {!expanded ? (
         <div className="flex items-center justify-between gap-2.5">
-          <div
-            className="flex items-center gap-2 text-text-muted flex-1 text-sm font-medium cursor-text select-none"
+          <Pressable type="button"
+            className="flex min-h-11 flex-1 items-center gap-2 text-left text-sm font-medium text-text-muted"
             onClick={() => setExpanded(true)}
           >
             <Plus size={16} className="text-primary shrink-0" />
-            <span>Zapisz artykuł, wideo lub link...</span>
-          </div>
+            <span>Zapisz artykuł, wideo lub link</span>
+          </Pressable>
           <Pressable
             onClick={handlePasteClipboard}
             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-solid rounded-lg transition-colors btn-press cursor-pointer"
@@ -78,6 +75,8 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
             <ControlInput
               autoFocus
               type="url"
+              aria-label="Adres linku"
+              disabled={loading}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://..."
@@ -97,6 +96,8 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
                 variant="ghost"
                 size="sm"
                 onClick={() => setUrl('')}
+                aria-label="Wyczyść adres"
+                disabled={loading}
                 className="p-1 text-text-muted hover:text-text-primary"
               >
                 <X size={13} />
@@ -104,39 +105,21 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-custom/20">
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
-              {CATEGORIES.map((cat) => (
-                <Pressable
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-2 py-0.5 rounded-full text-2xs font-semibold ui-interactive btn-press ${
-                    selectedCategory === cat
-                      ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'bg-surface-solid/60 text-text-muted hover:text-text-primary'
-                  }`}
-                >
-                  {cat}
-                </Pressable>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Pressable
-                onClick={() => setExpanded(false)}
-                className="px-2.5 py-1 text-xs font-semibold text-text-muted hover:text-text-primary rounded-lg cursor-pointer"
-              >
-                Anuluj
-              </Pressable>
-              <Pressable
-                onClick={handleSubmit}
-                disabled={loading || !url.trim()}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-accent text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs btn-press cursor-pointer disabled:opacity-40"
-              >
-                {loading ? <Spinner size="sm" className="h-3 w-3" /> : <Plus size={13} />}
-                <span>Zapisz</span>
-              </Pressable>
-            </div>
+          <div className="flex items-center justify-end gap-1.5 border-t border-border-custom/20 pt-2">
+            <Pressable
+              onClick={() => setExpanded(false)}
+              className="px-2.5 py-1 text-xs font-semibold text-text-muted hover:text-text-primary rounded-lg cursor-pointer"
+            >
+              Anuluj
+            </Pressable>
+            <Pressable
+              onClick={handleSubmit}
+              disabled={loading || !url.trim()}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-accent text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs btn-press cursor-pointer disabled:opacity-40"
+            >
+              {loading ? <Spinner size="sm" className="h-3 w-3" /> : <Plus size={13} />}
+              <span>Zapisz</span>
+            </Pressable>
           </div>
         </div>
       )}
