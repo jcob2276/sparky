@@ -1,12 +1,11 @@
 import { Pressable } from '../ui/ControlPrimitives';
-import { RETURNED_PURCHASE_LABEL } from '@vanguard/domain';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import type { FinanceTransaction } from '../../lib/financeApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { FinanceMonthlyFlowsChart } from './FinanceMonthlyFlowsChart';
-import { financePeriodBounds, financePeriodTotals, financeRecordsInRange, movement, type FinancePeriod } from './financeReferencePeriods';
+import { financePeriodBounds, financePeriodTotals, financeRecordsInRange, financeStatisticsRecords, movement, type FinancePeriod } from './financeReferencePeriods';
 import { formatMonthLabel } from './financeNarrative';
 
 const SCALES = [['week', 'Tydzień'], ['month', 'Miesiąc'], ['year', 'Rok']] as const;
@@ -51,7 +50,7 @@ export default function FinanceReferenceAnalysis({ transactions }: { transaction
   const elapsed = (Date.parse(today) - Date.parse(start)) / 86_400_000;
   const previousLimit = partial ? [previousEnd, shiftDateStr(previousStart, elapsed)].sort()[0] : previousEnd;
   const currentRange = { from: start, to: partial ? today : end };
-  const included = transactions.filter((tx) => tx.source !== 'bank' || tx.category !== RETURNED_PURCHASE_LABEL);
+  const included = financeStatisticsRecords(transactions);
   const current = financeRecordsInRange(included, currentRange);
   const earlier = financeRecordsInRange(included, { from: previousStart, to: previousLimit });
   const value = financePeriodTotals(current);

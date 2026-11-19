@@ -47,7 +47,7 @@ it('shows both savings transfer directions for the confirmed IBAN outside income
     transactions: [
       ...bank.transactions,
       { ...bank.transactions[0], id: 'deposit', category: 'przelewy_wlasne', amount: -500, counterparty_iban: confirmed },
-      { ...bank.transactions[0], id: 'withdrawal', category: 'przelewy_wlasne', amount: 300, counterparty_iban: confirmed },
+      { ...bank.transactions[0], id: 'withdrawal', category: 'wplyw', amount: 300, counterparty_iban: confirmed },
       { ...bank.transactions[0], id: 'other-bank', category: 'przelewy_wlasne', amount: 250, counterparty_iban: 'PL00000000000000000000000000' },
     ],
   }, '2026-11-07');
