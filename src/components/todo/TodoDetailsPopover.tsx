@@ -14,7 +14,7 @@ interface Props {
 const WIDTH = 372;
 const GAP = 12;
 const MARGIN = 8;
-const WIDE_MIN = 640;
+const WIDE_MIN = 768;
 
 interface Placement {
   mode: 'popover' | 'sheet';

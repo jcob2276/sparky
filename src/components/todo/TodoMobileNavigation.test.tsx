@@ -36,6 +36,8 @@ it('opens mobile navigation and closes it after choosing Studia', async () => {
 
   fireEvent.click(screen.getByRole('button', { name: 'Otwórz nawigację zadań' }));
   const navigation = await screen.findByRole('dialog', { name: 'Zadania' });
+  expect(navigation.hasAttribute('data-touch-sheet')).toBe(true);
+  expect(within(navigation).queryByText('Workspace')).toBeNull();
   fireEvent.click(within(navigation).getByText('Studia'));
 
   expect(selectSection).toHaveBeenCalledWith('studia');

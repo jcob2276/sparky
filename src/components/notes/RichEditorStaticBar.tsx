@@ -47,6 +47,7 @@ const GROUPS: BarButton[][] = [
 ];
 
 export default function RichEditorStaticBar({ activeState, showStaticBar, onAction, docked }: Props) {
+  const originRef = useRef<HTMLSpanElement>(null);
   const staticBarRef = useRef<HTMLDivElement>(null);
   const [viewportBounds, setViewportBounds] = useState({ bottom: 0, left: 0, right: 0 });
   const [hasMore, setHasMore] = useState(false);
@@ -62,13 +63,16 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     if (!showStaticBar || !docked) return;
     const viewport = window.visualViewport;
     if (!viewport) return;
+    const scroller = originRef.current?.closest('.keep-inline-editor')?.querySelector<HTMLElement>('[data-note-scroll]');
     let frame = 0;
     const reposition = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const layout = document.documentElement;
+        const bottom = Math.max(0, layout.clientHeight - viewport.height - viewport.offsetTop);
+        scroller?.style.setProperty('--note-keyboard-inset', `${bottom}px`);
         setViewportBounds({
-          bottom: Math.max(0, layout.clientHeight - viewport.height - viewport.offsetTop),
+          bottom,
           left: Math.max(0, viewport.offsetLeft),
           right: Math.max(0, layout.clientWidth - viewport.width - viewport.offsetLeft),
         });
@@ -80,6 +84,7 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     window.addEventListener('resize', reposition);
     return () => {
       cancelAnimationFrame(frame);
+      scroller?.style.removeProperty('--note-keyboard-inset');
       viewport.removeEventListener('resize', reposition);
       viewport.removeEventListener('scroll', reposition);
       window.removeEventListener('resize', reposition);
@@ -141,5 +146,5 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
       {formatAnchor && <RichEditorFormatPopover anchor={formatAnchor} state={activeState} onAction={onAction} onClose={() => setFormatAnchor(null)} />}
     </div>
   );
-  return docked ? createPortal(bar, document.body) : bar;
+  return docked ? <><span ref={originRef} hidden />{createPortal(bar, document.body)}</> : bar;
 }

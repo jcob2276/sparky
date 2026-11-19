@@ -109,16 +109,16 @@ export default function KeepSidebar({
   };
 
   return (
-    <WorkspaceSidebar provideContext={false} mobileTitle="Notatki">
-      <WorkspaceNavigation active="keep" onNavigate={goTo} />
+    <WorkspaceSidebar mobileBottomSheet provideContext={false} mobileTitle="Notatki">
+      <WorkspaceNavigation active="keep" onNavigate={(destination) => { setOpenMobile(false); if (destination !== 'keep') goTo(destination); }} />
       <div className="keep-sidebar-separator" />
 
       <SidebarSection
-        label="Notatki"
+        label="Biblioteka"
         items={[
           {
             id: 'notes',
-            label: 'Notatki',
+            label: 'Wszystkie notatki',
             icon: <CheckSquare size={15} />,
             count: notes.filter(n => !n.is_archived).length,
             active: sidebarTab === 'notes' && !activeTag && !activeFolderId && !activeSmartFolderId && !tagFilter.tags.length,
