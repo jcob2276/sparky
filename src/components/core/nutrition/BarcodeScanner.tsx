@@ -11,17 +11,31 @@ declare global {
   }
 }
 
-async function createDecoder() {
-  const formats = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
-  if (window.BarcodeDetector) {
-    try {
-      const detector = new window.BarcodeDetector({ formats });
-      return async (video: HTMLVideoElement) => (await detector.detect(video))[0]?.rawValue;
-    } catch {
-      // Some implementations expose the API without supporting these formats.
-    }
+const barcodeFormats = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
+
+function createDecoder() {
+  let detector: InstanceType<NonNullable<Window['BarcodeDetector']>> | undefined;
+  try {
+    if (window.BarcodeDetector) detector = new window.BarcodeDetector({ formats: barcodeFormats });
+  } catch {
+    // The browser may expose the API without supporting these formats.
   }
 
+  let softwareDecoder: ReturnType<typeof createSoftwareDecoder> | undefined;
+  return async (video: HTMLVideoElement) => {
+    if (detector) {
+      try {
+        return (await detector.detect(video))[0]?.rawValue;
+      } catch {
+        detector = undefined;
+      }
+    }
+    softwareDecoder ??= createSoftwareDecoder();
+    return (await softwareDecoder)(video);
+  };
+}
+
+async function createSoftwareDecoder() {
   const { BarcodeFormat, BrowserMultiFormatReader, DecodeHintType, NotFoundException, ChecksumException, FormatException } =
     await import('@zxing/library');
   const reader = new BrowserMultiFormatReader(new Map([
@@ -71,23 +85,23 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         const track = stream.getVideoTracks()[0];
         trackRef.current = track ?? null;
         setTorchSupported(Boolean(track && (track.getCapabilities?.() as { torch?: boolean } | undefined)?.torch));
-        if (track && 'applyConstraints' in track) {
-          try {
-            // @ts-expect-error advanced focusMode is supported on Chromium mobile
-            await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-          } catch {
-            // Not supported on all devices, safe to ignore
-          }
-        }
         const video = videoRef.current;
         if (stopped || !video) return;
         video.srcObject = stream;
         await video.play();
-        const decode = await createDecoder();
+        if (track && 'applyConstraints' in track) {
+          try {
+            // @ts-expect-error advanced focusMode is supported on Chromium mobile
+            void track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => { /* Optional camera capability */ });
+          } catch {
+            // Not supported on all devices, safe to ignore
+          }
+        }
+        const decode = createDecoder();
         const scan = async () => {
           if (stopped) return;
           try {
-            const code = video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+            const code = video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0
               ? (await decode(video))?.replace(/[\s-]+/g, '')
               : undefined;
             if (stopped) return;
@@ -143,7 +157,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
       <Pressable onClick={onClose} className="touch-manipulation text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
       {cameraAvailable && !cameraError ? (
         <div className="relative rounded-lg overflow-hidden bg-scrim aspect-square">
-          <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
+          <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
           <div className="absolute inset-8 border-2 border-primary/70 rounded-lg pointer-events-none" />
           {torchSupported && (
             <Pressable onClick={() => { void toggleTorch(); }} aria-label={torchOn ? 'Wyłącz latarkę' : 'Włącz latarkę'} aria-pressed={torchOn}

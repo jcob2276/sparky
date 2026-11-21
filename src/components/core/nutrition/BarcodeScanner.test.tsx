@@ -19,10 +19,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('opens the rear camera and reports a barcode without BarcodeDetector', async () => {
-  vi.stubGlobal('BarcodeDetector', undefined);
+it.each([false, true])('reads a barcode with the software decoder (failing native detector: %s)', async (nativeFails) => {
+  const detect = vi.fn().mockRejectedValue(new Error('Native detection unavailable'));
+  vi.stubGlobal('BarcodeDetector', nativeFails ? class { detect = detect; } : undefined);
   vi.stubGlobal('HTMLMediaElement', Object.assign(class {}, { HAVE_CURRENT_DATA: 2 }));
-  vi.spyOn(HTMLVideoElement.prototype, 'play').mockResolvedValue();
+  vi.spyOn(HTMLVideoElement.prototype, 'play').mockImplementation(async function (this: HTMLVideoElement) {
+    Object.defineProperties(this, { videoWidth: { value: 1280 }, videoHeight: { value: 720 } });
+  });
   vi.spyOn(HTMLVideoElement.prototype, 'readyState', 'get').mockReturnValue(2);
   const stop = vi.fn();
   const stream = Object.assign(new MediaStream(), {
