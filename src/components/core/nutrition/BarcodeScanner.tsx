@@ -61,6 +61,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
+  const lastScannedCode = useRef<string | null>(null);
   const trackRef = useRef<MediaStreamTrack | null>(null);
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
@@ -68,7 +69,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   const scanCode = useEffectEvent((code: string) => onDetected(code));
 
   useEffect(() => {
-    if (!cameraAvailable || loading) return;
+    if (!cameraAvailable || cameraError || loading) return;
     let stream: MediaStream | null = null;
     let stopped = false;
     let scanTimer: ReturnType<typeof setTimeout> | undefined;
@@ -84,6 +85,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
         const track = stream.getVideoTracks()[0];
         trackRef.current = track ?? null;
+        setTorchOn(false);
         setTorchSupported(Boolean(track && (track.getCapabilities?.() as { torch?: boolean } | undefined)?.torch));
         const video = videoRef.current;
         if (stopped || !video) return;
@@ -105,9 +107,9 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
               ? (await decode(video))?.replace(/[\s-]+/g, '')
               : undefined;
             if (stopped) return;
-            if (code) {
+            if (code && code !== lastScannedCode.current) {
+              lastScannedCode.current = code;
               scanCode(code);
-              return;
             }
           } catch (error) {
             if (stopped) return;
@@ -127,7 +129,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
       }
     })();
     return () => { stopped = true; clearTimeout(scanTimer); stream?.getTracks().forEach((t) => t.stop()); trackRef.current = null; };
-  }, [cameraAvailable, loading]);
+  }, [cameraAvailable, cameraError, loading]);
 
   // Skaner otwiera się pod formularzem: wyśrodkuj go, żeby nie trzeba było przewijać palcem.
   useEffect(() => {
@@ -149,7 +151,10 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
 
   const handleManualSubmit = () => {
     const clean = manualCode.replace(/[\s-]+/g, '').trim();
-    if (clean) onDetected(clean);
+    if (!loading && clean) {
+      lastScannedCode.current = clean;
+      onDetected(clean);
+    }
   };
 
   return (

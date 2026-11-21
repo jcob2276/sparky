@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { lookupFoodBarcode, searchExternalFoods, searchPrivateFoodLibrary } from '../../../../lib/health/foodSearch';
 import { type FoodBase, scale } from './foodEntryUtils';
@@ -18,7 +18,8 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selected, setSelected] = useState<FoodBase | null>(null);
   const [grams, setGrams] = useState('100');
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerOpen, setScannerOpenState] = useState(false);
+  const barcodePending = useRef(false);
   const [externalResults, setExternalResults] = useState<FoodBase[]>([]);
 
   const setQuery = useCallback((value: string) => {
@@ -60,37 +61,50 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
     externalMutation.mutate();
   }, [externalMutation, setError]);
 
-  const barcodeMutation = useMutation({
+  const { mutate: mutateBarcode, reset: resetBarcode, isPending: scanLookingUp } = useMutation({
     mutationFn: lookupFoodBarcode,
-    onSuccess: (result) => {
-      setScannerOpen(false);
-      if (result) {
-        haptics.success();
-        notify(`Znaleziono: ${result.name}`, 'success');
-        if (onBarcodePicked) {
-          onBarcodePicked(result);
-          return;
-        }
-        setSelected(result);
-        setGrams(String(result.defaultGrams ?? 100));
-        return;
-      }
-      haptics.error();
-      notify('Nie znaleziono kodu kreskowego — wpisz nazwę w wyszukiwarce', 'error');
-      setError('Nie znaleziono kodu — wpisz nazwę lub zeskanuj etykietę');
-      setTimeout(() => searchInputRef.current?.focus(), 50);
-    },
-    onError: () => {
-      haptics.error();
-      notify('Błąd wyszukiwania kodu kreskowego', 'error');
-      setError('Wyszukiwanie po kodzie nie powiodło się');
-    },
   });
 
-  const lookupBarcode = useCallback(async (code: string) => {
+  const setScannerOpen = useCallback((open: boolean) => {
+    if (!open) {
+      // Detach callbacks for any lookup that finishes after dismissal.
+      resetBarcode();
+      barcodePending.current = false;
+    }
+    setScannerOpenState(open);
+  }, [resetBarcode]);
+
+  const lookupBarcode = useCallback((code: string) => {
+    if (barcodePending.current) return;
+    barcodePending.current = true;
     setError(null);
-    await barcodeMutation.mutateAsync(code);
-  }, [barcodeMutation, setError]);
+    mutateBarcode(code, {
+      onSuccess: (result) => {
+        setScannerOpen(false);
+        if (result) {
+          haptics.success();
+          notify(`Znaleziono: ${result.name}`, 'success');
+          if (onBarcodePicked) {
+            onBarcodePicked(result);
+            return;
+          }
+          setSelected(result);
+          setGrams(String(result.defaultGrams ?? 100));
+          return;
+        }
+        haptics.error();
+        notify('Nie znaleziono kodu kreskowego — wpisz nazwę w wyszukiwarce', 'error');
+        setError('Nie znaleziono kodu — wpisz nazwę lub zeskanuj etykietę');
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      },
+      onError: () => {
+        barcodePending.current = false;
+        haptics.error();
+        notify('Błąd wyszukiwania kodu kreskowego', 'error');
+        setError('Wyszukiwanie po kodzie nie powiodło się');
+      },
+    });
+  }, [haptics, mutateBarcode, onBarcodePicked, searchInputRef, setError, setScannerOpen]);
 
   const preview = useMemo(() => {
     const gramsNum = parseInt(grams, 10) || 0;
@@ -109,6 +123,6 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
     externalSearched: externalMutation.isSuccess,
     searchExternal,
     selected, setSelected, grams, setGrams, scannerOpen, setScannerOpen,
-    scanLookingUp: barcodeMutation.isPending, lookupBarcode, preview,
+    scanLookingUp, lookupBarcode, preview,
   };
 }
