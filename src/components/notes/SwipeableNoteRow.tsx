@@ -196,7 +196,8 @@ export default function SwipeableNoteRow({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerCancel}
-      onLostPointerCapture={pointerCancel}
+      // Po puszczeniu palca przeglądarka zawsze zwalnia przechwycenie; to nie jest anulowanie gestu.
+      onLostPointerCapture={() => { if (dragging.current) pointerCancel(); }}
       onKeyDown={event => { if (event.key === 'Escape') close(); }}
     >
       <SwipeActions

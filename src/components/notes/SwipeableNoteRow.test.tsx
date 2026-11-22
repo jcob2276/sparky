@@ -22,6 +22,22 @@ describe('SwipeableNoteRow', () => {
     expect(screen.getByRole('button', { name: 'Usuń' })).toBeVisible();
   });
 
+  it('keeps actions open when the browser releases pointer capture after the swipe', () => {
+    render(<SwipeableNoteRow
+      isPinned={false}
+      onTogglePin={vi.fn()}
+      onMove={vi.fn()}
+      onDelete={vi.fn()}
+    ><div>Notatka</div></SwipeableNoteRow>);
+    const row = screen.getByTestId('swipeable-note-row');
+    fireEvent.pointerDown(row, { pointerId: 1, clientX: 200, clientY: 100 });
+    fireEvent.pointerMove(row, { pointerId: 1, clientX: 80, clientY: 100 });
+    fireEvent.pointerUp(row, { pointerId: 1, clientX: 80, clientY: 100 });
+    fireEvent.lostPointerCapture(row, { pointerId: 1 });
+
+    expect(screen.getByRole('button', { name: 'Usuń' })).toBeVisible();
+  });
+
   it('does not capture a vertical scroll gesture', () => {
     render(<SwipeableNoteRow
       isPinned={false}
