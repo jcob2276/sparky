@@ -19,6 +19,12 @@ export default function TodayRunway() {
   const navigate = useNavigate();
   const { userId, today, todayItems, toggleExpand } = useTodoContext();
   const { events, nowMs } = useTodayCalendarEvents(userId, today);
+
+  // Only show the runway banner if there are actual timed calendar events or scheduled time blocks.
+  // Don't duplicate ordinary untimed tasks that already appear right below in the list.
+  const hasTimedBlocks = events.length > 0 || todayItems.some((t) => Boolean(t.scheduled_time));
+  if (!hasTimedBlocks) return null;
+
   const runway = buildTodayRunway(todayItems, events, nowMs);
   if (!runway.now) return null;
 

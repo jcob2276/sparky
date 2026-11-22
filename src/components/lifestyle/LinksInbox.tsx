@@ -170,6 +170,8 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
                 onClick={d.handleAiTriage}
                 title="Automatyczny Triage AI"
                 icon={<Sparkles size={15} />}
+                className="hidden sm:inline-flex"
+                aria-label="Automatyczny Triage AI"
               />
 
               <Pressable

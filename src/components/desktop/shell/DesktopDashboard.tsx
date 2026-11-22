@@ -84,14 +84,14 @@ export default function DesktopDashboard() {
           onOpenTools={() => setShowToolsModal(true)}
         />
 
-        <main className="px-4 sm:px-8 py-4 sm:py-6 max-w-[var(--ds-maxw-1600px)] mx-auto w-full overflow-x-hidden">
-          <div className="flex gap-8 items-start">
+        <main className="px-3.5 sm:px-8 py-4 sm:py-6 max-w-[var(--ds-maxw-1600px)] mx-auto w-full min-w-0 overflow-x-hidden">
+          <div className="flex gap-8 items-start min-w-0 w-full">
             <DesktopSectionNav
               activeTab={activeTab}
               onTabChange={setActiveTab}
               dailyStatus={strain?.daily_status || 'unknown'}
             />
-            <div className="flex-1 min-w-0 flex flex-col gap-4">
+            <div className="flex-1 min-w-0 w-full flex flex-col gap-4">
               <DesktopQuickActionsBar
                 activeTab={activeTab}
                 onTabChange={setActiveTab}

@@ -65,14 +65,12 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     if (!showStaticBar || !docked) return;
     const viewport = window.visualViewport;
     if (!viewport) return;
-    const scroller = originRef.current?.closest('.keep-inline-editor')?.querySelector<HTMLElement>('[data-note-scroll]');
     let frame = 0;
     const reposition = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const layout = document.documentElement;
         const bottom = Math.max(0, layout.clientHeight - viewport.height - viewport.offsetTop);
-        scroller?.style.setProperty('--note-keyboard-inset', `${bottom}px`);
         setViewportBounds({
           bottom,
           left: Math.max(0, viewport.offsetLeft),
@@ -82,13 +80,10 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
     };
     reposition();
     viewport.addEventListener('resize', reposition);
-    viewport.addEventListener('scroll', reposition);
     window.addEventListener('resize', reposition);
     return () => {
       cancelAnimationFrame(frame);
-      scroller?.style.removeProperty('--note-keyboard-inset');
       viewport.removeEventListener('resize', reposition);
-      viewport.removeEventListener('scroll', reposition);
       window.removeEventListener('resize', reposition);
     };
   }, [showStaticBar, docked]);

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sparky — Koncept Wizualny 2026 (Appllama / Velvet Glass)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      /* Default: BEVEL PLATINUM LUXE (Czysty, luksusowy, porcelanowy) */
+      --bg-page: #F6F7FA;
+      --card-bg: #FFFFFF;
+      --card-border: rgba(0, 0, 0, 0.06);
+      --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+      --text-main: #0F172A;
+      --text-sub: #64748B;
+      --text-muted: #94A3B8;
+      --accent: #0F172A;
+      --cta-bg: #0F172A;
+      --cta-text: #FFFFFF;
+      --ring-track: #E2E8F0;
+      --ring-val: #0F172A;
+      --bar-bg: #E2E8F0;
+      --nav-bg: rgba(255, 255, 255, 0.88);
+      --nav-border: rgba(0, 0, 0, 0.08);
+      --pill-bg: #0F172A;
+      --pill-text: #FFFFFF;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", -apple-system-ui-serif, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .pressable {
+      transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .pressable:active {
+      transform: scale(0.975);
+    }
+
+    .app-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      border-radius: 1.25rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen relative flex flex-col items-center pb-28 pt-4 px-3 sm:px-6">
+
+  <!-- Top Selector: 3 Prawdziwe Style Appllama -->
+  <header class="w-full max-w-md mx-auto mb-3 flex flex-col gap-2 z-10 px-1">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-bold tracking-wider uppercase opacity-60">Wybierz Styl:</span>
+      <span class="text-xs font-semibold opacity-70">Appllama Reference</span>
+    </div>
+    <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-black/5 dark:bg-white/10 text-xs font-bold">
+      <button onclick="applyStyle('bevel')" id="tab-bevel" class="py-2 rounded-xl bg-white shadow-sm text-slate-900 pressable">1. Bevel Luxe</button>
+      <button onclick="applyStyle('linear')" id="tab-linear" class="py-2 rounded-xl text-slate-500 hover:text-slate-800 pressable">2. Matte Slate</button>
+      <button onclick="applyStyle('oura')" id="tab-oura" class="py-2 rounded-xl text-slate-500 hover:text-slate-800 pressable">3. Warm Sand</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="w-full max-w-md relative z-10 space-y-3.5">
+
+    <!-- Screen 1: DZIŚ -->
+    <section id="screen-dzis" class="screen-view space-y-3.5">
+      
+      <!-- Greeting -->
+      <div class="flex items-center justify-between px-1 pt-1">
+        <div>
+          <h1 class="text-2xl font-black tracking-tight mt-0.5">Dzień Dobry, Marco</h1>
+        </div>
+        <div class="h-10 w-10 rounded-full border border-black/10 flex items-center justify-center font-bold text-xs bg-black/5">
+          MC
+        </div>
+      </div>
+
+      <!-- HERO 1: Gotowość / Recovery (Minimalistyczny Bevel) -->
+      <div class="app-card p-5 pressable">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <span class="px-2.5 py-0.5 rounded-full text-2xs font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-700">
+              ● Regeneracja optymalna
+            </span>
+            <div class="flex items-baseline gap-2 pt-1">
+              <span class="text-4xl font-black tracking-tighter">88</span>
+              <span class="text-xs font-semibold opacity-50">/ 100 pkt</span>
+            </div>
+            <p class="text-xs opacity-75 max-w-[200px] leading-relaxed pt-1">
+              HRV o <strong>+12%</strong> powyżej Twojej średniej. Gotowy na mocny dzień.
+            </p>
+          </div>
+
+          <!-- Circular Metric -->
+          <div class="relative w-22 h-22 flex items-center justify-center shrink-0">
+            <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="var(--ring-track)" stroke-width="8" fill="transparent" />
+              <circle cx="50" cy="50" r="40" stroke="var(--ring-val)" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="40" stroke-linecap="round" fill="transparent" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-2xs font-bold opacity-50">Sen</span>
+              <span class="text-sm font-black">7h 48m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Czyste Kafelki (Bevel Style, bez obramówek) -->
+        <div class="grid grid-cols-3 gap-2 pt-4 mt-3 border-t border-black/5 dark:border-white/5 text-center">
+          <div>
+            <span class="text-2xs font-bold uppercase opacity-50 block">Tętno</span>
+            <span class="text-sm font-bold tabular-nums">49 <small class="opacity-50">bpm</small></span>
+          </div>
+          <div>
+            <span class="text-2xs font-bold uppercase opacity-50 block">HRV</span>
+            <span class="text-sm font-bold tabular-nums">74 <small class="opacity-50">ms</small></span>
+          </div>
+          <div>
+            <span class="text-2xs font-bold uppercase opacity-50 block">Status</span>
+            <span class="text-sm font-bold text-emerald-600">Świetny</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NUTRITION (Czysty, elegancki z podziałem) -->
+      <div class="app-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-bold uppercase tracking-wider opacity-60">Energia Dnia</h2>
+            <p class="text-base font-extrabold mt-0.5 tabular-nums">1 860 <span class="text-xs font-normal opacity-50">/ 2 500 kcal</span></p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 opacity-80">Pozostało 640 kcal</span>
+        </div>
+
+        <!-- Czysty Pasek Postępu -->
+        <div class="h-2 w-full bg-[var(--bar-bg)] rounded-full overflow-hidden flex gap-0.5 p-0.5">
+          <div class="bg-slate-900 dark:bg-slate-100 h-full rounded-full" style="width: 74%"></div>
+        </div>
+
+        <!-- Makra jako 3 rzędy wiersza -->
+        <div class="grid grid-cols-3 gap-2 pt-1 text-xs text-center">
+          <div class="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.03]">
+            <span class="text-2xs uppercase font-bold opacity-50 block">Białko</span>
+            <span class="font-extrabold">142 <small class="opacity-60">/ 180g</small></span>
+          </div>
+          <div class="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.03]">
+            <span class="text-2xs uppercase font-bold opacity-50 block">Węgle</span>
+            <span class="font-extrabold">195 <small class="opacity-60">/ 250g</small></span>
+          </div>
+          <div class="p-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.03]">
+            <span class="text-2xs uppercase font-bold opacity-50 block">Tłuszcze</span>
+            <span class="font-extrabold">58 <small class="opacity-60">/ 75g</small></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTA POSIŁKU (Mealbird Luxe) -->
+      <div class="space-y-1.5">
+        <span class="text-2xs font-bold uppercase tracking-wider opacity-50 px-1 block">Rekomendowany Obiad</span>
+        <div class="app-card p-3 flex gap-3.5 items-center pressable">
+          <div class="w-18 h-18 rounded-xl overflow-hidden shrink-0 border border-black/10">
+            <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&auto=format&fit=crop&q=80" alt="Łosoś" class="w-full h-full object-cover">
+          </div>
+          <div class="flex-1 min-w-0 space-y-0.5">
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-black/5 dark:bg-white/10 opacity-70">Obiad</span>
+              <span class="text-xs font-bold text-emerald-600">46g Białka</span>
+            </div>
+            <h4 class="text-sm font-bold truncate">Pieczony Łosoś ze Szpinakiem</h4>
+            <p class="text-2xs opacity-60">620 kcal · 20 min przygotowania</p>
+          </div>
+          <button class="h-9 w-9 rounded-full bg-[var(--cta-bg)] text-[var(--cta-text)] flex items-center justify-center shrink-0 pressable shadow-sm">
+            ✓
+          </button>
+        </div>
+      </div>
+
+      <!-- POWERLIST (3 Zwycięstwa) -->
+      <div class="app-card p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider opacity-60">Priorytety Dnia</span>
+          <span class="text-xs font-bold opacity-75">2 / 3 gotowe</span>
+        </div>
+        <div class="space-y-1.5 text-xs">
+          <div class="flex items-center gap-2.5 p-2 rounded-lg opacity-40 line-through">
+            <span>✓</span>
+            <span>Trening Siłowy Push A</span>
+          </div>
+          <div class="flex items-center gap-2.5 p-2 rounded-lg opacity-40 line-through">
+            <span>✓</span>
+            <span>Architektura pipeline'u w repo</span>
+          </div>
+          <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] font-semibold">
+            <span class="h-4 w-4 rounded-full border-2 border-current inline-block"></span>
+            <span>Wieczorny spacer 30 min + sauna</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Pływający Dock (iOS Native Pill) -->
+  <nav class="fixed bottom-4 inset-x-0 mx-auto w-[90%] max-w-[360px] p-1.5 rounded-full bg-[var(--nav-bg)] backdrop-blur-xl border border-[var(--nav-border)] shadow-xl z-50 flex items-center justify-between">
+    <button class="flex-1 py-1.5 rounded-full text-center flex flex-col items-center justify-center font-bold text-xs bg-[var(--pill-bg)] text-[var(--pill-text)] shadow-sm pressable">
+      Dziś
+    </button>
+    <button class="flex-1 py-1.5 rounded-full text-center flex flex-col items-center justify-center font-medium text-xs opacity-60 hover:opacity-100 pressable">
+      Tydzień
+    </button>
+    <button class="flex-1 py-1.5 rounded-full text-center flex flex-col items-center justify-center font-medium text-xs opacity-60 hover:opacity-100 pressable">
+      Historia
+    </button>
+    <button class="flex-1 py-1.5 rounded-full text-center flex flex-col items-center justify-center font-medium text-xs opacity-60 hover:opacity-100 pressable">
+      Zadania
+    </button>
+  </nav>
+
+  <script>
+    function applyStyle(style) {
+      const root = document.documentElement;
+      document.getElementById('tab-bevel').className = 'py-2 rounded-xl text-slate-500 hover:text-slate-800 pressable';
+      document.getElementById('tab-linear').className = 'py-2 rounded-xl text-slate-500 hover:text-slate-800 pressable';
+      document.getElementById('tab-oura').className = 'py-2 rounded-xl text-slate-500 hover:text-slate-800 pressable';
+
+      if (style === 'bevel') {
+        // Czysty, luksusowy porcelanowy jak Bevel
+        document.body.style.backgroundColor = '#F6F7FA';
+        document.body.style.color = '#0F172A';
+        root.style.setProperty('--card-bg', '#FFFFFF');
+        root.style.setProperty('--card-border', 'rgba(0, 0, 0, 0.06)');
+        root.style.setProperty('--card-shadow', '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04)');
+        root.style.setProperty('--cta-bg', '#0F172A');
+        root.style.setProperty('--cta-text', '#FFFFFF');
+        root.style.setProperty('--ring-track', '#E2E8F0');
+        root.style.setProperty('--ring-val', '#0F172A');
+        root.style.setProperty('--bar-bg', '#E2E8F0');
+        root.style.setProperty('--nav-bg', 'rgba(255, 255, 255, 0.88)');
+        root.style.setProperty('--nav-border', 'rgba(0, 0, 0, 0.08)');
+        root.style.setProperty('--pill-bg', '#0F172A');
+        root.style.setProperty('--pill-text', '#FFFFFF');
+        document.getElementById('tab-bevel').className = 'py-2 rounded-xl bg-white shadow-sm text-slate-900 font-bold pressable';
+      } else if (style === 'linear') {
+        // Matowy, szlachetny grafit (Linear / Things 3)
+        document.body.style.backgroundColor = '#121316';
+        document.body.style.color = '#F1F5F9';
+        root.style.setProperty('--card-bg', '#1B1C20');
+        root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.07)');
+        root.style.setProperty('--card-shadow', '0 8px 30px rgba(0, 0, 0, 0.35)');
+        root.style.setProperty('--cta-bg', '#FFFFFF');
+        root.style.setProperty('--cta-text', '#000000');
+        root.style.setProperty('--ring-track', 'rgba(255, 255, 255, 0.1)');
+        root.style.setProperty('--ring-val', '#38BDF8');
+        root.style.setProperty('--bar-bg', 'rgba(255, 255, 255, 0.08)');
+        root.style.setProperty('--nav-bg', 'rgba(27, 28, 32, 0.88)');
+        root.style.setProperty('--nav-border', 'rgba(255, 255, 255, 0.1)');
+        root.style.setProperty('--pill-bg', '#FFFFFF');
+        root.style.setProperty('--pill-text', '#000000');
+        document.getElementById('tab-linear').className = 'py-2 rounded-xl bg-slate-800 shadow-sm text-white font-bold pressable';
+      } else if (style === 'oura') {
+        // Ciepły piasek / luksusowy beż (Oura / Apple Watch Ultra)
+        document.body.style.backgroundColor = '#F5F2EB';
+        document.body.style.color = '#272522';
+        root.style.setProperty('--card-bg', '#FCFAF6');
+        root.style.setProperty('--card-border', 'rgba(120, 110, 90, 0.12)');
+        root.style.setProperty('--card-shadow', '0 4px 18px rgba(80, 70, 50, 0.06)');
+        root.style.setProperty('--cta-bg', '#272522');
+        root.style.setProperty('--cta-text', '#F5F2EB');
+        root.style.setProperty('--ring-track', 'rgba(0,0,0,0.06)');
+        root.style.setProperty('--ring-val', '#B45309');
+        root.style.setProperty('--bar-bg', 'rgba(0,0,0,0.06)');
+        root.style.setProperty('--nav-bg', 'rgba(252, 250, 246, 0.9)');
+        root.style.setProperty('--nav-border', 'rgba(120, 110, 90, 0.15)');
+        root.style.setProperty('--pill-bg', '#272522');
+        root.style.setProperty('--pill-text', '#F5F2EB');
+        document.getElementById('tab-oura').className = 'py-2 rounded-xl bg-amber-900/10 text-amber-950 font-bold pressable';
+      }
+    }
+  </script>
+</body>
+</html>
+

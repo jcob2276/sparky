@@ -58,9 +58,12 @@ export default function TodoCardExpandedPanel({
   const [notesDraft, setNotesDraft] = useState(item.notes || '');
   const [locationDraft, setLocationDraft] = useState(item.location_name || '');
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const linkedNoteId = sourceNoteId(item.notes);
   const tags = item.tags || [];
+  const quickSuggestedTags = ['studia', 'praca', 'dom', 'ważne', 'finanse'].filter(t => !tags.includes(t));
   const upload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFileUpload(file);
@@ -95,23 +98,36 @@ export default function TodoCardExpandedPanel({
       <TodoDateTimeGroup item={item} today={today} onSetSchedule={onSetSchedule} />
 
       <div className="ios-glass-group">
-        <label className={ROW}>
-          <span className="flex items-center gap-2"><FolderInput size={16} className="text-text-secondary" aria-hidden="true" />Lista</span>
+        <div className={`${ROW} cursor-pointer hover:bg-surface-2/40 transition-colors`}>
+          <span className="flex items-center gap-2 font-medium"><FolderInput size={16} className="text-text-secondary" aria-hidden="true" />Lista</span>
           <ControlSelect value={item.section_id || ''} onChange={(e) => onMoveSection(e.target.value || null)} className={SELECT}>
             <option value="">Skrzynka</option>{sections.map((section) => <option key={section.id} value={section.id}>{section.name}</option>)}
           </ControlSelect>
-        </label>
+        </div>
         <div className={DIVIDER} />
-        <div className="px-3 py-2">
-          <div className="flex min-h-9 items-center gap-2 text-sm text-text-primary"><Tag size={16} className="text-text-secondary" aria-hidden="true" />Tagi</div>
+        <div className="px-3 py-2.5">
+          <div className="flex min-h-9 items-center justify-between text-sm text-text-primary">
+            <span className="flex items-center gap-2 font-medium"><Tag size={16} className="text-text-secondary" aria-hidden="true" />Tagi</span>
+            <button
+              type="button"
+              onClick={() => tagInputRef.current?.focus()}
+              className="text-xs text-primary font-semibold hover:underline"
+            >
+              + Dodaj
+            </button>
+          </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-6">
             {tags.map((tag) => (
-              <span key={tag} className="flex items-center gap-1 rounded-full bg-text-primary/[0.07] px-2.5 py-1 text-xs text-text-secondary">
+              <span key={tag} className="flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-semibold text-primary">
                 #{tag}
-                <Pressable aria-label={`Usuń tag ${tag}`} onClick={() => onSetTags(tags.filter((t) => t !== tag))} className="text-text-muted hover:text-danger"><X size={10} aria-hidden="true" /></Pressable>
+                <Pressable aria-label={`Usuń tag ${tag}`} onClick={() => onSetTags(tags.filter((t) => t !== tag))} className="text-text-muted hover:text-danger ml-0.5"><X size={11} aria-hidden="true" /></Pressable>
               </span>
             ))}
-            <ControlInput value={tagInput} placeholder="Dodaj tag" aria-label="Dodaj tag"
+            <ControlInput
+              ref={tagInputRef}
+              value={tagInput}
+              placeholder="Wpisz tag i naciśnij Enter…"
+              aria-label="Dodaj tag"
               onChange={(e) => setTagInput(e.target.value.toLowerCase().replace(/[\s#]/g, '_'))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && tagInput.trim()) {
@@ -120,32 +136,58 @@ export default function TodoCardExpandedPanel({
                   setTagInput('');
                 }
               }}
-              className="min-h-8 min-w-24 flex-1 rounded-none border-0 bg-transparent px-0 text-xs text-text-secondary placeholder:text-text-muted" />
+              className="min-h-8 min-w-32 flex-1 rounded-lg border border-border-custom/30 bg-surface-2/40 px-2 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-primary/50"
+            />
           </div>
+          {quickSuggestedTags.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1 pl-6">
+              <span className="text-3xs text-text-muted mr-1">Szybkie:</span>
+              {quickSuggestedTags.slice(0, 4).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => onSetTags([...tags, st])}
+                  className="rounded-full bg-surface-2/60 hover:bg-surface-2 px-2 py-0.5 text-3xs font-medium text-text-secondary hover:text-text-primary active:scale-95 transition-all"
+                >
+                  +{st}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className={DIVIDER} />
-        <TodoSwitchRow icon={Flag} label="Flaga" checked={item.is_important} onChange={(on) => onSetImportant?.(on)} />
+        <TodoSwitchRow icon={Flag} label="Flaga" checked={Boolean(item.is_important)} onChange={(on) => onSetImportant?.(on)} />
         <div className={DIVIDER} />
-        <label className={ROW}>
-          <span className="flex items-center gap-2"><AlertCircle size={16} className="text-text-secondary" aria-hidden="true" />Priorytet</span>
+        <div className={`${ROW} cursor-pointer hover:bg-surface-2/40 transition-colors`}>
+          <span className="flex items-center gap-2 font-medium"><AlertCircle size={16} className="text-text-secondary" aria-hidden="true" />Priorytet</span>
           <ControlSelect value={item.priority || 'normal'} onChange={(e) => onSetPriority(e.target.value)} className={SELECT}>
             <option value="urgent">P1 · Pilne</option><option value="high">P2 · Ważne</option>
             <option value="normal">P3 · Normalne</option><option value="low">P4 · Niskie</option>
           </ControlSelect>
-        </label>
+        </div>
       </div>
 
       <div className="ios-glass-group">
-        <label className={ROW}>
-          <span className="flex items-center gap-2 whitespace-nowrap"><MapPin size={16} className="text-text-secondary" aria-hidden="true" />Miejsce</span>
-          <ControlInput value={locationDraft} maxLength={200} placeholder="Brak" autoComplete="off" onChange={(e) => setLocationDraft(e.target.value)}
+        <div
+          onClick={() => locationInputRef.current?.focus()}
+          className={`${ROW} cursor-text hover:bg-surface-2/40 transition-colors`}
+        >
+          <span className="flex items-center gap-2 whitespace-nowrap font-medium"><MapPin size={16} className="text-text-secondary" aria-hidden="true" />Miejsce</span>
+          <ControlInput
+            ref={locationInputRef}
+            value={locationDraft}
+            maxLength={200}
+            placeholder="Brak"
+            autoComplete="off"
+            onChange={(e) => setLocationDraft(e.target.value)}
             onBlur={() => { if (locationDraft.trim() !== (item.location_name || '')) onSetLocation?.(locationDraft.trim() || null); }}
             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-            className={`${FIELD} flex-1 text-right placeholder:text-text-muted`} />
+            className={`${FIELD} flex-1 text-right placeholder:text-text-muted`}
+          />
           {item.location_name ? (
-            <a href={`https://maps.apple.com/?q=${encodeURIComponent(item.location_name)}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-medium text-primary">Mapy</a>
+            <a href={`https://maps.apple.com/?q=${encodeURIComponent(item.location_name)}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-semibold text-primary hover:underline">Mapy</a>
           ) : null}
-        </label>
+        </div>
         <TodoScheduleExtras item={item} openPopover={openPopover} setOpenPopover={setOpenPopover}
           onSetDeadline={onSetDeadline} onSetRecurrence={onSetRecurrence} onSetReminder={onSetReminder} />
       </div>

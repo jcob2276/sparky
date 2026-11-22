@@ -2,6 +2,7 @@ import { CheckCircle2, Dumbbell, Clock, Flame } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayWorkoutDetails } from '../../../lib/health/workoutApi';
 import { formatWorkoutTonnage, normalizeSessionRpe } from '../../../lib/health/workoutDisplay';
+import { formatTimeWarsaw } from '../../../lib/date';
 
 interface TrainingTodayCardProps {
   details: TodayWorkoutDetails;
@@ -43,7 +44,7 @@ export default function TrainingTodayCard({
           <div className="flex items-center gap-1 text-2xs font-bold text-text-muted shrink-0">
             <Clock size={12} />
             <span>
-              {details.startTime.slice(11, 16)}–{details.endTime.slice(11, 16)}
+              {formatTimeWarsaw(details.startTime)}–{formatTimeWarsaw(details.endTime)}
             </span>
           </div>
         )}

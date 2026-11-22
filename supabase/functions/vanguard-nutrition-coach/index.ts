@@ -2,9 +2,9 @@
  * @function vanguard-nutrition-coach
  * @trigger HTTP manual / explicit trusted scheduler
  * @role Szacuje cele energii i białka, tworzy szkice jadłospisu z potwierdzonych preferencji; powiadomienie wymaga jawnego żądania zaufanego wywołującego.
- * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements, user_preferences, training_plan_workouts, food_reference_pl, food_library
+ * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements, user_preferences, training_plan_workouts, food_reference_pl, food_library, daily_food_entries
  * @writes nutrition_targets
- * @calls deepseek-chat, api.telegram.org (poprzez send.ts)
+ * @calls deepseek-chat, Gemini image generation, api.telegram.org (poprzez send.ts)
  * @consumer Powiadomienia Telegram i cele w zakładce diety w aplikacji
  * @status active
  */
@@ -18,6 +18,8 @@ import { fetchNutritionData, computeNutritionSignals } from "./nutritionCompute.
 import { formatHealthCoachContext } from '../_shared/healthCoachContext.ts';
 import { generateMealPlan } from './mealPlanning.ts';
 import {buildMealPlanTargets} from './mealTargets.ts';
+import {generateMealIllustration} from './mealIllustration.ts';
+import {resolveMealPhoto} from './mealPhoto.ts';
 import {buildPushMessage} from './nutritionMessage.ts';
 
 Deno.serve(serveJson(async (req, ctx) => {
@@ -29,17 +31,29 @@ Deno.serve(serveJson(async (req, ctx) => {
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
   const today = body.date || getWarsawDateString(new Date());
   if(typeof today !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(today) || !Number.isFinite(Date.parse(today)) || !new Date(today).toISOString().startsWith(today)) throw new HttpError(400,'Nieprawidłowa data żywienia.');
+  if (body.action === 'resolve_meal_photo') return await resolveMealPhoto(body.name, body.ingredients);
+  if (body.action === 'generate_meal_illustration') return await generateMealIllustration(body.name,body.ingredients);
   if(body.action && !['generate_meal_plan','refresh_targets'].includes(body.action)) throw new HttpError(400,'Nieznana operacja żywienia.');
 
   if (body.action === 'generate_meal_plan') {
     if (typeof body.requestKey !== 'string' || !body.requestKey) throw new HttpError(400,'Brak identyfikatora prośby.');
     const data=await fetchNutritionData(supabase,userId,getWarsawDateString(new Date()));
-    const {targets,trainingContext}=buildMealPlanTargets(data,body.startDate ?? today,body.days ?? 7);
+    const remainingToday = body.remainingToday === true;
+    const positiveGoal = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+    const remainingGoals = remainingToday ? {calories:positiveGoal(body.targetKcal),protein:positiveGoal(body.targetProtein)} : undefined;
+    const {targets,trainingContext}=buildMealPlanTargets(data,body.startDate ?? today,body.days ?? 7,remainingGoals);
     const res = await generateMealPlan({
       supabase,
       userId,
       apiKey,
-      input: { date: today, targets,trainingContext,requestKey:body.requestKey },
+      input: {
+        date: today,
+        targets,
+        trainingContext,
+        remainingToday,
+        requestKey: body.requestKey,
+        ...(typeof body.mealFocus === 'string' && body.mealFocus.trim() ? { mealFocus: body.mealFocus.trim() } : {}),
+      },
     });
     return res;
   }

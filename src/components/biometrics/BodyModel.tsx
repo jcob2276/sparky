@@ -20,8 +20,8 @@ export default function BodyModel({
       bodyColor={BODY_BASE}
       highlightedColors={[...HEAT_SCALE]}
       onClick={onMuscleClick}
-      style={{ width: 'var(--ds-inline-style-100)', padding: 'var(--ds-inline-style-0-5rem-0-25rem-0)' }}
-      svgStyle={{ display: 'block', overflow: 'visible' }}
+      style={{ width: '100%', padding: '0.25rem 0.25rem 0.5rem' }}
+      svgStyle={{ display: 'block', overflow: 'visible', maxHeight: '220px', width: 'auto', margin: '0 auto' }}
     />
   );
 }

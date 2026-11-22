@@ -111,15 +111,19 @@ export function DashboardNavBar({
             haptics.selection();
             onFastCaptureToggle();
           }}
-          className="relative z-10 flex flex-1 flex-col items-center justify-center rounded-full py-1 px-0 min-w-0 h-auto transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-90 hover:bg-transparent text-primary"
+          className="relative z-10 flex flex-1 flex-col items-center justify-center rounded-full py-1 px-0 min-w-[44px] h-auto transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-90 hover:bg-transparent"
         >
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 dark:bg-primary/30 text-primary shadow-xs border border-primary/25">
+          <div
+            className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-[var(--motion-fast)] ease-[var(--ease-out)] shadow-sm ${
+              fastCaptureActive
+                ? 'bg-text-primary text-surface rotate-45 scale-105 shadow-md'
+                : 'bg-text-primary/10 hover:bg-text-primary/15 text-text-primary border border-border/80'
+            }`}
+          >
             <Plus
-              size={18}
-              strokeWidth={2.6}
-              className={`text-primary transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] ${
-                fastCaptureActive ? 'rotate-45 scale-110' : 'scale-100 rotate-0'
-              }`}
+              size={20}
+              strokeWidth={2.4}
+              className="transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)]"
             />
           </div>
         </Button>

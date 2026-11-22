@@ -5,6 +5,9 @@ import {
   type MealPlanProduct,
   type MealPlanState,
   resizePlannedMeal,
+  appendPlannedMeals,
+  selectPlannedMeals,
+  mealShoppingList,
   readMealCatalog,
 } from '@vanguard/domain';
 
@@ -59,7 +62,7 @@ async function saveMealPlanState(userId: string, date: string, state: MealPlanSt
   if (!data) throw new Error('Plan posiłków zmienił się w innej sesji. Odśwież podgląd przed ponowieniem.');
 }
 
-export async function approveMealPlan(userId: string, date: string, approvalKey: string, baseRevision?:number,allergensReviewed=false): Promise<MealPlanState> {
+export async function approveMealPlan(userId: string, date: string, approvalKey: string, baseRevision?:number,allergensReviewed=false,selection?:{date:string;mealKeys:string[]}): Promise<MealPlanState> {
   const current = await fetchMealPlanState(userId, date);
   if (current?.approvalKey === approvalKey) return current;
   if (!current || !current.draft) throw new Error('Brak szkicu planu posiłków do zatwierdzenia.');
@@ -70,10 +73,29 @@ export async function approveMealPlan(userId: string, date: string, approvalKey:
     if(preferences.allergies.length && !allergensReviewed) throw new Error('Sprawdź skład i etykiety produktów pod kątem zgłoszonych alergii przed zatwierdzeniem.');
   }
 
+  let active = current.draft;
+  let checkedProducts = current.checkedProducts;
+  if (selection) {
+    const day = active.days.find(day => day.date === selection.date);
+    if (!day) throw new Error('Dzień z wybranymi posiłkami nie występuje w szkicu.');
+    const picked = selectPlannedMeals(day, selection.mealKeys);
+    if (!picked.meals.length || picked.meals.length !== new Set(selection.mealKeys).size) {
+      throw new Error('Zaznacz co najmniej jeden posiłek z aktualnego szkicu.');
+    }
+    const existingDay = current.active?.days.find(row => row.date === selection.date);
+    const merged = existingDay ? appendPlannedMeals(existingDay, picked.meals) : picked;
+    const otherDays = current.active?.days.filter(row => row.date !== selection.date) ?? [];
+    active = { ...active, days: [...otherDays, merged].sort((a,b) => a.date.localeCompare(b.date)) };
+    const previousItems = new Map((current.active ? mealShoppingList(current.active) : []).map(item => [item.productId,item.grams]));
+    const retained = new Set(mealShoppingList(active).filter(item => item.grams === previousItems.get(item.productId)).map(item => item.productId));
+    checkedProducts = checkedProducts?.filter(id => retained.has(id));
+  }
+
   const updated: MealPlanState = {
     ...current,
     revision: (current.revision || 0) + 1,
-    active: current.draft,
+    active,
+    ...(selection ? {checkedProducts: checkedProducts ?? []} : {}),
     draft:null,
     approvalKey,
   };

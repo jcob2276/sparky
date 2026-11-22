@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronRight, Folder, MoreHorizontal } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Folder, FolderInput, FolderPlus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { NoteFolderNode } from '../../lib/noteFoldersApi';
 import { Pressable } from '../ui/ControlPrimitives';
+import Sheet from '../ui/Sheet';
 
 interface NoteFolderTreeProps {
   tree: NoteFolderNode[];
@@ -36,16 +37,24 @@ function FolderBranch({
   const [expanded, setExpanded] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const [isMobileWidth, setIsMobileWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 768 : false));
+
+  useEffect(() => {
+    const onResize = () => setIsMobileWidth(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const hasChildren = folder.children.length > 0;
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const close = (event: PointerEvent) => {
-      if (!(event.target as HTMLElement).closest('.keep-folder-menu, .keep-folder-actions')) setMenuOpen(false);
+    if (!menuOpen || isMobileWidth) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
     };
-    document.addEventListener('pointerdown', close);
-    return () => document.removeEventListener('pointerdown', close);
-  }, [menuOpen]);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [menuOpen, isMobileWidth]);
 
   const run = (action: (value: NoteFolderNode) => void) => {
     setMenuOpen(false);
@@ -84,7 +93,6 @@ function FolderBranch({
             aria-expanded={menuOpen}
             onClick={(event) => {
               event.stopPropagation();
-              // Menu jest `fixed`, żeby panel boczny z przewijaniem go nie przycinał.
               const rect = event.currentTarget.getBoundingClientRect();
               setMenuPos({ top: rect.bottom + 4, right: Math.max(8, window.innerWidth - rect.right) });
               setMenuOpen(value => !value);
@@ -92,18 +100,111 @@ function FolderBranch({
           >
             <MoreHorizontal size={14} />
           </Pressable>
-          {menuOpen && createPortal(
-            <>
-              <div role="menu" className="keep-folder-menu" style={menuPos ? { position: 'fixed', top: menuPos.top, right: menuPos.right, left: 'auto' } : undefined}>
-                <Pressable type="button" role="menuitem" onClick={() => run(onCreateChild)}>Nowy podfolder</Pressable>
-                <Pressable type="button" role="menuitem" onClick={() => run(onRename)}>Zmień nazwę</Pressable>
-                <Pressable type="button" role="menuitem" onClick={() => run(onMove)}>Przenieś</Pressable>
-                <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}>Przesuń wyżej</Pressable>
-                <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}>Przesuń niżej</Pressable>
-                <Pressable type="button" role="menuitem" className="danger" onClick={() => run(onDelete)}>Usuń</Pressable>
+
+          {/* Na telefonie: natywny iOS Bottom Sheet */}
+          {isMobileWidth ? (
+            <Sheet
+              open={menuOpen}
+              onOpenChange={setMenuOpen}
+              side="bottom"
+              compact
+              title={`Folder: ${folder.name}`}
+              handleDragOnly
+            >
+              <div className="space-y-3 pb-2" role="menu" aria-label={`Akcje folderu ${folder.name}`}>
+                <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    onClick={() => run(onCreateChild)}
+                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+                  >
+                    <FolderPlus size={18} className="text-text-muted" />
+                    <span>Nowy podfolder</span>
+                  </Pressable>
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    onClick={() => run(onRename)}
+                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+                  >
+                    <Pencil size={18} className="text-text-muted" />
+                    <span>Zmień nazwę</span>
+                  </Pressable>
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    onClick={() => run(onMove)}
+                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+                  >
+                    <FolderInput size={18} className="text-text-muted" />
+                    <span>Przenieś</span>
+                  </Pressable>
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}
+                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+                  >
+                    <ArrowUp size={18} className="text-text-muted" />
+                    <span>Przesuń wyżej</span>
+                  </Pressable>
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}
+                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+                  >
+                    <ArrowDown size={18} className="text-text-muted" />
+                    <span>Przesuń niżej</span>
+                  </Pressable>
+                </div>
+
+                <div className="pt-1">
+                  <Pressable
+                    type="button"
+                    role="menuitem"
+                    variant="ghost"
+                    onClick={() => run(onDelete)}
+                    className="w-full flex min-h-[46px] items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 active:bg-danger/15"
+                  >
+                    <Trash2 size={16} />
+                    <span>Usuń folder</span>
+                  </Pressable>
+                </div>
               </div>
-            </>,
-            document.body,
+            </Sheet>
+          ) : (
+            /* Na komputerze: popover z właściwym z-index i scrimem */
+            menuOpen && createPortal(
+              <>
+                <Pressable
+                  type="button"
+                  className="fixed inset-0 z-[calc(var(--z-overlay)+49)] bg-black/10 backdrop-blur-[1px]"
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Zamknij menu folderu"
+                />
+                <div
+                  role="menu"
+                  className="keep-folder-menu"
+                  style={menuPos ? {
+                    position: 'fixed',
+                    top: menuPos.top,
+                    right: menuPos.right,
+                    left: 'auto',
+                    zIndex: 'calc(var(--z-overlay) + 50)',
+                  } : { zIndex: 'calc(var(--z-overlay) + 50)' }}
+                >
+                  <Pressable type="button" role="menuitem" onClick={() => run(onCreateChild)}>Nowy podfolder</Pressable>
+                  <Pressable type="button" role="menuitem" onClick={() => run(onRename)}>Zmień nazwę</Pressable>
+                  <Pressable type="button" role="menuitem" onClick={() => run(onMove)}>Przenieś</Pressable>
+                  <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}>Przesuń wyżej</Pressable>
+                  <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}>Przesuń niżej</Pressable>
+                  <Pressable type="button" role="menuitem" className="danger" onClick={() => run(onDelete)}>Usuń</Pressable>
+                </div>
+              </>,
+              document.body,
+            )
           )}
         </div>
       </div>

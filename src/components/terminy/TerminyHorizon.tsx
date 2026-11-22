@@ -85,58 +85,6 @@ function EmptyHorizonView({
   );
 }
 
-function NextUrgentBanner({
-  next,
-  onEdit,
-}: {
-  next: DerivedObligation;
-  onEdit: (id: string) => void;
-}) {
-  return (
-    <section
-      role="button"
-      tabIndex={0}
-      onClick={() => onEdit(next.item.id)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onEdit(next.item.id);
-        }
-      }}
-      className="group relative cursor-pointer overflow-hidden rounded-[var(--radius-2xl)] border border-primary/25 bg-primary/10 p-6.5 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 ease-out active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
-    >
-      <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-1.5">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary ring-1 ring-primary/30">
-            <Sparkles size={13} strokeWidth={2.2} />
-            Najbliższy termin
-          </p>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary md:text-3xl">
-            {next.item.title}
-          </h2>
-          <p className="flex items-center gap-2 text-xs font-medium text-text-secondary">
-            <span>{LIFE_OBLIGATION_KIND_LABELS[next.item.kind]}</span>
-            {next.item.related_name && <span>· {next.item.related_name}</span>}
-            <span>·</span>
-            <span className="inline-flex items-center gap-1 text-text-primary">
-              <Calendar size={13} strokeWidth={2} />
-              {formatLongDateWarsaw(next.nextDate)}
-            </span>
-          </p>
-        </div>
-        <div className="shrink-0 text-right md:text-right">
-          <p className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
-            {countdownLabel(next.daysLeft)}
-          </p>
-          <p className="mt-0.5 text-2xs font-medium text-text-muted">
-            Kliknij, aby edytować
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function TerminyHorizon({
   rows,
   searchQuery,
@@ -150,21 +98,18 @@ export function TerminyHorizon({
 }: Props) {
   const reduceMotion = useReducedMotion();
   const buckets = bucketMap(rows);
-  const next = rows[0] ?? null;
 
   if (rows.length === 0) {
     return <EmptyHorizonView searchQuery={searchQuery} onOpenAdd={onOpenAdd} />;
   }
 
   return (
-    <div className="space-y-8">
-      {next && <NextUrgentBanner next={next} onEdit={onEdit} />}
-
+    <div className="space-y-6">
       {BUCKET_ORDER.map((bucket) => {
         const list = buckets[bucket];
         if (list.length === 0) return null;
         return (
-          <section key={bucket} className="space-y-3">
+          <section key={bucket} className="space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-xs font-bold text-text-muted">
                 {URGENCY_BUCKET_LABELS[bucket]}
@@ -173,7 +118,7 @@ export function TerminyHorizon({
                 {list.length}
               </span>
             </div>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               <AnimatePresence initial={false}>
                 {list.map((row, index) => (
                   <motion.li

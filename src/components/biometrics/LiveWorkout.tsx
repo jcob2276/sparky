@@ -16,6 +16,7 @@ import { useWorkoutLogger } from './hooks/useWorkoutLogger';
 import ExercisePickerModal from './workout/ExercisePickerModal';
 import TrainingHubAppearanceSheet from './workout/TrainingHubAppearanceSheet';
 import { useTreningAccent } from './workout/useTreningAccent';
+import { readTreningPreferences } from '../../lib/health/treningPreferences';
 import LiveExerciseCard from './live/LiveExerciseCard';
 import LiveUndoBar from './live/LiveUndoBar';
 import LiveFinishSheet from './live/LiveFinishSheet';
@@ -49,13 +50,25 @@ export default function LiveWorkout({
   useEffect(() => {
     let lock: WakeLockSentinel | null = null;
     const acquire = () => {
-      navigator.wakeLock?.request('screen').then((sentinel) => { lock = sentinel; }).catch(() => undefined);
+      if (!readTreningPreferences().keepAwake) {
+        if (lock) {
+          void lock.release().catch(() => undefined);
+          lock = null;
+        }
+        return;
+      }
+      if (!lock) {
+        navigator.wakeLock?.request('screen').then((sentinel) => { lock = sentinel; }).catch(() => undefined);
+      }
     };
     acquire();
     const onVisible = () => { if (document.visibilityState === 'visible') acquire(); };
+    const onPrefChange = () => acquire();
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('trening-preferences-changed', onPrefChange);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('trening-preferences-changed', onPrefChange);
       void lock?.release().catch(() => undefined);
     };
   }, []);
@@ -117,6 +130,7 @@ export default function LiveWorkout({
             onSwap={() => void requestSwap(exercise.id, () => window.setTimeout(() => setPickerOpen(true), 0))}
             onUndoable={(message, run) => setUndo({ message, run })}
             onSetDone={(seconds, setId) => {
+              setActiveId(exercise.id);
               setRestTarget({ exerciseId: exercise.id, setId });
               const nextSetIndex = exercise.sets.findIndex((set) => !set.done && set.id !== setId);
               rest.start(seconds, {
@@ -126,7 +140,9 @@ export default function LiveWorkout({
             }}
             rest={rest.active && restTarget?.exerciseId === exercise.id ? { setId: restTarget.setId, remaining: rest.remaining, finished: rest.finished, onAdjust: rest.adjust, onSkip: rest.skip } : undefined}
             onSetUndone={rest.skip}
-            onAllDone={() => advanceFrom(exercise.id)}
+            onAllDone={() => {
+              // Keep focus on the current exercise so skipping rest doesn't collapse the block or jump away.
+            }}
           />
         ))}
 

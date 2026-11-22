@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, ShoppingBag } from 'lucide-react';
+import { Check, Package } from 'lucide-react';
 import type { MealPlanDraft } from '@vanguard/domain';
 import { mealShoppingList } from '@vanguard/domain';
 import Button from '../../ui/Button';
@@ -7,74 +7,81 @@ interface MealShoppingListViewProps {
   plan: MealPlanDraft;
   checkedIds: string[];
   onToggle: (productId: string) => void;
-  disabled?:boolean;
+  disabled?: boolean;
 }
 
-export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: MealShoppingListViewProps) {
+export function MealShoppingListView({ plan, checkedIds, onToggle, disabled }: MealShoppingListViewProps) {
   const items = mealShoppingList(plan);
+  const products = new Map(
+    plan.days.flatMap(day => day.meals.flatMap(meal =>
+      meal.ingredients.map(({ product }) => [product.id, product] as const),
+    )),
+  );
   const checkedSet = new Set(checkedIds);
-
-  const remaining = items.filter((i) => !checkedSet.has(i.productId));
-  const bought = items.filter((i) => checkedSet.has(i.productId));
+  const remaining = items.filter(item => !checkedSet.has(item.productId));
+  const bought = items.filter(item => checkedSet.has(item.productId));
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-white/5 pb-2">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-          <ShoppingBag size={16} className="text-primary" />
-          Lista zakupów ({bought.length}/{items.length})
-        </h4>
-        <span className="text-xs text-text-muted">
-          Pochodna z zaakceptowanego menu
-        </span>
+    <div className="meal-planner space-y-3">
+      <div className="flex items-baseline justify-between gap-3 px-1">
+        <div>
+          <p className="text-2xs font-semibold uppercase tracking-wide text-text-muted">Lista zakupów</p>
+          <p className="mt-0.5 text-sm text-text-secondary">Z aktywnego planu · {bought.length}/{items.length}</p>
+        </div>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-text-muted">Brak produktów w wybranym planie.</p>
+        <p className="rounded-xl bg-surface-2 p-4 text-sm text-text-secondary">Brak produktów w wybranym planie.</p>
       ) : (
-        <div className="space-y-2">
-          {remaining.map((item) => (
-            <Button
-              key={item.productId}
-              variant="ghost"
-              onClick={() => onToggle(item.productId)}
-              disabled={disabled}
-              className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-surface-2 px-3 py-2 text-left transition hover:border-white/10 h-auto font-normal"
-            >
-              <div className="flex items-center gap-2">
-                <Circle size={16} className="text-text-muted" />
-                <span className="text-sm font-medium text-text-primary">{item.name}</span>
-              </div>
-              <span className="text-xs tabular-nums text-text-secondary">
-                {item.grams >= 1000 ? `${(item.grams / 1000).toFixed(1)} kg` : `${Math.round(item.grams)} g`}
-              </span>
-            </Button>
-          ))}
+        <div className="meal-planner-canvas">
+          {remaining.map(item => {
+            const product = products.get(item.productId);
+            return (
+              <Button
+                key={item.productId}
+                variant="ghost"
+                onClick={() => onToggle(item.productId)}
+                disabled={disabled}
+                className="meal-planner-card h-auto w-full justify-start gap-3 p-3 text-left font-normal hover:bg-surface-solid"
+              >
+                <span className="meal-planner-thumb !h-12 !w-12 !rounded-xl" aria-hidden="true">
+                  <Package size={18} strokeWidth={1.6} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-text-primary">{item.name}</span>
+                  {product && (
+                    <span className="mt-0.5 block text-2xs tabular-nums text-text-muted">
+                      {product.verified ? 'Na 100 g' : 'Szacunek / 100 g'} · {product.calories} kcal · B {product.protein} g
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                  {item.grams >= 1000 ? `${(item.grams / 1000).toFixed(1)} kg` : `${Math.round(item.grams)} g`}
+                </span>
+              </Button>
+            );
+          })}
 
           {bought.length > 0 && (
-            <div className="pt-2">
-              <p className="mb-2 text-xs font-semibold tracking-normal text-text-muted">
-                Kupione ({bought.length})
-              </p>
-              <div className="space-y-1 text-text-muted">
-                {bought.map((item) => (
-                  <Button
-                    key={item.productId}
-                    variant="ghost"
-                    onClick={() => onToggle(item.productId)}
-                    disabled={disabled}
-                    className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:text-text-primary h-auto font-normal"
-                  >
-                    <div className="flex items-center gap-2 line-through text-text-muted">
-                      <CheckCircle2 size={16} className="text-success" />
-                      <span className="text-sm">{item.name}</span>
-                    </div>
-                    <span className="text-xs tabular-nums text-text-muted">
-                      {item.grams >= 1000 ? `${(item.grams / 1000).toFixed(1)} kg` : `${Math.round(item.grams)} g`}
-                    </span>
-                  </Button>
-                ))}
-              </div>
+            <div className="space-y-2 pt-1">
+              <p className="px-1 text-2xs font-semibold uppercase tracking-wide text-text-muted">Kupione</p>
+              {bought.map(item => (
+                <Button
+                  key={item.productId}
+                  variant="ghost"
+                  onClick={() => onToggle(item.productId)}
+                  disabled={disabled}
+                  className="flex h-auto w-full items-center justify-between rounded-xl bg-surface/60 px-3 py-2 text-left font-normal text-text-muted"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Check size={16} className="text-success" />
+                    <span className="text-sm line-through">{item.name}</span>
+                  </span>
+                  <span className="text-xs tabular-nums">
+                    {item.grams >= 1000 ? `${(item.grams / 1000).toFixed(1)} kg` : `${Math.round(item.grams)} g`}
+                  </span>
+                </Button>
+              ))}
             </div>
           )}
         </div>

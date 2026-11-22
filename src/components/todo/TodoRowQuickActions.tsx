@@ -85,29 +85,31 @@ export default function TodoRowQuickActions({
 
   return (
     <div ref={barRef} role="group" aria-label={`Szybkie akcje: ${item.title}`} className="todo-focus-actions">
-      <Pressable ref={dateRef} haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-fine`} data-tip="Termin · D"
-        aria-label={`Ustaw termin: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'date'}
-        onClick={(e) => { e.stopPropagation(); toggle('date'); }}>
-        <CalendarDays size={16} aria-hidden="true" />
-      </Pressable>
-      <Pressable ref={priorityRef} haptic="none" className={`${BAR_BUTTON} todo-qa-fine ${priorityTone(item.priority)}`} data-tip="Priorytet · P"
-        aria-label={`Ustaw priorytet: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'priority'}
-        onClick={(e) => { e.stopPropagation(); toggle('priority'); }}>
-        <Flag size={16} aria-hidden="true" />
-      </Pressable>
-      <Pressable ref={moveRef} haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-fine`} data-tip="Przenieś do… · M"
-        aria-label={`Przenieś do sekcji: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'move'}
-        onClick={(e) => { e.stopPropagation(); toggle('move'); }}>
-        <FolderInput size={16} aria-hidden="true" />
-      </Pressable>
-      <Pressable haptic="none" className="todo-qa todo-instant todo-qa-fine text-text-secondary hover:bg-danger/10 hover:text-danger focus-visible:shadow-focus" data-tip="Usuń · Del"
-        aria-label={`Usuń: ${item.title}`} onClick={(e) => { e.stopPropagation(); onDelete(); }}>
-        <Trash2 size={16} aria-hidden="true" />
-      </Pressable>
-      <Pressable haptic="none" className={`${BAR_BUTTON} ${QUIET}`} data-tip={expanded ? 'Zwiń szczegóły · Enter' : 'Szczegóły · Enter'}
+      <div className="todo-qa-secondary flex items-center">
+        <Pressable ref={dateRef} haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-fine`} data-tip="Termin · D"
+          aria-label={`Ustaw termin: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'date'}
+          onClick={(e) => { e.stopPropagation(); toggle('date'); }}>
+          <CalendarDays size={16} aria-hidden="true" />
+        </Pressable>
+        <Pressable ref={priorityRef} haptic="none" className={`${BAR_BUTTON} todo-qa-fine ${priorityTone(item.priority)}`} data-tip="Priorytet · P"
+          aria-label={`Ustaw priorytet: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'priority'}
+          onClick={(e) => { e.stopPropagation(); toggle('priority'); }}>
+          <Flag size={16} aria-hidden="true" />
+        </Pressable>
+        <Pressable ref={moveRef} haptic="none" className={`${BAR_BUTTON} ${QUIET} todo-qa-fine`} data-tip="Przenieś do… · M"
+          aria-label={`Przenieś do sekcji: ${item.title}`} aria-haspopup="dialog" aria-expanded={open?.kind === 'move'}
+          onClick={(e) => { e.stopPropagation(); toggle('move'); }}>
+          <FolderInput size={16} aria-hidden="true" />
+        </Pressable>
+        <Pressable haptic="none" className="todo-qa todo-instant todo-qa-fine text-text-secondary hover:bg-danger/10 hover:text-danger focus-visible:shadow-focus" data-tip="Usuń · Del"
+          aria-label={`Usuń: ${item.title}`} onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+          <Trash2 size={16} aria-hidden="true" />
+        </Pressable>
+      </div>
+      <Pressable haptic="none" className={`${BAR_BUTTON} todo-info-btn ${expanded ? 'is-expanded text-primary' : 'text-text-muted hover:text-text-primary'}`} data-tip={expanded ? 'Zwiń szczegóły · Enter' : 'Szczegóły · Enter'}
         aria-label={`${expanded ? 'Zwiń' : 'Rozwiń'} szczegóły: ${item.title}`} aria-expanded={expanded} aria-controls={panelId}
         onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}>
-        <Info size={17} className={expanded ? 'text-primary' : ''} aria-hidden="true" />
+        <Info size={18} className={expanded ? 'text-primary' : ''} aria-hidden="true" />
       </Pressable>
       <div data-no-view-swipe onTouchStart={grip.onGripTouchStart} onTouchEnd={grip.onGripTouchEnd}
         onTouchMove={grip.onGripTouchMove} onMouseDown={grip.onGripMouseDown}

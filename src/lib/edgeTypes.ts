@@ -160,6 +160,11 @@ interface NightlyResponse {
 }
 
 interface NutritionCoachResponse {
+  image?: {mimeType:string;data:string};
+  photoUrl?: string;
+  attribution?: string;
+  sourceUrl?: string | null;
+  license?: string | null;
   success: boolean; date?: string;
   state?: import('@vanguard/domain').MealPlanState | null;
   errors?: string[];

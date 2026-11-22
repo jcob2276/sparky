@@ -18,6 +18,7 @@ export default function TitledRichEditor({ value, onChange, ...editorProps }: Ti
   const [parts, setParts] = useState<NoteParts>(() => splitTitle(value));
   const lastEmitted = useRef(value);
   const rootRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   // Zmiana treści z zewnątrz (np. wstawiony załącznik) — przelicz podział; własne zmiany pomijamy,
   // żeby wyczyszczony tytuł nie "łapał" pierwszej linii treści.
@@ -39,16 +40,29 @@ export default function TitledRichEditor({ value, onChange, ...editorProps }: Ti
     if (!editor) return;
     editor.focus();
     const range = document.createRange();
-    range.setStart(editor, 0);
+    if (editor.childNodes.length > 0) {
+      range.setStart(editor.childNodes[0], 0);
+    } else {
+      range.setStart(editor, 0);
+    }
     range.collapse(true);
     const selection = window.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
   };
 
+  const focusTitle = () => {
+    const input = titleInputRef.current;
+    if (!input) return;
+    input.focus();
+    const len = input.value.length;
+    input.setSelectionRange(len, len);
+  };
+
   return (
-    <div ref={rootRef} className="flex w-full flex-1 flex-col gap-1">
+    <div ref={rootRef} className="flex w-full flex-1 flex-col gap-1.5">
       <ControlInput
+        ref={titleInputRef}
         type="text"
         value={parts.title}
         onChange={event => emit({ ...parts, title: event.target.value })}
@@ -62,9 +76,14 @@ export default function TitledRichEditor({ value, onChange, ...editorProps }: Ti
         aria-label="Tytuł notatki"
         enterKeyHint="next"
         autoComplete="off"
-        className="keep-note-title min-h-0 w-full rounded-none bg-transparent px-0 text-xl font-bold tracking-tight placeholder:text-text-muted/60 focus-visible:!shadow-none"
+        className="keep-note-title min-h-0 w-full rounded-none bg-transparent px-0 text-2xl sm:text-3xl font-display font-bold tracking-tight text-text-primary placeholder:text-text-muted/40 focus-visible:!shadow-none focus:outline-none border-none py-1 transition-colors"
       />
-      <RichEditor {...editorProps} value={parts.body} onChange={body => emit({ title: parts.title, body })} />
+      <RichEditor
+        {...editorProps}
+        value={parts.body}
+        onChange={body => emit({ title: parts.title, body })}
+        onBackspaceAtStart={focusTitle}
+      />
     </div>
   );
 }

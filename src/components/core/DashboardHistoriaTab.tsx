@@ -1,6 +1,8 @@
 import { Suspense, memo, useEffect, useState } from 'react';
 import { useSession } from '../../store/useStore';
 import Skeleton from '../ui/Skeleton';
+import Button from '../ui/Button';
+import { BookOpen, BarChart3, Sparkles } from 'lucide-react';
 import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
@@ -26,6 +28,7 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const session = useSession();
   const [goal, setGoal] = useState<ChronicleGoal>('cialo');
   const [period, setPeriod] = useState<ChroniclePeriod>('week');
+  const [viewMode, setViewMode] = useState<'summary' | 'stats'>('summary');
   const [isExportOpen, setIsExportOpen] = useState(false);
   const selection = useChronicleSelection();
   const chronicle = useChronicle(goal, period, selection.offset, selection.compareOffset);
@@ -49,54 +52,104 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const periodTitle = chronicle.window.title;
 
   return (
-    <div className="p-4 sm:p-5 pb-8 space-y-4">
-      <ChronicleWeekStrip userId={session.user.id} />
+    <div className="min-h-full bg-background px-3.5 py-4 pb-36 sm:px-5">
+      <div className="mx-auto max-w-xl space-y-4">
+        
+        {/* Pasek dni tygodnia */}
+        <ChronicleWeekStrip userId={session.user.id} />
 
-      <ChronicleControls
-        goal={goal}
-        onGoal={setGoal}
-        period={period}
-        onPeriod={(next) => { setPeriod(next); selection.reset(); }}
-        onExport={() => setIsExportOpen(true)}
-      />
-
-      {period !== 'sprint' && (
-        <ChroniclePeriodPicker
-          label={periodLabel(chronicle.window)}
-          compareLabel={chronicle.window.compareLabel}
-          isCurrent={selection.offset === 0}
-          canCompareNewer={selection.compareOffset > 0}
-          onShift={selection.shiftMain}
-          onShiftCompare={selection.shiftCompare}
-          onReset={selection.reset}
+        {/* Kontrolki celu, okresu i eksportu */}
+        <ChronicleControls
+          goal={goal}
+          onGoal={setGoal}
+          period={period}
+          onPeriod={(next) => { setPeriod(next); selection.reset(); }}
+          onExport={() => setIsExportOpen(true)}
         />
-      )}
 
-      <ChronicleSummary
-        summary={chronicle.summary}
-        loading={chronicle.loading}
-        error={chronicle.error}
-        periodTitle={periodTitle}
-        compareLabel={chronicle.window.compareLabel}
-        showChart={period !== 'week'}
-      />
+        {/* Segmented Control: Dziennik/Wnioski vs Głębokie Metryki Ciała & Treningi */}
+        <div className="flex rounded-full bg-surface-2 p-1 border border-border" role="tablist" aria-label="Widok kroniki">
+          <Button
+            variant="ghost"
+            size="sm"
+            role="tab"
+            aria-selected={viewMode === 'summary'}
+            onClick={() => setViewMode('summary')}
+            className={`flex-1 min-h-9 rounded-full text-xs font-bold transition-all ${
+              viewMode === 'summary'
+                ? 'bg-surface text-text-primary shadow-xs'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+            icon={<BookOpen size={14} />}
+          >
+            Podsumowanie & AI
+          </Button>
 
-      <ChronicleAiCompare
-        a={{ label: periodTitle, start: chronicle.window.start, end: chronicle.window.end }}
-        b={{ label: chronicle.window.compareLabel, start: chronicle.window.prevStart, end: chronicle.window.prevEnd }}
-      />
+          <Button
+            variant="ghost"
+            size="sm"
+            role="tab"
+            aria-selected={viewMode === 'stats'}
+            onClick={() => setViewMode('stats')}
+            className={`flex-1 min-h-9 rounded-full text-xs font-bold transition-all ${
+              viewMode === 'stats'
+                ? 'bg-surface text-text-primary shadow-xs'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+            icon={<BarChart3 size={14} />}
+          >
+            Pomiary & Treningi
+          </Button>
+        </div>
 
-      <Suspense fallback={<ViewFallback />}>
-        <Stats
-          domain={goal === 'cialo' ? 'all' : 'none'}
-          photosSlot={<Photos />}
-          runningSlot={<StravaWidget />}
-          isExportOpen={isExportOpen}
-          onCloseExport={() => setIsExportOpen(false)}
-          onOpenExport={() => setIsExportOpen(true)}
-        />
-      </Suspense>
+        {/* Tryb 1: Podsumowanie, Oś Czasu i Analiza AI */}
+        {viewMode === 'summary' && (
+          <div className="space-y-4 animate-fadeIn">
+            {period !== 'sprint' && (
+              <ChroniclePeriodPicker
+                label={periodLabel(chronicle.window)}
+                compareLabel={chronicle.window.compareLabel}
+                isCurrent={selection.offset === 0}
+                canCompareNewer={selection.compareOffset > 0}
+                onShift={selection.shiftMain}
+                onShiftCompare={selection.shiftCompare}
+                onReset={selection.reset}
+              />
+            )}
 
+            <ChronicleSummary
+              summary={chronicle.summary}
+              loading={chronicle.loading}
+              error={chronicle.error}
+              periodTitle={periodTitle}
+              compareLabel={chronicle.window.compareLabel}
+              showChart={period !== 'week'}
+            />
+
+            <ChronicleAiCompare
+              a={{ label: periodTitle, start: chronicle.window.start, end: chronicle.window.end }}
+              b={{ label: chronicle.window.compareLabel, start: chronicle.window.prevStart, end: chronicle.window.prevEnd }}
+            />
+          </div>
+        )}
+
+        {/* Tryb 2: Szczegółowe metryki ciała, zdjęcia sylwetki, bieganie (Strava) i siłownia */}
+        {viewMode === 'stats' && (
+          <div className="space-y-4 animate-fadeIn">
+            <Suspense fallback={<ViewFallback />}>
+              <Stats
+                domain={goal === 'cialo' ? 'all' : 'none'}
+                photosSlot={<Photos />}
+                runningSlot={<StravaWidget />}
+                isExportOpen={isExportOpen}
+                onCloseExport={() => setIsExportOpen(false)}
+                onOpenExport={() => setIsExportOpen(true)}
+              />
+            </Suspense>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 });

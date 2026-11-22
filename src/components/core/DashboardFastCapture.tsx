@@ -11,6 +11,7 @@ interface FastCaptureItem {
   color: string;
   icon?: LucideIcon;
   action: () => void;
+  hint?: string;
 }
 
 interface ToolItem {
@@ -18,6 +19,7 @@ interface ToolItem {
   icon: LucideIcon;
   action: () => void;
   route?: string;
+  hint?: string;
 }
 
 interface Props {
@@ -39,19 +41,27 @@ interface Tile {
   action: () => void;
   route?: string;
   color?: string;
+  hint?: string;
 }
 
 function SectionTitle({ children }: { children: string }) {
-  return <p className="px-1 text-xs font-semibold tracking-wide text-text-muted">{children}</p>;
+  return (
+    <div className="flex items-center gap-2 px-0.5">
+      <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">
+        {children}
+      </span>
+      <div className="h-px flex-1 bg-[var(--border)] opacity-50" />
+    </div>
+  );
 }
 
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
   const logTiles = useMemo<Tile[]>(
-    () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color })),
+    () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color, hint: item.hint })),
     [items],
   );
   const navTiles = useMemo<Tile[]>(
-    () => tools.map((tool) => ({ label: tool.label, icon: tool.icon, action: tool.action, route: tool.route })),
+    () => tools.map((tool) => ({ label: tool.label, icon: tool.icon, action: tool.action, route: tool.route, hint: tool.hint })),
     [tools],
   );
   const run = (tile: Tile) => {
@@ -75,27 +85,40 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
     >
       <div className="space-y-6 pb-2">
         {logTiles.length > 0 && (
-          <section className="space-y-3" aria-label="Rejestruj">
+          <section className="space-y-2.5" aria-label="Rejestruj">
             <SectionTitle>Rejestruj</SectionTitle>
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-2.5 ${logTiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {logTiles.map((tile) => {
                 const Icon = tile.icon;
-                const tint = tile.color ?? 'currentColor';
+                const tint = tile.color ?? 'var(--color-primary)';
                 return (
                   <Pressable
                     key={tile.label}
                     variant="ghost"
                     aria-label={tile.label}
                     onClick={() => run(tile)}
-                    className="flex min-h-16 w-full items-center gap-3 rounded-lg border border-black/8 bg-surface-2 p-3 text-left transition-colors hover:bg-surface-3 active:scale-[0.97] dark:border-white/10"
+                    className="group relative flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-left shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-[0.98]"
                   >
                     <span
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
-                      style={{ color: tint, backgroundColor: `color-mix(in srgb, ${tint} 16%, transparent)` }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-150 group-hover:scale-105"
+                      style={{
+                        color: tint,
+                        backgroundColor: `color-mix(in srgb, ${tint} 14%, transparent)`,
+                        border: `1px solid color-mix(in srgb, ${tint} 24%, transparent)`,
+                      }}
                     >
-                      <Icon size={22} aria-hidden="true" />
+                      <Icon size={20} aria-hidden="true" />
                     </span>
-                    <span className="min-w-0 flex-1 text-sm font-semibold leading-tight text-text-primary">{tile.label}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold leading-tight text-text-primary">
+                        {tile.label}
+                      </p>
+                      {tile.hint && (
+                        <p className="mt-0.5 truncate text-3xs font-medium text-text-muted">
+                          {tile.hint}
+                        </p>
+                      )}
+                    </div>
                   </Pressable>
                 );
               })}
@@ -104,9 +127,9 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
         )}
 
         {navTiles.length > 0 && (
-          <section className="space-y-3" aria-label="Przejdź do">
+          <section className="space-y-2.5" aria-label="Przejdź do">
             <SectionTitle>Przejdź do</SectionTitle>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2.5">
               {navTiles.map((tile) => {
                 const Icon = tile.icon;
                 const badge = tile.route ? badges?.[tile.route] ?? 0 : 0;
@@ -118,17 +141,19 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     onClick={() => run(tile)}
                     onMouseEnter={() => warm(tile)}
                     onTouchStart={() => warm(tile)}
-                    className="flex min-h-18 flex-col items-center justify-center gap-2 rounded-lg border border-black/8 bg-surface-2 px-1 py-3 text-center transition-colors hover:bg-surface-3 active:scale-95 dark:border-white/10"
+                    className="group flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-center shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-95"
                   >
-                    <span className="relative flex h-6 w-6 items-center justify-center text-text-primary">
-                      <Icon size={22} aria-hidden="true" />
+                    <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2 text-text-primary transition-transform duration-150 group-hover:scale-105">
+                      <Icon size={20} aria-hidden="true" />
                       {badge > 0 && (
-                        <span className="absolute -right-3 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold tabular-nums text-on-accent">
+                        <span className="absolute -right-2 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold tabular-nums text-white shadow-xs">
                           {badge > 9 ? '9+' : badge}
                         </span>
                       )}
                     </span>
-                    <span className="w-full break-words text-xs font-medium text-text-secondary">{tile.label}</span>
+                    <span className="w-full truncate text-xs font-semibold text-text-primary">
+                      {tile.label}
+                    </span>
                   </Pressable>
                 );
               })}

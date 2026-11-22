@@ -4,7 +4,16 @@
  */
 import { STORAGE_KEYS } from '../constants';
 
-const TRENING_ACCENT_IDS = ['lime', 'teal', 'orange', 'blue'] as const;
+const TRENING_ACCENT_IDS = [
+  'lime',
+  'teal',
+  'orange',
+  'blue',
+  'crimson',
+  'purple',
+  'gold',
+  'stealth',
+] as const;
 export type TreningAccentId = (typeof TRENING_ACCENT_IDS)[number];
 
 export type TreningAccentPreset = {
@@ -15,10 +24,14 @@ export type TreningAccentPreset = {
 };
 
 export const TRENING_ACCENT_PRESETS: TreningAccentPreset[] = [
-  { id: 'lime', label: 'Seledyn', hint: 'Domyślny Sparky', swatch: '#C1FF2C' },
-  { id: 'teal', label: 'Teal', hint: 'Chłodny athletic', swatch: '#2DD4BF' },
-  { id: 'orange', label: 'Flame', hint: 'Stronger-like', swatch: '#FF9F0A' },
-  { id: 'blue', label: 'Ocean', hint: 'iOS electric', swatch: '#64D2FF' },
+  { id: 'lime', label: 'Seledyn', hint: 'Volt Lime · Sparky', swatch: '#C1FF2C' },
+  { id: 'teal', label: 'Teal', hint: 'Miami Athletic', swatch: '#2DD4BF' },
+  { id: 'orange', label: 'Flame', hint: 'Stronger Magma', swatch: '#FF9F0A' },
+  { id: 'blue', label: 'Ocean', hint: 'Electric Blue', swatch: '#64D2FF' },
+  { id: 'crimson', label: 'Crimson', hint: 'Beast Red PR', swatch: '#FF3B30' },
+  { id: 'purple', label: 'Violet', hint: 'Cyber Whoop', swatch: '#BF5AF2' },
+  { id: 'gold', label: 'Gold', hint: 'Prestige Amber', swatch: '#FFD60A' },
+  { id: 'stealth', label: 'Stealth', hint: 'Carbon Onyx', swatch: '#A1A1A6' },
 ];
 
 export const DEFAULT_TRENING_ACCENT: TreningAccentId = 'lime';

@@ -1,12 +1,8 @@
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
     "appllama": {
-      "type": "http",
-      "url": "https://mcp.appllama.io/mcp"
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://mcp.appllama.io/mcp"]
     }
   }
 }

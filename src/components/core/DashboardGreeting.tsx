@@ -15,9 +15,12 @@ function greetingFor(now: Date): string {
 
 /** Powitanie nad stosem „Dziś” — jedyny duży tekst ekranu, reszta ma niższą hierarchię. */
 export function DashboardGreeting() {
+  const now = new Date();
   return (
-    <h2 className="px-1 font-display text-2xl font-semibold tracking-tight text-text-primary">
-      {greetingFor(new Date())}
-    </h2>
+    <div className="px-1 pt-1 pb-1">
+      <h2 className="font-display text-2xl font-black tracking-tight text-text-primary">
+        {greetingFor(now)}
+      </h2>
+    </div>
   );
 }

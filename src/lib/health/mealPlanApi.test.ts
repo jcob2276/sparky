@@ -103,6 +103,45 @@ describe('mealPlanApi client', () => {
     expect(result[1].verified).toBe(false);
   });
 
+  it('appends a later selection onto the same day instead of replacing approved meals', async () => {
+    const lunch = buildMealPlan({
+      notes: '',
+      days: [{ date: '2026-10-14', meals: [{ key: 'lunch', name: 'Obiad', prepMinutes: 10, ingredients: [{ productId: 'oats', grams: 100 }], instructions: 'Ugotuj.' }] }],
+    }, products, targets, { maxPrepMinutes: 30, excluded: [] }).plan!;
+    const dinnerDraft = buildMealPlan({
+      notes: '',
+      days: [{ date: '2026-10-14', meals: [
+        { key: 'lunch', name: 'Inny obiad', prepMinutes: 10, ingredients: [{ productId: 'oats', grams: 100 }], instructions: 'Ugotuj.' },
+        { key: 'dinner', name: 'Kolacja', prepMinutes: 12, ingredients: [{ productId: 'oats', grams: 100 }], instructions: 'Podgrzej.' },
+      ] }],
+    }, products, [{ date: '2026-10-14', calories: 800, protein: 20 }], { maxPrepMinutes: 30, excluded: [] }).plan!;
+    let stored = { revision: 2, draft: dinnerDraft, active: lunch, checkedProducts: [] as string[], approvalKey: '' };
+    vi.mocked(supabase.from).mockImplementation((() => {
+      const read = { eq: () => read, maybeSingle: async () => ({ data: { meal_plan: structuredClone(stored) }, error: null }) };
+      return {
+        select: () => read,
+        update: (payload: { meal_plan: typeof stored }) => {
+          let expected = -1;
+          const write = {
+            eq: () => write,
+            contains: (_column: string, value: { revision: number }) => { expected = value.revision; return write; },
+            select: () => write,
+            maybeSingle: async () => {
+              if (stored.revision !== expected) return { data: null, error: null };
+              stored = payload.meal_plan;
+              return { data: { meal_plan: stored }, error: null };
+            },
+          };
+          return write;
+        },
+      };
+    }) as never);
+    const approved = await approveMealPlan('u1', '2026-10-14', 'key-append', 2, false, { date: '2026-10-14', mealKeys: ['dinner'] });
+    expect(approved.active?.days[0].meals.map(meal => meal.key)).toEqual(['lunch', 'dinner']);
+    expect(approved.active?.days[0].meals.find(meal => meal.key === 'lunch')?.name).toBe('Obiad');
+    expect(approved.draft).toBeNull();
+  });
+
   it('approves once, preserves revisions on shopping and detects concurrent writes', async () => {
     const draftPlan = buildMealPlan(request,products,targets,{maxPrepMinutes:30,excluded:[]}).plan;
     let stored = {revision:1,draft:draftPlan,active:null as typeof draftPlan,checkedProducts:[] as string[],approvalKey:''};

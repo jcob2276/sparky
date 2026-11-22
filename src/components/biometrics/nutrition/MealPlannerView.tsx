@@ -3,31 +3,43 @@ import { ChefHat, Check, Sparkles, AlertCircle } from 'lucide-react';
 import {getTodayWarsaw,shiftDateStr,type MealPlanDraft,type MealPlanState,type MealPreferences} from '@vanguard/domain';
 import {ControlInput,ControlSelect} from '../../ui/ControlPrimitives';
 import { MealShoppingListView } from './MealShoppingListView';
+import { MealProposalRow } from './MealProposalRow';
 import { PlannedMealCard } from './PlannedMealCard';
 import Button from '../../ui/Button';
+import { TodayMealPlanner } from './TodayMealPlanner';
 
-interface MealPlannerViewProps {
+export interface MealPlannerViewProps {
   date: string;
   state: MealPlanState | null;
   targetKcal: number | null;
   targetProtein: number | null;
   isGenerating: boolean;
+  generationError?: string;
+  approvalError?: string;
   isApproving: boolean;
   busy?:boolean;
   onGenerate: () => void;
-  onApprove: (allergensReviewed?:boolean) => void;
+  onApprove: (allergensReviewed?:boolean,selection?:{date:string;mealKeys:string[]}) => void;
   onResizeMeal: (mealKey: string, factor: number,date?:string) => void;
   onToggleShoppingItem: (productId: string) => void;
   days?:number;onDays?:(days:number)=>void;onStartDate?:(date:string)=>void;canGenerate?:boolean;preferences?:MealPreferences|null;
   reviewIdentity?:string;
+  logged?: {calories:number;protein:number;carbs:number|null;fat:number|null};
+  mealFocus?: string;
+  onMealFocus?: (mealType: string) => void;
 }
 
-export function MealPlannerView({
+export function MealPlannerView(props: MealPlannerViewProps) {
+  return props.logged ? <TodayMealPlanner {...props} /> : <FullMealPlanner {...props} />;
+}
+
+function FullMealPlanner({
   date,
   state,
   targetKcal,
   targetProtein,
   isGenerating,
+  generationError,
   isApproving,
   busy=false,
   onGenerate,
@@ -62,7 +74,7 @@ export function MealPlannerView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-lg bg-surface-2 p-0.5 border border-white/5">
             <Button
               variant={tab === 'meals' ? 'tonal' : 'ghost'}
@@ -91,7 +103,7 @@ export function MealPlannerView({
             icon={<Sparkles size={14} className={isGenerating ? 'animate-spin' : ''} />}
             className="h-8 border border-primary/30"
           >
-            {isGenerating ? 'Dobieram…' : displayPlan ? 'Przelicz menu' : 'Ułóż jadłospis'}
+            {isGenerating ? 'Układam…' : displayPlan ? 'Przelicz menu' : 'Ułóż jadłospis'}
           </Button>
         </div>
       </div>
@@ -100,15 +112,17 @@ export function MealPlannerView({
         <label className="text-xs">Menu od<ControlInput className="mt-1 w-full" type="date" min={getTodayWarsaw()} max={shiftDateStr(getTodayWarsaw(),21)} value={date} disabled={busy} onChange={event=>onStartDate(event.target.value)}/></label>
         <label className="text-xs">Zakres jadłospisu<ControlSelect className="mt-1 w-full" value={days} disabled={busy} onChange={event=>onDays(Number(event.target.value))}><option value={1}>Jeden dzień</option><option value={7}>Cały tydzień</option></ControlSelect></label>
       </div>}
+      {isGenerating && <p role="status" className="text-sm text-text-secondary">Układam jadłospis. Wynik pojawi się w tym oknie.</p>}
+      {generationError && tab === 'meals' && <p role="alert" className="rounded-lg bg-danger/10 p-3 text-sm text-danger">{generationError}</p>}
       {!canGenerate && <p className="text-xs text-warning">Najpierw zapisz potwierdzone preferencje żywienia powyżej.</p>}
       {preferencesChanged && <p role="status" className="text-xs text-warning">Preferencje zmieniły się od utworzenia tego menu. Sprawdź istniejące posiłki i ułóż nowy szkic.</p>}
 
       {!displayPlan ? (
         <div className="rounded-lg border border-dashed border-white/10 p-6 text-center space-y-2">
-          <p className="text-sm font-medium text-text-primary">Brak zaplanowanego jadłospisu na ten dzień</p>
-          <p className="text-xs text-text-muted max-w-md mx-auto">
+          <p className="text-sm font-medium text-text-primary">{tab === 'shopping' ? 'Lista pojawi się po zatwierdzeniu planu.' : 'Brak zaplanowanego jadłospisu na ten dzień'}</p>
+          {tab === 'meals' && <p className="text-xs text-text-muted max-w-md mx-auto">
             {targetKcal == null || targetProtein == null ? 'Przy generowaniu Sparky sprawdzi aktualne dane do celu energii i białka. Jeżeli ich brakuje, wskaże, co uzupełnić.' : `Propozycje pod cel ${targetKcal} kcal i ${targetProtein} g białka z biblioteki produktów. Sprawdź porcje i etykiety przed zatwierdzeniem.`}
-          </p>
+          </p>}
         </div>
       ) : tab === 'shopping' ? (
         <MealShoppingListView
@@ -120,7 +134,7 @@ export function MealPlannerView({
       ) : (
         <div className="space-y-4">
           {isDraftOnly && (
-            <div className="flex items-center justify-between rounded-lg border border-warning/20 bg-warning/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning/20 bg-warning/5 p-3">
               <div className="flex items-center gap-2 text-xs text-warning">
                 <AlertCircle size={16} />
                 <span>To jest szkic jadłospisu. Zatwierdź, aby aktywować plan i listę zakupów.</span>
@@ -128,13 +142,13 @@ export function MealPlannerView({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={()=>onApprove(requiresAllergenReview?reviewed:undefined)}
+                onClick={()=>onApprove(requiresAllergenReview ? reviewed : undefined)}
                 disabled={busy || isApproving || preferencesChanged || !canGenerate || requiresAllergenReview && !reviewed}
                 loading={isApproving}
                 icon={<Check size={14} />}
                 className="h-7 px-3 text-xs"
               >
-                {isApproving ? 'Zatwierdzam…' : 'Zatwierdź menu'}
+                {isApproving ? 'Zapisuję…' : 'Zatwierdź menu'}
               </Button>
             </div>
           )}
@@ -142,10 +156,10 @@ export function MealPlannerView({
           {displayPlan.days.length>1 && <label className="block text-xs">Podgląd dnia<ControlSelect className="mt-1 w-full" value={currentDay?.date ?? ''} onChange={event=>setSelectedDate(event.target.value)}>{displayPlan.days.map(day=><option key={day.date} value={day.date}>{day.date}</option>)}</ControlSelect></label>}
 
           {currentDay && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-secondary bg-surface-2 p-2.5 rounded-lg border border-white/5">
                 <span>
-                  Suma dnia: <strong className="text-text-primary font-semibold">{currentDay.totals.calories} kcal</strong> (cel: {currentDay.target.calories} kcal)
+                  Suma planu: <strong className="text-text-primary font-semibold">{currentDay.totals.calories} kcal</strong> ({displayPlan.remainingToday ? 'pozostały budżet' : 'cel'}: {currentDay.target.calories} kcal)
                 </span>
                 <span>
                   Białko: <strong className="text-text-primary font-semibold">{currentDay.totals.protein} g</strong> (cel: {currentDay.target.protein} g)
@@ -153,13 +167,15 @@ export function MealPlannerView({
                 <span>Węgle: {currentDay.totals.carbs} g · Tłuszcz: {currentDay.totals.fat} g</span>
               </div>
 
-              <div className="space-y-3">
-                {currentDay.meals.map((meal) => (
-                  <PlannedMealCard
+              <div className="meal-planner-canvas">
+                {currentDay.meals.map(meal => (
+                  <MealProposalRow
                     key={meal.key}
                     meal={meal}
-                    onResizeMeal={(key,factor)=>onResizeMeal(key,factor,currentDay.date)}
-                    disabled={busy}
+                    draft={false}
+                    picked={false}
+                    busy={busy}
+                    onResizeMeal={(mealKey: string, factor: number) => onResizeMeal(mealKey, factor, currentDay.date)}
                   />
                 ))}
               </div>

@@ -138,7 +138,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
     <WorkspaceHeader
       title={
         <>
-          <span className="md:hidden">{formatRangeLabel(calView, selectedDay, weekStart, true)}</span>
+          <span className="md:hidden">Kalendarz</span>
           <span className="hidden md:inline">{formatRangeLabel(calView, selectedDay, weekStart)}</span>
         </>
       }

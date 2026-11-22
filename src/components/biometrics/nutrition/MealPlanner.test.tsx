@@ -53,7 +53,7 @@ describe('MealPlannerView', () => {
     draft.days[0].meals[0].name='Nowy szkic';
     render(<MealPlannerView date="2026-10-14" state={{...mockState,draft}} targetKcal={2000} targetProtein={150}
       isGenerating={false} isApproving={false} onGenerate={vi.fn()} onApprove={vi.fn()} onResizeMeal={vi.fn()} onToggleShoppingItem={vi.fn()} />);
-    expect(screen.getByText('Nowy szkic')).toBeInTheDocument();
+    expect(screen.getAllByText('Nowy szkic')[0]).toBeInTheDocument();
     expect(screen.getByRole('button',{name:'Zatwierdź menu'})).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button',{name:'Zakupy'}));
     expect(screen.getByText('180 g')).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('MealPlannerView', () => {
       />
     );
 
-    expect(screen.getByText('Jajecznica z pieczywem')).toBeInTheDocument();
+    expect(screen.getAllByText('Jajecznica z pieczywem')[0]).toBeInTheDocument();
     expect(screen.getByText('Jaja kurze')).toBeInTheDocument();
     expect(screen.getByText('2000 kcal')).toBeInTheDocument();
 
@@ -115,4 +115,21 @@ describe('MealPlannerView', () => {
     fireEvent.click(screen.getByRole('button', { name: /Jaja kurze/ }));
     expect(onToggle).toHaveBeenCalledWith('egg');
   });
+});
+
+it('approves just the selected meal and previews its contribution', () => {
+  const draft = structuredClone(mockState.active!);
+  const day = draft.days[0];
+  const meal = day.meals[0];
+  day.meals.push({...meal,key:'dinner',name:'Kolacja'});
+  const onApprove = vi.fn();
+  render(<MealPlannerView date={day.date} state={{...mockState,active:null,draft}}
+    targetKcal={2000} targetProtein={150} isGenerating={false} isApproving={false}
+    logged={{calories:500,protein:35,carbs:null,fat:null}}
+    onGenerate={vi.fn()} onApprove={onApprove} onResizeMeal={vi.fn()} onToggleShoppingItem={vi.fn()} />);
+  expect(screen.getByRole('button',{name:'Dodaj wybrane (0)'})).toBeDisabled();
+  fireEvent.click(screen.getByRole('checkbox',{name:'Wybierz: Kolacja'}));
+  expect(screen.getByText((_, node) => node?.textContent === 'Wybrane: 500 kcal')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Dodaj wybrane (1)'}));
+  expect(onApprove).toHaveBeenCalledWith(undefined,{date:day.date,mealKeys:['dinner']});
 });

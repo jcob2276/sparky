@@ -52,23 +52,26 @@ function ActiveDraftBanner({
 
 function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; onSauna: () => void; showStart: boolean }) {
   return (
-    <section className="trening-panel space-y-3 rounded-[var(--tren-radius-card)] border-primary/25 p-4">
+    <section className="trening-panel space-y-3 rounded-[var(--tren-radius-card)] border-primary/25 p-4 bg-gradient-to-br from-surface to-surface-1">
       {showStart && (
-        <div className="space-y-1">
-          <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-text-primary">Nowy trening</h2>
+        <div className="space-y-0.5">
+          <span className="text-2xs font-bold uppercase tracking-wider text-primary">Nowa sesja</span>
+          <h2 className="font-display text-xl font-bold leading-tight tracking-tight text-text-primary">
+            Rozpocznij trening
+          </h2>
         </div>
       )}
       <div className="flex gap-2">
         {showStart && (
-          <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm">
+          <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm font-bold shadow-md shadow-primary/20">
             <Plus size={16} strokeWidth={2.5} />
-            Rozpocznij trening
+            Pusty trening
           </Pressable>
         )}
         <Pressable
           onClick={onSauna}
           aria-label="Zapisz sesję sauny"
-          className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-border-custom bg-surface-1 text-sm font-bold text-text-primary ${showStart ? 'px-5' : 'flex-1'}`}
+          className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-warning/30 bg-warning/10 hover:bg-warning/20 text-sm font-bold text-warning ${showStart ? 'px-5' : 'flex-1'}`}
         >
           <Flame size={16} className="text-warning" />
           Sauna
@@ -157,29 +160,30 @@ export default function TrainingHubView({
               <ActiveDraftBanner onResume={handleResumeDraft} onDiscard={handleDiscardDraft} />
             )}
 
-            <QuickStartCta onStart={handleStartBlank} onSauna={() => onNavigate('/sauna')} showStart={!hasDraft} />
-
-            {todaySession && (
+            {todaySession ? (
               <TrainingTodayCard
                 details={todaySession}
                 onStartAnother={handleStartBlank}
                 onLogSauna={() => onNavigate('/sauna')}
               />
+            ) : (
+              <QuickStartCta onStart={handleStartBlank} onSauna={() => onNavigate('/sauna')} showStart={!hasDraft} />
             )}
 
-            <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
+            <TrainingTemplatesSection
+              templates={templates}
+              onSelectTemplate={handleSelectTemplate}
+            />
 
-            <TrainingHubRunning load={running.data} loading={running.isLoading} />
+            <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
 
             <TrainingHubGoal goal={benchGoal.data} />
 
             <TrainingHubRecords records={records} />
 
             <TrainingHubSignals forecasts={forecasts} neglects={neglects} />
-            <TrainingTemplatesSection
-              templates={templates}
-              onSelectTemplate={handleSelectTemplate}
-            />
+
+            <TrainingHubRunning load={running.data} loading={running.isLoading} />
           </div>
         )}
       </main>

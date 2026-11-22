@@ -21,7 +21,11 @@ it('confirms preferences, drafts seven dates, reviews allergens, approves the we
   vi.mocked(fetchMealPreferences).mockImplementation(async()=>preferences);
   vi.mocked(saveMealPreferences).mockImplementation(async(_owner,value)=>{preferences={...value,revision:value.revision+1};return preferences;});
   vi.mocked(fetchMealPlannerState).mockImplementation(async()=>({storageDate:today,state}));
-  vi.mocked(invokeEdge).mockImplementation(async()=>{state={revision:1,draft:plan,active:null,checkedProducts:[]};return {success:true,state};});
+  vi.mocked(invokeEdge).mockImplementation(async(_name,options)=>{
+    const body=options?.body as {action?:string};
+    if(body.action==='resolve_meal_photo') return {success:true,photoUrl:'https://example.com/meal.jpg',attribution:'Test'};
+    state={revision:1,draft:plan,active:null,checkedProducts:[]};return {success:true,state};
+  });
   vi.mocked(approveMealPlan).mockImplementation(async()=>{state={...state!,revision:2,active:state!.draft,draft:null};return state;});
   vi.mocked(resizeMealInPlanState).mockImplementation(async()=>state!);
   function visit(date:string){return render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MealPlannerContainer userId="owner-one" date={date} targetKcal={null} targetProtein={null}/></QueryClientProvider>);}
@@ -32,11 +36,11 @@ it('confirms preferences, drafts seven dates, reviews allergens, approves the we
   fireEvent.click(screen.getByRole('button',{name:'Zapisz preferencje'}));
   await waitFor(()=>expect(screen.getByRole('button',{name:'Ułóż jadłospis'})).toBeEnabled());
   fireEvent.click(screen.getByRole('button',{name:'Ułóż jadłospis'}));
-  await screen.findByText('Śniadanie dnia 1');
+  await screen.findAllByText('Śniadanie dnia 1');
   expect(invokeEdge).toHaveBeenCalledWith('vanguard-nutrition-coach',expect.objectContaining({body:expect.objectContaining({startDate:today,days:7})}));
   expect(screen.getByLabelText('Podgląd dnia').querySelectorAll('option')).toHaveLength(7);
   fireEvent.change(screen.getByLabelText('Podgląd dnia'),{target:{value:tomorrow}});
-  expect(screen.getByText('Śniadanie dnia 2')).toBeInTheDocument();
+  expect(screen.getAllByText('Śniadanie dnia 2')[0]).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button',{name:'1.5x'}));
   await waitFor(()=>expect(resizeMealInPlanState).toHaveBeenCalledWith('owner-one',today,'breakfast',1.5,1,tomorrow));
   expect(screen.getByRole('button',{name:'Zatwierdź menu'})).toBeDisabled();
@@ -47,7 +51,7 @@ it('confirms preferences, drafts seven dates, reviews allergens, approves the we
   fireEvent.click(screen.getByRole('button',{name:'Zakupy'}));
   expect(screen.getByText('700 g')).toBeInTheDocument();
   first.unmount();visit(tomorrow);
-  expect(await screen.findByText('Śniadanie dnia 2')).toBeInTheDocument();
+  expect((await screen.findAllByText('Śniadanie dnia 2'))[0]).toBeInTheDocument();
   expect(fetchMealPlannerState).toHaveBeenLastCalledWith('owner-one',tomorrow);
 });
 it('stores a future replacement at its own start while preserving the current approved week',async()=>{
@@ -61,20 +65,45 @@ it('stores a future replacement at its own start while preserving the current ap
   vi.mocked(fetchMealPreferences).mockResolvedValue({...parseMealPreferences(null),confirmed:true,revision:1});
   vi.mocked(fetchMealPlannerState).mockImplementation(async(_owner,date)=>({storageDate:rows.has(date)?date:today,state:rows.get(date) ?? rows.get(today)!}));
   vi.mocked(invokeEdge).mockImplementation(async(_name,options)=>{
-    const body=options?.body as {date:string};
-    const state={revision:1,active:null,draft:plan(future,'Nowe przyszłe śniadanie')};rows.set(body.date,state);return {success:true,state};
+    const body=options?.body as {date?:string;action?:string};
+    if(body.action==='resolve_meal_photo') return {success:true,photoUrl:'https://example.com/meal.jpg',attribution:'Test'};
+    const state={revision:1,active:null,draft:plan(future,'Nowe przyszłe śniadanie')};rows.set(body.date!,state);return {success:true,state};
   });
   vi.mocked(approveMealPlan).mockImplementation(async(_owner,date)=>{const row=rows.get(date)!;const state={...row,revision:row.revision+1,active:row.draft,draft:null};rows.set(date,state);return state;});
   render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MealPlannerContainer userId="owner-one" date={today} targetKcal={null} targetProtein={null}/></QueryClientProvider>);
-  await screen.findByText('Bieżące śniadanie');
+  await screen.findAllByText('Bieżące śniadanie');
   fireEvent.change(screen.getByLabelText('Menu od'),{target:{value:future}});
-  await screen.findByText('Dawne przyszłe śniadanie');
+  await screen.findAllByText('Dawne przyszłe śniadanie');
   fireEvent.click(screen.getByRole('button',{name:'Przelicz menu'}));
-  await screen.findByText('Nowe przyszłe śniadanie');
-  expect(invokeEdge).toHaveBeenLastCalledWith('vanguard-nutrition-coach',expect.objectContaining({body:expect.objectContaining({date:future,startDate:future})}));
+  await screen.findAllByText('Nowe przyszłe śniadanie');
+  expect(invokeEdge).toHaveBeenCalledWith('vanguard-nutrition-coach',expect.objectContaining({body:expect.objectContaining({date:future,startDate:future,action:'generate_meal_plan'})}));
   fireEvent.click(screen.getByRole('button',{name:'Zatwierdź menu'}));
   await waitFor(()=>expect(rows.get(future)?.active).not.toBeNull());
   expect(rows.get(today)?.active).toEqual(current);
   fireEvent.change(screen.getByLabelText('Menu od'),{target:{value:today}});
-  await screen.findByText('Bieżące śniadanie');
+  await screen.findAllByText('Bieżące śniadanie');
+});
+
+it('starts the daily planner on HTTP and shows generator failures inside the window', async () => {
+  const today = getTodayWarsaw();
+  vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) });
+  vi.mocked(fetchMealPreferences).mockResolvedValue({...parseMealPreferences(null), confirmed:true, revision:1});
+  vi.mocked(fetchMealPlannerState).mockResolvedValue({storageDate:today,state:null});
+  vi.mocked(invokeEdge).mockResolvedValue({success:false,state:null,errors:['Brak danych do obliczenia celu.']});
+  try {
+    render(<QueryClientProvider client={new QueryClient()}>
+      <MealPlannerContainer userId="owner-one" date={today} targetKcal={null} targetProtein={null}
+        logged={{calories:500,protein:30,carbs:null,fat:null}} />
+    </QueryClientProvider>);
+    const button = await screen.findByRole('button',{name:'Ułóż plan na resztę dnia'});
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Brak danych do obliczenia celu.');
+    expect(invokeEdge).toHaveBeenCalledWith('vanguard-nutrition-coach',expect.objectContaining({
+      body:expect.objectContaining({action:'generate_meal_plan',days:1,remainingToday:true,requestKey:expect.any(String)}),
+    }));
+    expect(button).toBeEnabled();
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

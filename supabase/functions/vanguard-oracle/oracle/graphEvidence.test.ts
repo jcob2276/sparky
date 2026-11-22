@@ -16,3 +16,12 @@ Deno.test('formatGraphMemory labels weak signals as hypotheses', () => {
   assertStringIncludes(text, 'POJEDYNCZE SYGNAŁY');
   assertStringIncludes(text, '(obserwacji: 1, zapisane 2026-09-01)');
 });
+
+Deno.test('formatGraphMemory extracts multi-hop chains when relational entities link together', () => {
+  const text = formatGraphMemory([
+    { source_entity: 'Jakub', relation: 'planuje', target_entity: 'Sprzedaż B2B', evidence_count: 3 },
+    { source_entity: 'Sprzedaż B2B', relation: 'wymaga', target_entity: 'Zimne telefony', evidence_count: 3 },
+  ]);
+  assertStringIncludes(text, 'ŚCIEŻKI POWIĄZAŃ WIELOETAPOWYCH (MULTI-HOP GRAPH)');
+  assertStringIncludes(text, 'Jakub ──[planuje]──> Sprzedaż B2B ──[wymaga]──> Zimne telefony');
+});

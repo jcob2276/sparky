@@ -35,6 +35,29 @@ export function formatShortDateWarsaw(date: Date | string | number): string {
   });
 }
 
+/** Formats an ISO string, SQL timestamp, or Date into "HH:mm" in Europe/Warsaw timezone. */
+export function formatTimeWarsaw(dateOrStr: Date | string | null | undefined): string {
+  if (!dateOrStr) return '';
+  if (dateOrStr instanceof Date) {
+    return new Intl.DateTimeFormat('pl-PL', {
+      timeZone: TIMEZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(dateOrStr);
+  }
+  let s = dateOrStr.trim().replace(' ', 'T');
+  if (/\+[0-9]{2}$/.test(s)) s += ':00';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return dateOrStr.slice(11, 16);
+  return new Intl.DateTimeFormat('pl-PL', {
+    timeZone: TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
 export function formatLongDateWarsaw(date: Date | string | number): string {
   return new Date(date).toLocaleDateString('pl-PL', {
     timeZone: TIMEZONE,

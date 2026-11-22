@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { SidebarTrigger } from '../ui/sidebar';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
   ArrowLeft,
   Calendar,
+  CalendarRange,
+  ChevronDown,
   Download,
-  FileSpreadsheet,
   Filter,
   Plus,
   Search,
@@ -105,27 +107,6 @@ function TerminyHeader({
         </Pressable>
       </div>
     </header>
-  );
-}
-
-function TerminyScorecards({ total, urgent, notes }: { total: number; urgent: number; notes: number }) {
-  const cards = [
-    { label: 'Wszystkie', value: total, Icon: Calendar, color: 'text-primary' },
-    { label: 'Pilne ≤7 dni', value: urgent, Icon: AlertTriangle, color: 'text-warning' },
-    { label: 'Z notatkami', value: notes, Icon: FileSpreadsheet, color: 'text-info' },
-  ];
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {cards.map(({ label, value, Icon, color }) => (
-        <div key={label} className="flex h-full min-w-0 flex-col justify-between rounded-lg border border-border-custom/30 bg-surface-solid/70 p-3 shadow-xs">
-          <div className="flex items-start gap-1.5 text-xs font-semibold leading-tight text-text-muted">
-            <Icon size={14} className={`mt-px shrink-0 ${color}`} />
-            <span>{label}</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary">{value}</p>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -241,22 +222,81 @@ function TerminyResults(
 }
 
 export default function TerminyPageContent(props: Props) {
+  const [showYearDistribution, setShowYearDistribution] = useState(false);
+  const isMonthFiltered = props.selectedMonth !== null;
+
   return (
     <div className="flex min-w-0 flex-1 flex-col h-full overflow-y-auto">
       <TerminyHeader onBack={props.onBack} onAdd={props.onAdd} onExportAllICS={props.onExportAllICS} />
-      <ContentContainer width="default" className="flex-1 space-y-6 pb-16 pt-6">
+      <ContentContainer width="default" className="flex-1 space-y-4 pb-16 pt-5">
         {props.isLoading && <div className="flex justify-center py-16"><Spinner /></div>}
         {props.error && <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">{props.error.message}</p>}
         {!props.isLoading && !props.error && (
           <>
-            <TerminyScorecards total={props.rows.length} urgent={props.urgentCount} notes={props.notesCount} />
-            <TerminyYearDistribution
-              rows={props.rows}
-              selectedMonth={props.selectedMonth}
-              onSelectMonth={props.onSelectMonth}
-            />
+            {props.urgentCount > 0 && (
+              <div className="flex items-center justify-between rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-xs text-warning shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <AlertTriangle size={16} className="shrink-0" />
+                  <span className="font-semibold text-text-primary">
+                    {props.urgentCount === 1
+                      ? '1 termin wymaga uwagi w ciągu 7 dni'
+                      : `${props.urgentCount} terminy wymagają uwagi w ciągu 7 dni`}
+                  </span>
+                </div>
+                <Pressable
+                  onClick={() => props.onFilterChange('urgent')}
+                  className="font-bold underline text-warning hover:opacity-80"
+                >
+                  Pokaż pilne
+                </Pressable>
+              </div>
+            )}
+
             <TerminyToolbar {...props} />
             <TerminyTabs {...props} />
+
+            <div className="flex items-center justify-between pt-1">
+              <Pressable
+                onClick={() => setShowYearDistribution((v) => !v)}
+                className="inline-flex items-center gap-2 rounded-full border border-border-custom/40 bg-surface-2/60 px-3.5 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-surface-3 hover:text-text-primary active:scale-95"
+              >
+                <CalendarRange size={14} className="text-primary" />
+                <span>Rozkład w roku ({props.rows.length})</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${
+                    showYearDistribution || isMonthFiltered ? 'rotate-180' : ''
+                  }`}
+                />
+              </Pressable>
+              {isMonthFiltered && (
+                <Pressable
+                  onClick={() => props.onSelectMonth(null)}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Wyczyść filtr miesiąca
+                </Pressable>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {(showYearDistribution || isMonthFiltered) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <TerminyYearDistribution
+                    rows={props.rows}
+                    selectedMonth={props.selectedMonth}
+                    onSelectMonth={props.onSelectMonth}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <TerminyResults {...props} />
           </>
         )}

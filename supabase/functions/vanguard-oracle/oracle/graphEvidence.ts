@@ -43,6 +43,44 @@ function partitionByEvidence(facts: GraphFactRow[]): { strong: GraphFactRow[]; w
   return { strong, weak };
 }
 
+export function findMultiHopChains(facts: GraphFactRow[], maxChains = 6): string[] {
+  const chains: string[] = [];
+  const seenChains = new Set<string>();
+
+  const outgoing = new Map<string, GraphFactRow[]>();
+  for (const f of facts) {
+    if (!f.source_entity || !f.relation || !f.target_entity) continue;
+    const src = f.source_entity.trim().toLowerCase();
+    if (!outgoing.has(src)) outgoing.set(src, []);
+    outgoing.get(src)!.push(f);
+  }
+
+  for (const first of facts) {
+    if (!first.source_entity || !first.relation || !first.target_entity) continue;
+    const midNorm = first.target_entity.trim().toLowerCase();
+    const secondHop = outgoing.get(midNorm);
+    if (!secondHop) continue;
+
+    for (const second of secondHop) {
+      if (!second.target_entity || !second.relation) continue;
+      if (second.target_entity.trim().toLowerCase() === first.source_entity.trim().toLowerCase()) continue;
+      if (second.target_entity.trim().toLowerCase() === midNorm) continue;
+
+      const chainKey = `${first.source_entity}->${first.relation}->${first.target_entity}->${second.relation}->${second.target_entity}`.toLowerCase();
+      if (seenChains.has(chainKey)) continue;
+      seenChains.add(chainKey);
+
+      chains.push(
+        `${first.source_entity} ──[${first.relation}]──> ${first.target_entity} ──[${second.relation}]──> ${second.target_entity}`
+      );
+
+      if (chains.length >= maxChains) return chains;
+    }
+  }
+
+  return chains;
+}
+
 export function formatGraphMemory(facts: GraphFactRow[]): string {
   const { strong, weak } = partitionByEvidence(facts);
   const parts: string[] = [];
@@ -56,6 +94,13 @@ export function formatGraphMemory(facts: GraphFactRow[]): string {
     parts.push(
       '[PAMIĘĆ Z GRAFU — POJEDYNCZE SYGNAŁY (1–2 obserwacje lub brak danych o dowodach): traktuj jak hipotezy, nie mów o nich jak o pewnikach; starsze niż 3 tygodnie to tło]:\n' +
       weak.map((f) => `- ${factLabel(f)}${tag(f)}`).join('\n'),
+    );
+  }
+  const multiHopChains = findMultiHopChains(facts);
+  if (multiHopChains.length) {
+    parts.push(
+      '[ŚCIEŻKI POWIĄZAŃ WIELOETAPOWYCH (MULTI-HOP GRAPH)]:\n' +
+      multiHopChains.map((c) => `- ${c}`).join('\n'),
     );
   }
   return parts.join('\n\n');

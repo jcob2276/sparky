@@ -1,7 +1,13 @@
 import {useState} from 'react';
 import type {MealPreferences} from '@vanguard/domain';
-import {ControlInput,ControlSelect,ControlTextarea} from '../../ui/ControlPrimitives';
+import {ControlInput,ControlTextarea} from '../../ui/ControlPrimitives';
 import Button from '../../ui/Button';
+const patterns = [
+  { value: 'any', label: 'Bez ograniczeń' },
+  { value: 'vegetarian', label: 'Wegetariański' },
+  { value: 'vegan', label: 'Wegański' },
+] as const;
+
 interface Props {initial:MealPreferences;saving:boolean;error:string|null;onSave:(value:MealPreferences)=>void}
 export function MealPreferencesEditor({initial,saving,error,onSave}:Props) {
   const [value,setValue]=useState(initial),[excluded,setExcluded]=useState(initial.excluded.join(', ')),[allergies,setAllergies]=useState(initial.allergies.join(', '));
@@ -10,12 +16,26 @@ export function MealPreferencesEditor({initial,saving,error,onSave}:Props) {
   return <details className="rounded-lg border border-border-custom bg-surface p-4" open={!initial.confirmed}>
     <summary className="cursor-pointer text-sm font-semibold">Preferencje i ograniczenia żywienia</summary>
     <div className="mt-3 space-y-3">
-      <label className="block text-xs">Sposób jedzenia<ControlSelect className="mt-1 w-full" value={value.pattern ?? 'any'} disabled={saving} onChange={event=>change({pattern:event.target.value as MealPreferences['pattern']})}>
-        <option value="any">Bez wykluczeń z tego tytułu</option><option value="vegetarian">Wegetariański</option><option value="vegan">Wegański</option>
-      </ControlSelect></label>
-      <label className="block text-xs">Maksymalny czas przygotowania posiłku<ControlSelect className="mt-1 w-full" value={value.maxPrepMinutes} disabled={saving} onChange={event=>change({maxPrepMinutes:Number(event.target.value)})}>
-        {[15,30,45,60,90].map(minutes=><option key={minutes} value={minutes}>{minutes} min</option>)}
-      </ControlSelect></label>
+      <fieldset className="space-y-2">
+        <legend className="text-xs">Sposób jedzenia</legend>
+        <div className="flex flex-wrap gap-2">
+          {patterns.map(({ value: pattern, label }) => (
+            <Button key={pattern} size="sm" variant={(value.pattern ?? 'any') === pattern ? 'tonal' : 'secondary'}
+              aria-pressed={(value.pattern ?? 'any') === pattern} disabled={saving}
+              onClick={() => change({ pattern })}>{label}</Button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <legend className="text-xs">Czas przygotowania do</legend>
+        <div className="flex flex-wrap gap-2">
+          {[15, 30, 45, 60, 90].map((minutes) => (
+            <Button key={minutes} size="sm" variant={value.maxPrepMinutes === minutes ? 'tonal' : 'secondary'}
+              aria-pressed={value.maxPrepMinutes === minutes} disabled={saving}
+              onClick={() => change({ maxPrepMinutes: minutes })}>{minutes} min</Button>
+          ))}
+        </div>
+      </fieldset>
       <label className="block text-xs">Wykluczone produkty, po przecinku<ControlInput className="mt-1 w-full" maxLength={1000} value={excluded} disabled={saving} onChange={event=>{setExcluded(event.target.value);change({});}}/></label>
       <label className="block text-xs">Zgłoszone alergie, po przecinku; puste pole oznacza, że ich nie zgłaszasz<ControlInput className="mt-1 w-full" maxLength={1000} value={allergies} disabled={saving} onChange={event=>{setAllergies(event.target.value);change({});}}/></label>
       <label className="block text-xs">Co lubisz i inne uwagi<ControlTextarea className="mt-1 w-full" maxLength={1000} rows={3} value={value.preferences} disabled={saving} onChange={event=>change({preferences:event.target.value})}/></label>

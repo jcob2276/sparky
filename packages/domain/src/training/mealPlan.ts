@@ -6,7 +6,7 @@ export interface PlannedMacros { calories:number; protein:number; carbs:number; 
 export interface MealIngredient { product:MealPlanProduct; grams:number; baseGrams?:number; macros:PlannedMacros }
 export interface PlannedMeal { key:string; name:string; prepMinutes:number; instructions:string; ingredients:MealIngredient[]; totals:PlannedMacros }
 export interface MealPlanDay { date:string; meals:PlannedMeal[]; totals:PlannedMacros; target:{calories:number;protein:number} }
-export interface MealPlanDraft { notes:string; days:MealPlanDay[]; warnings:string[]; preferencesRevision?:number }
+export interface MealPlanDraft { notes:string; days:MealPlanDay[]; warnings:string[]; remainingToday?:boolean; preferencesRevision?:number }
 export interface MealPreferences { revision:number; confirmed:boolean; maxPrepMinutes:number; excluded:string[]; allergies:string[]; preferences:string; pattern?:'any'|'vegetarian'|'vegan' }
 export interface MealPlanState { revision:number; draft:MealPlanDraft|null; active:MealPlanDraft|null; requestKey?:string; approvalKey?:string; checkedProducts?:string[] }
 const obj = (raw:unknown): Record<string,unknown> => raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string,unknown> : {};
@@ -56,6 +56,18 @@ export function buildMealPlan(raw:unknown,products:MealPlanProduct[],targets:Arr
     'Brak zweryfikowanej informacji o alergenach i zanieczyszczeniach krzyżowych. Sprawdź skład produktów przed zatwierdzeniem.',
     ...(products.some(product=>!product.verified) ? ['Część produktów nie ma zweryfikowanej etykiety. Wartości są szacunkowe.'] : []),
   ]}};
+}
+export function selectPlannedMeals(day: MealPlanDay, mealKeys: readonly string[]): MealPlanDay {
+  const keys = new Set(mealKeys);
+  const meals = day.meals.filter(meal => keys.has(meal.key));
+  return { ...day, meals, totals: total(meals.map(meal => meal.totals)) };
+}
+/** Keeps earlier approved meals for the day and overlays newly picked ones by key. */
+export function appendPlannedMeals(day: MealPlanDay, meals: readonly PlannedMeal[]): MealPlanDay {
+  const byKey = new Map(day.meals.map(meal => [meal.key, meal]));
+  for (const meal of meals) byKey.set(meal.key, meal);
+  const next = [...byKey.values()];
+  return { ...day, meals: next, totals: total(next.map(meal => meal.totals)) };
 }
 export function resizePlannedMeal(plan:MealPlanDraft,date:string,key:string,factor:number): MealPlanDraft {
   if (!Number.isFinite(factor) || factor<0.25 || factor>3) throw new Error('Mnożnik porcji musi wynosić od 0.25 do 3.');

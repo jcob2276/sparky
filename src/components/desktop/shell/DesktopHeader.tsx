@@ -20,8 +20,8 @@ export default function DesktopHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-4 sm:px-8 py-3.5 flex items-center gap-2 sm:gap-4">
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-3.5 sm:px-8 py-3 flex items-center justify-between gap-2 max-w-full overflow-hidden">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0 min-w-0">
         <BrandTitle className="font-display text-sm text-text-primary" />
         <span className="text-2xs font-bold tracking-wide text-text-muted hidden lg:block">{now}</span>
       </div>
@@ -33,13 +33,13 @@ export default function DesktopHeader({
           </span>
         ))}
       </div>
-      <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {onOpenTools && (
           <Button
             onClick={onOpenTools}
             variant="secondary"
             icon={<LayoutGrid size={14} />}
-            className="rounded-full p-2 sm:p-2.5"
+            className="hidden sm:inline-flex rounded-full p-2 sm:p-2.5"
             title="Katalog Narzędzi Sparky"
           />
         )}
@@ -49,8 +49,8 @@ export default function DesktopHeader({
         </div>
         <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2 sm:p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
         <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2 sm:p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />
-        <Button onClick={() => navigate('/dzis')} variant="outline" size="sm" icon={<Smartphone size={14} aria-hidden="true" />} aria-label="Wróć do widoku Dziś" title="Wróć do widoku Dziś" className="min-h-11 min-w-11 px-2.5 text-xs">
-          <span className="hidden sm:inline">Dziś</span>
+        <Button onClick={() => navigate('/dzis')} variant="outline" size="sm" icon={<Smartphone size={14} aria-hidden="true" />} aria-label="Wróć do widoku Dziś" title="Wróć do widoku Dziś" className="min-h-10 px-2.5 text-xs">
+          <span>Dziś</span>
         </Button>
       </div>
     </header>

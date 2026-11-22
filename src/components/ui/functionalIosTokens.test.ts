@@ -17,12 +17,12 @@ describe('Functional iOS token contract', () => {
     const light = contractBlock('/* Functional iOS light */');
     const dark = contractBlock('/* Functional iOS dark */');
 
-    expect(light).toContain('--background: #F2F2F7;');
-    expect(light).toContain('--surface: #FFFFFF;');
-    expect(light).toContain('--primary: #007AFF;');
-    expect(light).toContain('--direction: #FF9500;');
-    expect(light).toContain('--color-success: #34C759;');
-    expect(light).toContain('--attention: #5856D6;');
+    expect(light).toContain('--background: #F5F2EB;');
+    expect(light).toContain('--surface: #FCFAF6;');
+    expect(light).toContain('--primary: #272522;');
+    expect(light).toContain('--direction: #B45309;');
+    expect(light).toContain('--color-success: #2E7D32;');
+    expect(light).toContain('--attention: #854D0E;');
     expect(dark).toContain('--background: #000000;');
     expect(dark).toContain('--surface: #1C1C1E;');
     expect(dark).toContain('--surface-3: #2C2C2E;');

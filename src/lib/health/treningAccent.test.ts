@@ -15,7 +15,8 @@ describe('treningAccent', () => {
   it('validates known accent ids', () => {
     expect(isTreningAccentId('lime')).toBe(true);
     expect(isTreningAccentId('orange')).toBe(true);
-    expect(isTreningAccentId('purple')).toBe(false);
+    expect(isTreningAccentId('purple')).toBe(true);
+    expect(isTreningAccentId('magenta')).toBe(false);
   });
 
   it('defaults to lime and persists choice', () => {

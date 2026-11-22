@@ -41,7 +41,10 @@ export class CommandRouterInterceptor implements MessageInterceptor {
       shouldRespond = true;
       mode = "report";
       cleanText = ctx.text.substring(1).trim();
-    } else if (ctx.text.toLowerCase().startsWith("poprawka:")) {
+    } else if (
+      /^(poprawka:|korekta:|zmiana:|aktualizacja:|poprawka tożsamość:|tożsamość:)/i.test(ctx.text.trim()) ||
+      /^(nie,\s*to\s*błąd|to\s*błąd|to\s*pomyłka|zmieniłem\s*zdanie)/i.test(ctx.text.trim())
+    ) {
       shouldRespond = false;
       mode = "knowledge";
       cleanText = ctx.text;

@@ -67,13 +67,18 @@ export class KnowledgeSaverInterceptor implements MessageInterceptor {
   async handle(ctx: MessageContext): Promise<boolean> {
     if (ctx.mode !== "knowledge") return false;
 
-    const lowerText = ctx.cleanText.toLowerCase();
-    const isIdentityUpdate = lowerText.startsWith("poprawka tożsamość:");
-    const isGeneralPoprawka = !isIdentityUpdate && lowerText.startsWith("poprawka:");
+    const lowerText = ctx.cleanText.toLowerCase().trim();
+    const isIdentityUpdate = lowerText.startsWith("poprawka tożsamość:") || lowerText.startsWith("tożsamość:");
+    const isPrefixPoprawka = /^(poprawka:|korekta:|zmiana:|aktualizacja:)/i.test(ctx.cleanText.trim());
+    const isNaturalCorrection = /^(nie,\s*to\s*błąd|to\s*błąd|to\s*pomyłka|zmieniłem\s*zdanie)/i.test(ctx.cleanText.trim());
+    const isGeneralPoprawka = !isIdentityUpdate && (isPrefixPoprawka || isNaturalCorrection);
 
-    let rawContent = ctx.cleanText;
-    if (isIdentityUpdate) rawContent = ctx.cleanText.substring(19).trim();
-    else if (isGeneralPoprawka) rawContent = ctx.cleanText.substring(9).trim();
+    let rawContent = ctx.cleanText.trim();
+    if (isIdentityUpdate) {
+      rawContent = ctx.cleanText.replace(/^(poprawka tożsamość:|tożsamość:)/i, "").trim();
+    } else if (isPrefixPoprawka) {
+      rawContent = ctx.cleanText.replace(/^(poprawka:|korekta:|zmiana:|aktualizacja:)/i, "").trim();
+    }
 
     const isBehavioral =
       isGeneralPoprawka &&
@@ -90,10 +95,16 @@ export class KnowledgeSaverInterceptor implements MessageInterceptor {
         },
         { onConflict: "user_id, key" },
       );
+      await safeSendTelegram(ctx.chatId, `✍️ Przyjąłem uwagę do stylu: „${rawContent}”`, ctx.telegramToken);
+      ctx.handlerResponded = true;
+      return true;
     } else if (isIdentityUpdate) {
       await ctx.supabase
         .from("user_fundament")
         .upsert({ user_id: ctx.vanguardUserId, identity: rawContent }, { onConflict: "user_id" });
+      await safeSendTelegram(ctx.chatId, `👤 Zaktualizowano fundament tożsamości: „${rawContent}”`, ctx.telegramToken);
+      ctx.handlerResponded = true;
+      return true;
     } else {
       const wordCount = rawContent.trim().split(/\s+/).filter(Boolean).length;
       const category = isGeneralPoprawka ? "lesson" : inferVaultCategory(rawContent);

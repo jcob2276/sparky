@@ -11,6 +11,7 @@ function fixture(catalog=true,confirmed=true) {
     const url=new URL(input instanceof Request?input.url:String(input)),table=url.pathname.split('/').at(-1),method=init?.method ?? 'GET';
     if(table === 'vanguard_preferences') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);assertEquals(url.searchParams.get('key'),'eq.health_coach:meal_preferences');return Response.json([{value:JSON.stringify(preferences)}]);}
     if (table === 'food_reference_pl') return Response.json(catalog?[{id:'oats',name:'Płatki',calories:400,protein:10,carbs:60,fat:10,fiber:8}]:[]);
+    if (table === 'daily_food_entries') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);return Response.json([{name:'Skyr naturalny',meal_type:'breakfast'}]);}
     if (table === 'food_library') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);assertEquals(url.searchParams.get('validation_status'),'neq.quarantined');return Response.json([]);}
     assertEquals(table,'nutrition_targets');
     if (method === 'POST') {const body=JSON.parse(String(init?.body));assertEquals(body,{user_id:owner,date});exists=true;return Response.json([]);}
@@ -54,6 +55,16 @@ Deno.test('model and catalog failures preserve the active state rather than fabr
   const db=fixture();
   const failure=await generateMealPlan({supabase:db.client,userId:owner,apiKey:'',input});
   assertEquals(failure.success,false);assertEquals(db.writes,0);
+});
+Deno.test('remainingToday with mealFocus asks the model for that meal type only',async()=>{
+  const db=fixture();let system='';
+  const input={date,requestKey:'focus-lunch',targets:[{date,calories:500,protein:10}],remainingToday:true,mealFocus:'lunch'};
+  const result=await generateMealPlan({supabase:db.client,userId:owner,apiKey:'test',input,propose:async({messages})=>{
+    system=messages.find(message=>message.role==='system')?.content ?? '';
+    return {content:JSON.stringify(recipe),raw:{}};
+  }});
+  assertEquals(result.success,true);
+  assertStringIncludes(system,'wyłącznie na obiad');
 });
 Deno.test('a weekly proposal persists every requested date and refuses a missing day',async()=>{
   const db=fixture(),targets=Array.from({length:7},(_,index)=>({date:shiftDateStr(date,index),calories:400,protein:10}));

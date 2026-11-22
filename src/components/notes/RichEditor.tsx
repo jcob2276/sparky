@@ -25,6 +25,7 @@ interface RichEditorProps {
   noteId?: string;
   userId?: string;
   onNavigateToNote?: (noteId: string) => void;
+  onBackspaceAtStart?: () => void;
 }
 
 export default function RichEditor({
@@ -39,6 +40,7 @@ export default function RichEditor({
   noteId,
   userId,
   onNavigateToNote,
+  onBackspaceAtStart,
 }: RichEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -128,9 +130,31 @@ export default function RichEditor({
     }
   };
 
+  const isTextEmpty = !value || !value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (triggers.handleTriggerKeyDown(e)) {
       return;
+    }
+    if (e.key === 'Backspace' && onBackspaceAtStart) {
+      const selection = window.getSelection();
+      if (selection && selection.isCollapsed && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const editor = editorRef.current;
+        if (editor) {
+          const isAtStart = (
+            range.startOffset === 0 &&
+            (range.startContainer === editor ||
+              range.startContainer === editor.firstChild ||
+              (range.startContainer.nodeType === Node.TEXT_NODE && range.startContainer.parentNode === editor.firstChild && range.startOffset === 0))
+          );
+          if (isAtStart || isTextEmpty) {
+            e.preventDefault();
+            onBackspaceAtStart();
+            return;
+          }
+        }
+      }
     }
     handleRichEditorKeyShortcuts({
       e,
@@ -139,8 +163,6 @@ export default function RichEditor({
       insertHTML: formatting.insertHTML,
     });
   };
-
-  const isTextEmpty = !value || !value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
 
   return (
     <div className="relative w-full flex-1 flex flex-col">
@@ -203,7 +225,7 @@ export default function RichEditor({
         onSelectWikiNote={triggers.executeWikiLink}
       />
       {isTextEmpty && (
-        <span className="absolute left-0 top-0 pointer-events-none text-text-muted/75 text-base font-normal select-none">
+        <span className="absolute left-0 top-0 pointer-events-none text-text-muted/40 text-base font-normal select-none">
           {placeholder}
         </span>
       )}

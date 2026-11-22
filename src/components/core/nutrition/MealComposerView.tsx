@@ -1,4 +1,8 @@
 import { lazy, Suspense, useState, startTransition } from 'react';
+import { ChefHat } from 'lucide-react';
+import Button from '../../ui/Button';
+import Modal from '../../ui/Modal';
+import Sheet from '../../ui/Sheet';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -16,6 +20,7 @@ import type { DayEnergyRange } from '../../../lib/health/nutritionAudit';
 import type { WeekBalance } from '../../../lib/health/weekBalance';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
+const MealPlanner = lazy(() => import('../../biometrics/nutrition/MealPlannerContainer').then((module) => ({ default: module.MealPlannerContainer })));
 const CopyDayModal = lazy(() => import('./CopyDayModal'));
 
 interface Props {
@@ -28,9 +33,69 @@ interface Props {
   onSaved?: () => void;
 }
 
+interface ModalsProps {
+  c: ReturnType<typeof useMealComposer>;
+  macros: { carbs: number | null; fat: number | null };
+  plannerOpen: boolean;
+  onClosePlanner: () => void;
+  editEntry: RecentEntry | null;
+  onCloseEdit: () => void;
+  copyDayOpen: boolean;
+  onCloseCopyDay: () => void;
+  onSaved?: () => void;
+}
+
+function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry, onCloseEdit, copyDayOpen, onCloseCopyDay, onSaved }: ModalsProps) {
+  return (
+    <>
+      {plannerOpen && c.userId && (
+        <Sheet
+          open={plannerOpen}
+          onOpenChange={(open) => { if (!open) onClosePlanner(); }}
+          title="Posiłki na dziś"
+          side="bottom"
+          compact
+          handleDragOnly
+        >
+          <div className="pb-2">
+            <Suspense fallback={<p role="status" className="py-8 text-center text-xs text-text-muted">Wczytuję planer…</p>}>
+              <MealPlanner key={c.mealType} userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
+                targetProtein={c.totals.targetProtein} mealFocus={c.mealType} logged={{
+                  calories: c.totals.calories, protein: c.totals.protein, carbs: macros.carbs, fat: macros.fat,
+                }} />
+            </Suspense>
+          </div>
+        </Sheet>
+      )}
+      {editEntry && (
+        <Suspense fallback={null}>
+          <FoodEntryModal
+            initialEditEntry={editEntry}
+            onClose={onCloseEdit}
+            onPhotoChanged={() => void c.refreshAfterSave()}
+            onSaved={() => { onCloseEdit(); void c.refreshAfterSave(); onSaved?.(); }}
+          />
+        </Suspense>
+      )}
+      <Suspense fallback={null}>
+        {copyDayOpen && c.userId && (
+          <CopyDayModal
+            isOpen={copyDayOpen}
+            onClose={onCloseCopyDay}
+            userId={c.userId}
+            targetDate={c.today}
+            onCopied={() => { void c.refreshAfterSave(); onSaved?.(); }}
+          />
+        )}
+      </Suspense>
+    </>
+  );
+}
+
 export default function MealComposerView({ c, photoUrls, nutrients, energy, macros, week, onSaved }: Props) {
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
+  const [plannerOpen, setPlannerOpen] = useState(false);
   const hasCalories = c.allTodayEntries.some((entry) => entry.calories != null) || c.totals.calories > 0;
 
   return (
@@ -51,7 +116,6 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
           yesterday={c.yesterday}
           mealTypes={c.MEAL_TYPES}
         />
-
         <ComposerProgress
           totals={c.totals}
           qualityPending={c.qualityPending}
@@ -60,7 +124,11 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
           energy={energy}
           hasEntries={hasCalories}
         />
-
+        {c.userId && c.logDate === c.today && (
+          <Button variant="ghost" size="sm" onClick={() => setPlannerOpen(true)} icon={<ChefHat size={16} />}>
+            Zaplanuj posiłki
+          </Button>
+        )}
         <ComposerInput
           text={c.text}
           setText={c.setText}
@@ -74,9 +142,7 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
           onOpenScanner={() => c.search.setScannerOpen(true)}
           photoInputRef={c.photoInputRef}
         />
-
         {c.scanFile && <MealScanOverlay file={c.scanFile} />}
-
         {c.search.scannerOpen && (
           <BarcodeScanner
             onDetected={(code) => void c.search.lookupBarcode(code)}
@@ -84,7 +150,6 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             loading={c.search.scanLookingUp}
           />
         )}
-
         {c.searchOpen && !c.search.scannerOpen && (
           <div className="space-y-2">
             <ComposerSearch
@@ -106,7 +171,6 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             )}
           </div>
         )}
-
         {c.draftItems?.length ? (
           <MealComposerDraft
             items={c.draftItems}
@@ -121,7 +185,6 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             onSave={(rememberIds, name) => c.saveFromDraft(rememberIds, name)}
           />
         ) : null}
-
         {!c.draftItems?.length && (
           <MealComposerQuick
             chips={c.quickChips}
@@ -130,9 +193,7 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             onOpenCopyDay={() => startTransition(() => setCopyDayOpen(true))}
           />
         )}
-
         {c.userId && <MealSupplementsWidget userId={c.userId} date={c.logDate} />}
-
         {c.allTodayEntries.length > 0 && (
           <MealComposerLoggedItems
             entries={c.allTodayEntries}
@@ -143,45 +204,17 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             onCopyEntireDay={c.copyEntireDayToToday}
             onCopyMeal={c.copyMealToToday}
             copying={c.saving}
-            dateLabel={
-              c.logDate === c.today
-                ? 'Zjedzone'
-                : c.logDate === c.yesterday
-                ? 'Zjedzone · wczoraj'
-                : `Zjedzone · ${c.logDate}`
-            }
+            dateLabel={c.logDate === c.today ? 'Zjedzone' : c.logDate === c.yesterday ? 'Zjedzone · wczoraj' : `Zjedzone · ${c.logDate}`}
           />
         )}
-
         {c.error && <p role="alert" className="text-xs text-danger text-center font-medium">{c.error}</p>}
-
       </Card>
-
-      {editEntry && (
-        <Suspense fallback={null}>
-          <FoodEntryModal
-            initialEditEntry={editEntry}
-            onClose={() => setEditEntry(null)}
-            onPhotoChanged={() => void c.refreshAfterSave()}
-            onSaved={() => { setEditEntry(null); void c.refreshAfterSave(); onSaved?.(); }}
-          />
-        </Suspense>
-      )}
-
-      <Suspense fallback={null}>
-      {copyDayOpen && c.userId && (
-        <CopyDayModal
-          isOpen={copyDayOpen}
-          onClose={() => setCopyDayOpen(false)}
-          userId={c.userId}
-          targetDate={c.today}
-          onCopied={() => {
-            void c.refreshAfterSave();
-            onSaved?.();
-          }}
-        />
-      )}
-      </Suspense>
+      <MealComposerModals
+        c={c} macros={macros} onSaved={onSaved}
+        plannerOpen={plannerOpen} onClosePlanner={() => setPlannerOpen(false)}
+        editEntry={editEntry} onCloseEdit={() => setEditEntry(null)}
+        copyDayOpen={copyDayOpen} onCloseCopyDay={() => setCopyDayOpen(false)}
+      />
     </>
   );
 }

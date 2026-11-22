@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import type { TodayLayout, TodaySectionId } from '../../lib/todayLayout';
+import { TODAY_SECTIONS } from '../../lib/todayLayout';
 import PowerList, { type PowerListProps } from '../lifestyle/PowerList';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
@@ -92,72 +93,112 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
   const visible = props.layout.sections.filter(section => section.visible);
   const chunks = chunkVisibleSections(visible);
 
-  const renderCard = (section: VisibleSection) => (
-    <div
-      key={section.id}
-      data-today-section={section.id}
-      id={section.id === 'food' ? 'meal-composer' : undefined}
-      className="w-full"
-    >
-      <Suspense fallback={<Skeleton variant="card" lines={4} />}>
-        {sections[section.id]}
-      </Suspense>
-    </div>
-  );
+  const renderCard = (section: VisibleSection) => {
+    const meta = TODAY_SECTIONS.find(item => item.id === section.id);
+    return (
+      <div
+        key={section.id}
+        data-today-section={section.id}
+        id={section.id === 'food' ? 'meal-composer' : undefined}
+        className="w-full space-y-1.5"
+      >
+        {meta && (
+          <div className="flex items-center justify-between px-1">
+            <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">
+              {meta.label}
+            </span>
+          </div>
+        )}
+        <div className="transition-transform duration-150 ease-out active:scale-[0.99]">
+          <Suspense fallback={<Skeleton variant="card" lines={4} />}>
+            {sections[section.id]}
+          </Suspense>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-full bg-background p-5 pb-32">
-      <div className="mb-5 space-y-4">
-        <DashboardGreeting />
-        <UrgentObligationsBanner userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
-        <UpcomingObligationsStrip userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
-        <BodyMeasureBanner userId={props.userId} />
-        {props.layoutError && <div className="space-y-2">
-          <DataStateNotice tone="warning" title="Nie udało się wczytać Twojego układu"
-            detail="Pokazujemy ostatnio dostępny układ lub domyślny. Ponów odczyt przed edycją, aby nie nadpisać zapisanych ustawień." />
-          <Button variant="outline" onClick={props.onRetryLayout}>Ponów odczyt układu</Button>
-        </div>}
-      </div>
-
-      {props.layoutLoading ? <Skeleton variant="card" lines={5} /> : (
-        <div className="space-y-5">
-          {visible.length === 0 ? (
-            <p className="text-sm text-text-muted">
-              Wszystkie sekcje są ukryte. Wybierz „Edytuj układ Dziś”, aby je przywrócić.
-            </p>
-          ) : (
-            chunks.map((chunk, idx) => {
-              if (chunk.type === 'full') {
-                return renderCard(chunk.section);
-              }
-              const left = chunk.sections.filter((_, i) => i % 2 === 0);
-              const right = chunk.sections.filter((_, i) => i % 2 === 1);
-              return (
-                <div key={idx} className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
-                  <div className="flex flex-col gap-5">
-                    {left.map(renderCard)}
-                  </div>
-                  {right.length > 0 && (
-                    <div className="flex flex-col gap-5">
-                      {right.map(renderCard)}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+    <div className="min-h-full bg-background px-3.5 py-4 pb-36 sm:px-5">
+      <div className="mx-auto max-w-xl space-y-3">
+        <div className="mb-2 space-y-2">
+          <DashboardGreeting />
+          <UrgentObligationsBanner userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
+          <UpcomingObligationsStrip userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
+          <BodyMeasureBanner userId={props.userId} />
+          {props.layoutError && (
+            <div className="space-y-2">
+              <DataStateNotice
+                tone="warning"
+                title="Nie udało się wczytać Twojego układu"
+                detail="Pokazujemy ostatnio dostępny układ lub domyślny. Ponów odczyt przed edycją, aby nie nadpisać zapisanych ustawień."
+              />
+              <Button variant="outline" onClick={props.onRetryLayout}>
+                Ponów odczyt układu
+              </Button>
+            </div>
           )}
         </div>
-      )}
 
-      <div className="mt-5 flex justify-center">
-        <Button variant="ghost" className="min-h-11" icon={<SlidersHorizontal size={16} />}
-          disabled={props.layoutLoading || props.layoutError} onClick={props.onEdit}>Edytuj układ Dziś</Button>
+        {props.layoutLoading ? (
+          <Skeleton variant="card" lines={5} />
+        ) : (
+          <div className="space-y-4">
+            {visible.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border-custom p-6 text-center text-sm text-text-muted">
+                Wszystkie sekcje są ukryte. Wybierz „Edytuj układ Dziś”, aby je przywrócić.
+              </p>
+            ) : (
+              chunks.map((chunk, idx) => {
+                if (chunk.type === 'full') {
+                  return renderCard(chunk.section);
+                }
+                const left = chunk.sections.filter((_, i) => i % 2 === 0);
+                const right = chunk.sections.filter((_, i) => i % 2 === 1);
+                return (
+                  <div key={idx} className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+                    <div className="flex flex-col gap-4">{left.map(renderCard)}</div>
+                    {right.length > 0 && (
+                      <div className="flex flex-col gap-4">{right.map(renderCard)}</div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        <div className="pt-2 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="min-h-9 rounded-full px-4 text-xs font-semibold text-text-muted hover:text-text-primary"
+            icon={<SlidersHorizontal size={14} />}
+            disabled={props.layoutLoading || props.layoutError}
+            onClick={props.onEdit}
+          >
+            Edytuj układ Dziś
+          </Button>
+        </div>
       </div>
 
-      <Sheet open={props.editing} onOpenChange={open => { if (!open && !props.saving) props.onCloseEditor(); }}
-        title="Twój układ Dziś" side="bottom" compact>
-        {props.editing && <TodayLayoutEditor layout={props.layout} saving={props.saving}
-          onSave={props.onSaveLayout} onClose={props.onCloseEditor} />}
+      <Sheet
+        open={props.editing}
+        onOpenChange={open => {
+          if (!open && !props.saving) props.onCloseEditor();
+        }}
+        title="Twój układ Dziś"
+        side="bottom"
+        compact
+      >
+        {props.editing && (
+          <TodayLayoutEditor
+            layout={props.layout}
+            saving={props.saving}
+            onSave={props.onSaveLayout}
+            onClose={props.onCloseEditor}
+          />
+        )}
       </Sheet>
     </div>
   );

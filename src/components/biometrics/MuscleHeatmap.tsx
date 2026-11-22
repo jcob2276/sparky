@@ -171,14 +171,14 @@ export default function MuscleHeatmap({
   }, [exercisesByTag, loadByTag]);
 
   return (
-    <Card variant="glass" className="border border-border-custom" padding="0">
-      <div className="px-5 pt-5 pb-3">
-        <div className="flex items-start justify-between gap-4">
+    <Card variant="glass" className="border border-border-custom w-full min-w-0 overflow-hidden" padding="0">
+      <div className="px-3.5 sm:px-5 pt-4 sm:pt-5 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-2xs font-bold tracking-normal text-text-muted font-display">Mapa mięśni</p>
-            <h2 className="mt-1 font-display text-lg font-semibold tracking-tight text-text-primary">Co trenowałeś</h2>
+            <h2 className="mt-0.5 font-display text-lg font-semibold tracking-tight text-text-primary">Co trenowałeś</h2>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
             {runKmPeriod > 0 && (
               <Pressable
                 onClick={() => setIncludeRunning((v) => !v)}
@@ -198,7 +198,7 @@ export default function MuscleHeatmap({
                 <Pressable
                   key={p.days}
                   onClick={() => setPeriod(p.days)}
-                  className={`h-9 min-w-12 rounded-lg border px-3 text-xs font-semibold tracking-normal ui-interactive cursor-pointer ${
+                  className={`h-9 min-w-10 sm:min-w-12 rounded-lg border px-2.5 sm:px-3 text-xs font-semibold tracking-normal ui-interactive cursor-pointer ${
                     period === p.days
                       ? 'border-info/40 bg-info/15 text-info dark:text-info shadow-[var(--ds-shadow-0-0-12px-rgba-56-189-248-0-1)]'
                       : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-solid'
@@ -212,8 +212,8 @@ export default function MuscleHeatmap({
         </div>
 
         {!loading && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <div className="flex items-center gap-2 rounded-lg border border-border-custom bg-surface px-3 py-2 shadow-sm">
+          <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
+            <div className="flex items-center gap-2 rounded-lg border border-border-custom bg-surface px-3 py-1.5 sm:py-2 shadow-sm">
               <span
                 className="h-2 w-2 rounded-full shadow-[var(--ds-shadow-0-0-10px-currentcolor)]"
                 style={{ color: topTag ? tagColor(topTag) : 'var(--text-muted)', backgroundColor: 'currentColor' }}
@@ -222,8 +222,8 @@ export default function MuscleHeatmap({
               <span className="text-xs font-semibold capitalize text-text-primary">{topTag ?? 'brak'}</span>
             </div>
             {neglected.length > 0 && (
-              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border-custom bg-surface px-3 py-2 shadow-sm">
-                <span className="text-xs font-semibold tracking-normal text-text-muted">Zaniedbane</span>
+              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border-custom bg-surface px-3 py-1.5 sm:py-2 shadow-sm">
+                <span className="text-xs font-semibold tracking-normal text-text-muted shrink-0">Zaniedbane</span>
                 <span className="truncate text-xs font-bold capitalize text-text-secondary">{neglected.join(', ')}</span>
               </div>
             )}
@@ -232,22 +232,23 @@ export default function MuscleHeatmap({
       </div>
 
       {loading ? (
-        <Skeleton variant="block" className="mx-5 mb-4 h-56" />
+        <Skeleton variant="block" className="mx-3.5 sm:mx-5 mb-4 h-56" />
       ) : (
         <>
-          <div className="relative grid grid-cols-2 gap-4 px-5 pb-4 pt-1">
-            <div className="pointer-events-none absolute inset-x-5 bottom-3 top-2 rounded-lg border border-border-custom bg-text-primary/[0.015]" />
-            {([
-              { label: 'Przód', view: 'anterior' as const },
-              { label: 'Tył', view: 'posterior' as const },
-            ]).map(({ label, view }) => (
-              <div key={view} className="relative flex flex-col items-center gap-2">
-                <span className="text-2xs font-semibold tracking-normal text-text-muted">{label}</span>
-                <div className="muscle-map-model w-full max-w-[var(--ds-maxw-168px)]">
-                  <BodyModel view={view} loadByTag={loadByTag} onMuscleClick={handleMuscleClick} />
+          <div className="mx-3.5 sm:mx-5 mb-4 rounded-xl border border-border-custom/50 bg-surface-2/30 p-2 sm:p-3 overflow-hidden">
+            <div className="grid grid-cols-2 gap-1 sm:gap-4 justify-items-center">
+              {([
+                { label: 'Przód', view: 'anterior' as const },
+                { label: 'Tył', view: 'posterior' as const },
+              ]).map(({ label, view }) => (
+                <div key={view} className="relative flex flex-col items-center w-full max-w-[125px] sm:max-w-[168px]">
+                  <span className="text-2xs font-semibold tracking-normal text-text-muted mb-0.5">{label}</span>
+                  <div className="muscle-map-model w-full flex justify-center">
+                    <BodyModel view={view} loadByTag={loadByTag} onMuscleClick={handleMuscleClick} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {ranked.length > 0 ? (

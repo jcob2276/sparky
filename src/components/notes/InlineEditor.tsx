@@ -5,7 +5,7 @@
  * @usedBy SplitNotesView
  */
 import { Pressable } from '../ui/ControlPrimitives';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFocusEmptyEditor } from './hooks/useFocusEmptyEditor';
 import { ChevronLeft, X } from 'lucide-react';
 import TitledRichEditor from './TitledRichEditor';
@@ -52,6 +52,10 @@ export default function InlineEditor({
   const {
     content, color, folder_id, saveStatus, flush: flushSave, flushAndWait, retrySave, setContent, setColor, setFolderId,
   } = useNoteDraftAutosave({ note, onSave: onUpdate });
+  const plainWordCount = useMemo(() => {
+    const text = getPlainText(content).trim();
+    return text ? text.split(/\s+/).length : 0;
+  }, [content]);
   const [_aiLoading, setAiLoading] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<{ type: string; text: string } | null>(null);
   const c = getColor(color);
@@ -106,7 +110,7 @@ export default function InlineEditor({
       className="keep-inline-editor flex flex-col h-full overflow-hidden"
       style={{ backgroundColor: c.bg, color: c.text }}
     >
-      <div className="keep-inline-header flex items-center justify-between border-b border-border-custom/10 px-4 py-3 bg-background/5">
+      <div className="keep-inline-header flex items-center justify-between border-b border-border-custom/10 px-4 py-2.5 bg-background/5">
         <div className="flex items-center gap-2">
           {(isMobile || showBack) && (
             <Pressable variant="ghost" size="sm" onClick={() => {
@@ -118,10 +122,21 @@ export default function InlineEditor({
               <span>Notatki</span>
             </Pressable>
           )}
-          {!isMobile && !showBack && <span className="text-xs opacity-[var(--opacity-60)] font-semibold">Notatka</span>}
+          {!isMobile && !showBack && <span className="text-xs opacity-[var(--opacity-60)] font-semibold mr-1">Notatka</span>}
+          <NoteFolderPicker
+            isMobile={isMobile}
+            folderId={folder_id}
+            folders={folders}
+            onCreateFolder={onCreateFolder}
+            onSelectFolder={(nextId) => {
+              setFolderId(nextId);
+              onUpdate(note.id, { folder_id: nextId });
+            }}
+          />
         </div>
         <div className="flex items-center gap-1.5">
           <NoteEditorMoreMenu
+            isMobile={isMobile}
             pinned={note.is_pinned}
             color={color}
             onPin={() => onTogglePin(note)}
@@ -143,8 +158,16 @@ export default function InlineEditor({
         </div>
       </div>
       <div data-note-scroll className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
-        <div className="text-2xs text-text-muted font-medium text-center block">{noteFullDate(note.updated_at || note.created_at)}</div>
-        <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
+        <div className="flex items-center justify-center gap-1.5 text-2xs text-text-muted font-medium select-none text-center">
+          <span>{noteFullDate(note.updated_at || note.created_at)}</span>
+          {plainWordCount > 0 && (
+            <>
+              <span className="opacity-40">·</span>
+              <span>{plainWordCount} {plainWordCount === 1 ? 'słowo' : (plainWordCount % 10 >= 2 && plainWordCount % 10 <= 4 && (plainWordCount % 100 < 10 || plainWordCount % 100 >= 20)) ? 'słowa' : 'słów'}</span>
+            </>
+          )}
+          <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="ml-1 text-2xs text-primary font-semibold" />
+        </div>
         {aiResult && (
           <div className="bg-text-primary/5 border border-border-custom/10 p-3 rounded-lg text-xs relative flex flex-col gap-1 leading-relaxed mb-2">
             <div className="flex items-center justify-between text-xs opacity-[var(--opacity-70)] font-semibold">
@@ -155,12 +178,20 @@ export default function InlineEditor({
           </div>
         )}
         <div 
-          className={`relative mt-2 min-h-[300px] ${isMobile ? 'flex-none' : 'flex-auto shrink-0'} select-text flex flex-col cursor-text`}
+          className={`relative mt-2 min-h-[50vh] ${isMobile ? 'flex-none' : 'flex-auto shrink-0'} select-text flex flex-col cursor-text pb-8`}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               const editorEl = e.currentTarget.querySelector<HTMLElement>('.keep-rich-editor');
-              if (editorEl && document.activeElement !== editorEl) {
+              if (editorEl) {
                 editorEl.focus();
+                const sel = window.getSelection();
+                if (sel) {
+                  const range = document.createRange();
+                  range.selectNodeContents(editorEl);
+                  range.collapse(false);
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                }
               }
             }
           }}
@@ -178,15 +209,6 @@ export default function InlineEditor({
           />
         </div>
         <NoteReferences note={{ ...note, content }} notes={allNotes} onNavigate={navigateReference} />
-        <NoteFolderPicker
-          folderId={folder_id}
-          folders={folders}
-          onCreateFolder={onCreateFolder}
-          onSelectFolder={(nextId) => {
-            setFolderId(nextId);
-            onUpdate(note.id, { folder_id: nextId });
-          }}
-        />
         <NoteAttachments noteId={note.id} onInsertText={text => {
           const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           setContent(`${content}<p>${escaped.replace(/\n/g, '<br>')}</p>`);

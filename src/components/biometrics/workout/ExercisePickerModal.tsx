@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronLeft } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import EmptyState from '../../ui/EmptyState';
 import Spinner from '../../ui/Spinner';
@@ -66,15 +66,48 @@ export default function ExercisePickerModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Ćwiczenie"
-      showCloseButton
+      showCloseButton={false}
       size="md"
-      padding="px-4 pt-4 pb-0"
+      padding="px-4 pt-3 pb-0"
       overflowY={false}
       className="trening-theme !bg-surface !text-text-primary !border-border-custom !h-[min(92svh,720px)] !max-h-[92svh] !flex !flex-col !rounded-t-[28px] sm:!rounded-2xl overflow-hidden"
       overlayClassName="items-end sm:items-center !p-0 sm:!p-5"
     >
       <div className="flex min-h-0 flex-1 flex-col">
+        {/* iOS Grab bar indicator */}
+        <div className="w-12 h-1 bg-border-custom rounded-full mx-auto mb-2 shrink-0 sm:hidden" />
+
+        {/* Modal Navigation Bar */}
+        <div className="flex items-center justify-between pb-2.5 shrink-0 -mx-1">
+          <Pressable
+            onClick={() => {
+              haptics.light();
+              onClose();
+            }}
+            aria-label="Wróć do treningu"
+            className="flex items-center gap-1 py-1.5 px-2 -ml-1 rounded-lg text-text-secondary hover:text-text-primary active:bg-surface-2 transition-colors cursor-pointer min-h-11"
+          >
+            <ChevronLeft size={20} />
+            <span className="text-sm font-semibold">Wróć</span>
+          </Pressable>
+
+          <h2 className="text-base font-bold text-text-primary font-display">
+            Wybierz ćwiczenie
+          </h2>
+
+          <Pressable
+            onClick={() => {
+              haptics.light();
+              onClose();
+            }}
+            aria-label="Anuluj wybór ćwiczenia"
+            className="text-sm font-semibold text-primary hover:text-primary-hover active:opacity-70 py-1.5 px-2 rounded-lg cursor-pointer min-h-11 flex items-center"
+          >
+            Anuluj
+          </Pressable>
+        </div>
+
+        {/* Search & Muscle Filters */}
         <div className="shrink-0 -mx-4 border-b border-border-custom px-4 pb-3">
           <label className="relative block">
             <Search

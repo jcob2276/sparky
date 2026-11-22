@@ -9,9 +9,9 @@ interface UseTodoCardSwipeOptions {
   onDragStart?: (item: SwipeableItem, clientX: number, clientY: number) => void;
 }
 
-const SWIPE_LOCK_PX = 12;
-const SWIPE_ARM_PX = 88;
-const SWIPE_MAX_PX = 132;
+const SWIPE_LOCK_PX = 28;
+const SWIPE_ARM_PX = 110;
+const SWIPE_MAX_PX = 140;
 const SWIPE_IGNORE = 'button, a, input, textarea, select, [data-no-view-swipe]';
 
 interface SwipeState {
@@ -89,9 +89,10 @@ export function useTodoCardSwipe({
       const dx = t.clientX - state.x;
       const dy = t.clientY - state.y;
       if (!state.locked) {
-        if (Math.abs(dy) > SWIPE_LOCK_PX && Math.abs(dy) > Math.abs(dx)) { state.dead = true; return; }
-        if (dx < -SWIPE_LOCK_PX) { state.dead = true; return; }
-        if (dx < SWIPE_LOCK_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        // Any noticeable vertical motion indicates scrolling, kill horizontal swipe immediately
+        if (Math.abs(dy) > 8) { state.dead = true; return; }
+        if (dx < -16) { state.dead = true; return; }
+        if (dx < SWIPE_LOCK_PX || Math.abs(dx) < Math.abs(dy) * 2.5) return;
         state.locked = true;
         if (gripLongPressTimer.current) clearTimeout(gripLongPressTimer.current);
       }

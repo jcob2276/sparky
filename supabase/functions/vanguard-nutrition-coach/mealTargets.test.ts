@@ -15,6 +15,9 @@ Deno.test('a real week has each date and protects the planned hard session witho
   assertEquals(result.targets[0].calories,2115);
   assertEquals(result.targets[2].calories,2500);
   assertEquals(result.trainingContext.includes('Interwały'),true);
+  const rest = buildMealPlanTargets({...data,todayNutr:{date:data.today,calories:965,protein:69.2}},data.today,1,{calories:2100,protein:152});
+  assertEquals(rest.targets,[{date:data.today,calories:1135,protein:82.8}]);
+  assertThrows(()=>buildMealPlanTargets({...data,todayNutr:{date:data.today,calories:2100}},data.today,1,{calories:2100,protein:152}));
   assertThrows(()=>buildMealPlanTargets(data,'2026-10-14',8));
   assertThrows(()=>buildMealPlanTargets(data,'2026-10-13',7));
 });

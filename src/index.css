@@ -504,28 +504,28 @@
   --ds-inline-css-100: 100%;
   --ds-inline-css-99999: 99999;
   --on-accent: #ffffff;
-  --scrim: #000000;
-  --background: #F2F2F7;
-  --primary: #007AFF;
-  --primary-hover: #006EE6;
-  --surface: #FFFFFF;
-  --surface-solid: #FFFFFF;
-  --border: rgb(60 60 67 / 22%);
-  --separator: rgb(60 60 67 / 29%);
-  --text-primary: #1C1C1E;
-  --text-secondary: rgb(60 60 67);
-  --text-muted: rgb(60 60 67 / 60%);
-  --direction: #FF9500;
-  --attention: #5856D6;
+  --scrim: #1A1815;
+  --background: #F5F2EB;
+  --primary: #272522;
+  --primary-hover: #3E3B36;
+  --surface: #FCFAF6;
+  --surface-solid: #FCFAF6;
+  --border: rgba(120, 110, 90, 0.16);
+  --separator: rgba(120, 110, 90, 0.18);
+  --text-primary: #272522;
+  --text-secondary: #6B665E;
+  --text-muted: #9C9588;
+  --direction: #B45309;
+  --attention: #854D0E;
   --material-floating: color-mix(in srgb, var(--surface-solid) 97%, transparent);
   --shadow-card: none;
-  --shadow-card-hover: 0 6px 18px rgb(0 0 0 / 10%);
-  --shadow-nav: 0 18px 50px rgb(0 0 0 / 16%);
+  --shadow-card-hover: 0 6px 18px rgba(80, 70, 50, 0.08);
+  --shadow-nav: 0 18px 50px rgba(80, 70, 50, 0.12);
   --input-bg: var(--surface);
-  --nav-bg: color-mix(in srgb, var(--surface) 85%, transparent);
+  --nav-bg: color-mix(in srgb, var(--surface) 90%, transparent);
   --btn-outline-bg: var(--surface);
-  --btn-secondary-bg: color-mix(in srgb, var(--background) 50%, var(--surface));
-  --btn-secondary-hover: color-mix(in srgb, var(--background) 80%, var(--surface));
+  --btn-secondary-bg: color-mix(in srgb, var(--background) 60%, var(--surface));
+  --btn-secondary-hover: color-mix(in srgb, var(--background) 90%, var(--surface));
 
   /* Theme variables */
   --bg-primary: var(--background);
@@ -534,10 +534,10 @@
   --border-color: var(--border);
 
   /* ── Memex design tokens (additive — do not rename existing) ── */
-  --color-text-tertiary: #99A1AF;
-  --color-success: #34C759;
+  --color-text-tertiary: #9C9588;
+  --color-success: #2E7D32;
   --color-warning: var(--direction);
-  --color-danger: #FF3B30;
+  --color-danger: #D32F2F;
   --shadow-card-accent: 0 0 24px rgba(17,24,39,0.05);
   --shadow-event-card: 0 4px 20px rgba(0,0,0,0.06);
   --shadow-float: 0 18px 50px rgb(0 0 0 / 16%);
@@ -585,10 +585,10 @@
   --color-accent-purple: var(--attention);
 
   --surface-1: var(--surface);
-  --surface-2: #F2F2F7;
-  --surface-3: #E5E5EA;
-  --surface-tonal: #E8F0FF;
-  --surface-tonal-strong: #D0E1FF;
+  --surface-2: #EFECE4;
+  --surface-3: #E4E0D6;
+  --surface-tonal: #F2ECE0;
+  --surface-tonal-strong: #E5DCB8;
 
   /* Priority checkbox colors (Todo) */
   --color-priority-urgent: #de4c4a;
@@ -1205,14 +1205,14 @@
   .card {
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.2s var(--spring), border-color 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out);
+    border-radius: 1.25rem;
+    padding: 1.125rem;
+    box-shadow: 0 1px 3px rgba(80, 70, 50, 0.04), 0 4px 16px -2px rgba(80, 70, 50, 0.06);
+    transition: transform 0.18s var(--spring), border-color 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out);
   }
   .card:hover {
-    border-color: var(--primary-20);
-    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(120, 110, 90, 0.28);
+    box-shadow: 0 4px 20px -2px rgba(80, 70, 50, 0.09);
     transform: translateY(-1px);
   }
   .dark .card:hover {
@@ -1979,9 +1979,9 @@ html.ios-sheet-active #root {
     border: 0.5px solid var(--separator);
     border-radius: var(--radius-grouped);
     box-shadow:
-      0 1px 2px rgba(16, 24, 40, 0.04),
-      0 6px 20px -4px rgba(16, 24, 40, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 1px 3px rgba(80, 70, 50, 0.04),
+      0 6px 20px -4px rgba(80, 70, 50, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
   .dark .ui-card--surface {
@@ -1998,8 +1998,8 @@ html.ios-sheet-active #root {
     border-radius: var(--radius-grouped);
     background: var(--surface-1);
     box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.03),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      0 1px 3px rgba(80, 70, 50, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
   .ui-card--hero {
@@ -2517,7 +2517,7 @@ a,
   display: flex; flex-direction: column; padding: 0.25rem;
   background: var(--surface-solid, var(--surface));
   border: 1px solid color-mix(in srgb, var(--border-custom) 55%, transparent);
-  border-radius: 1rem;
+  border-radius: 1.125rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .todo-focus-grid > * { min-width: 0; }
@@ -2527,27 +2527,29 @@ a,
   display: grid; align-items: center;
   grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas: "title right act" "note note note" "meta meta meta" "exp exp exp";
-  padding: 0 0.5rem 0 0.25rem;
+  padding: 0.375rem 0.625rem 0.375rem 0.375rem;
+  min-height: 3.125rem;
   border-radius: 0.75rem;
   background: transparent;
-  transition: background-color 120ms ease-out;
+  transition: background-color 140ms ease-out;
 }
 @media (hover: hover) and (pointer: fine) {
   .todo-focus-card:hover { background: color-mix(in srgb, var(--text-primary) 4%, transparent); }
 }
-.todo-focus-top { grid-area: right; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
+.todo-focus-top { grid-area: right; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; padding-right: 0.375rem; }
 .todo-focus-date { display: inline-flex; gap: 0.25rem; align-items: center; font-size: 0.75rem; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .todo-focus-priority { flex-shrink: 0; color: var(--text-secondary); font-size: 0.6875rem; font-weight: 600; }
 .todo-focus-important { padding: 0.125rem 0.5rem; border-radius: 999px; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 12%, transparent); }
-.todo-focus-title-row { grid-area: title; display: flex; align-items: center; justify-content: flex-start; gap: 0.25rem; min-width: 0; }
+.todo-focus-title-row { grid-area: title; display: flex; align-items: center; justify-content: flex-start; gap: 0.375rem; min-width: 0; }
 .todo-focus-title-row > .todo-focus-title, .todo-focus-title-row > input { font-weight: var(--todo-row-title-weight); font-size: var(--todo-row-title-size); letter-spacing: 0; }
 .todo-focus-check {
-  width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-secondary) 55%, transparent);
+  width: 1.35rem; height: 1.35rem; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1.75px solid color-mix(in srgb, var(--text-secondary) 55%, transparent);
   background: transparent;
+  transition: all 150ms cubic-bezier(0.2, 0.9, 0.4, 1);
 }
 @media (hover: hover) and (pointer: fine) {
-  .todo-focus-card:hover .todo-focus-check:not(.is-done) { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
+  .todo-focus-card:hover .todo-focus-check:not(.is-done) { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 12%, transparent); }
 }
 .todo-focus-check.is-done { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); animation: todo-check-pop 160ms var(--ease-out); }
 .todo-focus-note { grid-area: note; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
@@ -2555,19 +2557,50 @@ a,
 .todo-focus-meta { grid-area: meta; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.35; }
 .todo-focus-meta:empty { display: none; }
 .todo-focus-meta > span { min-width: 0; overflow-wrap: anywhere; display: inline-flex; align-items: center; gap: 0.25rem; }
-.todo-focus-actions { grid-area: act; display: flex; align-items: center; }
+.todo-focus-actions { grid-area: act; display: flex; align-items: center; gap: 0.125rem; position: relative; z-index: 2; }
 .todo-focus-grip { cursor: grab; }
 .todo-focus-grip:active { cursor: grabbing; }
+
+/* iPhone Reminders style (i) button - always visible, distinct and tactile */
+.todo-info-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 9999px !important;
+  color: var(--text-muted) !important;
+  transition: all 140ms ease-out !important;
+}
+.todo-info-btn:hover {
+  color: var(--text-primary) !important;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent) !important;
+  transform: scale(1.06);
+}
+.todo-info-btn.is-expanded {
+  color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--primary) 16%, transparent) !important;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  /* Desktop: akcje wysuwają się na prawą krawędź wiersza, nie zajmują miejsca. */
-  .todo-focus-actions {
-    grid-area: auto; /* bez tego containing block to wiersz `act` siatki (0 px) i pasek ląduje pod tytułem */
-    position: absolute; right: 0.375rem; top: 50%; translate: 0 -50%; height: 2.25rem; padding: 0 0.125rem;
-    border-radius: 0.625rem; border: 1px solid color-mix(in srgb, var(--border-custom) 70%, transparent);
-    background: var(--surface-solid, var(--surface)); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  /* Secondary actions (termin, priorytet, przenieś, usuń) slide in on hover on desktop */
+  .todo-qa-secondary {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-width 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease-out;
   }
-  .todo-focus-actions > *, .todo-focus-actions > button { width: 2rem !important; height: 2rem !important; }
-  .todo-focus-card:hover .todo-focus-top, .todo-focus-card:focus-within .todo-focus-top { visibility: hidden; }
+  .todo-focus-card:hover .todo-qa-secondary,
+  .todo-focus-card:focus-within .todo-qa-secondary {
+    max-width: 10rem;
+    opacity: 1;
+    pointer-events: auto;
+    margin-right: 0.125rem;
+  }
+}
+@media (pointer: coarse), (max-width: 767px) {
+  .todo-qa-secondary { display: none; }
 }
 /* Myszka: pasek to (i) i szybkie akcje; menu "więcej" (trzy kropki) zostaje tylko na dotyku, na desktopie to prawy przycisk i Del. */
 @media (hover: hover) and (pointer: fine) {
@@ -2799,15 +2832,9 @@ a,
   .todo-swipe-wrap::before { transition: none; }
 }
 
-/* Akcje karty: ukryte do hover/focus (desktop); na dotyku zostaje grip + menu "więcej" (edycja/usuń w menu, ukończ swipe'em). */
-@media (hover: hover) and (pointer: fine) {
-  .todo-focus-actions { opacity: 0; transition: opacity var(--todo-dur-fast) var(--ease-out); }
-  .todo-focus-card:hover .todo-focus-actions,
-  .todo-focus-card:focus-within .todo-focus-actions { opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .todo-focus-actions { transition: none; }
-}
+/* Akcje karty: (i) widoczne zawsze (styl iOS Przypomnienia), dodatkowe akcje wysuwają się na hover (desktop). */
+.todo-focus-actions { opacity: 1; }
+
 
 /* --- Szybkie akcje wiersza (Linear-style) --- */
 .todo-qa { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: var(--todo-qa-size); height: var(--todo-qa-size); border-radius: var(--todo-qa-radius); }
@@ -3196,9 +3223,9 @@ a,
 .live-workout-add.ui-button { background: var(--workout-action-bg); color: var(--workout-action-color); }
 .live-rest-row { background: var(--workout-action-bg); color: var(--text-primary); }
 .live-rest-row button { color: var(--workout-action-color); }
-.meal-segment { padding: 2px; border-radius: 0.625rem; background: var(--meal-segment-bg); }
-.meal-segment-item { display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; border-radius: 0.5rem; font-weight: 700; color: var(--text-muted); }
-.meal-segment-item[aria-pressed='true'] { background: var(--meal-segment-on); color: var(--primary); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
+.meal-segment { background: var(--surface-2); border-radius: 9999px; padding: 0.2rem; border: 1px solid color-mix(in srgb, var(--border-custom) 60%, transparent); }
+.meal-segment-item { display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; border-radius: 9999px !important; font-size: 0.75rem !important; padding-inline: 0.875rem !important; font-weight: 700; color: var(--text-muted); }
+.meal-segment-item[aria-pressed='true'] { background: var(--surface-solid) !important; box-shadow: 0 1px 3px color-mix(in srgb, var(--text-primary) 10%, transparent) !important; color: var(--text-primary) !important; }
 .meal-segment-wide .meal-segment-item { min-height: 2.25rem; }
 .meal-hit { position: relative; }
 .meal-hit::after { content: ''; position: absolute; inset: -0.25rem -0.125rem; }
@@ -3223,19 +3250,55 @@ a,
 .meal-chips::-webkit-scrollbar { display: none; }
 .meal-chip { display: inline-flex; flex-shrink: 0; align-items: center; gap: 0.375rem; min-height: 2.25rem; padding: 0 0.75rem; border-radius: 9999px; border: 1px solid var(--border-custom); background: var(--surface-2); font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
 .meal-chip-accent { border-color: color-mix(in srgb, var(--primary) 40%, transparent); background: var(--surface-tonal); color: var(--primary); font-weight: 700; }
+.meal-chip[aria-pressed='true'] { border-color: color-mix(in srgb, var(--primary) 40%, transparent); background: var(--surface-tonal); color: var(--primary); font-weight: 700; }
+.meal-planner { display: flex; flex-direction: column; gap: 1rem; }
+.meal-planner-canvas { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; border-radius: var(--radius-xl); background: color-mix(in srgb, var(--surface-2) 88%, var(--background)); }
+.meal-planner-card {
+  display: flex; flex-direction: column; gap: 0.75rem; padding: 0.875rem;
+  border-radius: var(--radius-xl); background: var(--surface-solid);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 6%, transparent), 0 0 0 1px color-mix(in srgb, var(--border-custom) 55%, transparent);
+}
+.meal-planner-card[data-picked='true'] { box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); background: color-mix(in srgb, var(--primary) 6%, var(--surface-solid)); border-left: 3px solid var(--primary); }
+.meal-planner-thumb {
+  display: grid; place-items: center; width: 5rem; height: 5rem; flex-shrink: 0; overflow: hidden;
+  border-radius: 1.5rem; color: var(--text-muted);
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--color-warning) 22%, transparent), transparent 55%),
+    linear-gradient(160deg, color-mix(in srgb, var(--surface-3) 70%, var(--surface)), var(--surface-2));
+}
+.meal-planner-slot {
+  display: inline-flex; align-items: center; min-height: 1.25rem; padding: 0 0.5rem;
+  border-radius: 9999px; background: color-mix(in srgb, var(--text-primary) 6%, var(--surface-2));
+  font-size: var(--text-2xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary);
+}
+.meal-planner-cta { width: 100%; min-height: 3rem; }
+.meal-photo-hero {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; margin-inline: 0;
+}
+.meal-photo-hero-img {
+  display: block; width: 100%; height: 11rem; border-radius: 1.25rem; object-fit: cover;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+.meal-photo-hero--empty {
+  width: 100%; height: 11rem; border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--color-warning) 22%, transparent), transparent 55%),
+    linear-gradient(160deg, color-mix(in srgb, var(--surface-3) 70%, var(--surface)), var(--surface-2));
+}
 
 /* "Stan dnia" card: recovery ring that works in light and dark themes. */
 :root {
  --readiness-ring-size: 5rem; --readiness-ring-c: 276; --readiness-ring-duration: 500ms; }
 .readiness-ring { position: relative; flex-shrink: 0; width: var(--readiness-ring-size); height: var(--readiness-ring-size); }
 .readiness-ring-svg { display: block; width: 100%; height: 100%; }
-.readiness-ring-track { stroke: var(--border-custom); }
+.readiness-ring-track { stroke: rgba(120, 110, 90, 0.16); }
 .readiness-ring-arc { stroke: var(--text-muted); }
-.readiness-ring-arc[data-band='optimal'] { stroke: var(--color-success); }
-.readiness-ring-arc[data-band='good'] { stroke: var(--color-info); }
-.readiness-ring-arc[data-band='fair'] { stroke: var(--color-warning); }
-.readiness-ring-arc[data-band='attention'] { stroke: var(--color-danger); }
-.readiness-ring-value { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.readiness-ring-arc[data-band='optimal'] { stroke: #2E7D32; }
+.readiness-ring-arc[data-band='good'] { stroke: #0284C7; }
+.readiness-ring-arc[data-band='fair'] { stroke: #D97706; }
+.readiness-ring-arc[data-band='attention'] { stroke: #DC2626; }
+.readiness-ring-value { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 @media (prefers-reduced-motion: no-preference) {
   .readiness-ring-arc { animation: readiness-ring-fill var(--readiness-ring-duration) ease-out backwards; transition: stroke-dashoffset var(--readiness-ring-duration) cubic-bezier(0.22, 1, 0.36, 1); }
 }
@@ -3642,7 +3705,7 @@ progress,
 .keep-static-bar.keep-static-bar-docked {
   position: fixed;
   bottom: env(safe-area-inset-bottom);
-  z-index: calc(var(--z-fullscreen) + 1);
+  z-index: calc(var(--z-overlay) - 5);
   margin: 0;
   width: auto;
   max-width: none;
@@ -3654,6 +3717,13 @@ progress,
   overscroll-behavior: none;
   touch-action: pan-x;
   -webkit-overflow-scrolling: auto;
+}
+
+body[style*="overflow: hidden"] .keep-static-bar-docked,
+body.has-open-sheet .keep-static-bar-docked {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .keep-static-bar-docked .keep-static-btn {

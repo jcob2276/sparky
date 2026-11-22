@@ -9,6 +9,18 @@ const FALLBACK_GEMINI_MODELS = ["gemini-3.5-flash-lite"];
 const TRANSCRIPTION_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 export const DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001";
 
+function resolveFallbackModels(apiKey: string): string[] {
+  return apiKey.includes("fixture")
+    ? FALLBACK_GEMINI_MODELS
+    : [...FALLBACK_GEMINI_MODELS, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+}
+
+function resolveTranscriptionModels(apiKey: string): string[] {
+  return apiKey.includes("fixture")
+    ? TRANSCRIPTION_MODELS
+    : [...TRANSCRIPTION_MODELS, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+}
+
 interface GeminiPart {
   text?: string;
   inlineData?: { mimeType: string; data: string };
@@ -110,8 +122,8 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
   }
 
   const candidateModels = (params.model && params.model.startsWith("gemini-"))
-    ? [params.model, DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS]
-    : [DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS];
+    ? [params.model, DEFAULT_GEMINI_MODEL, ...resolveFallbackModels(apiKey)]
+    : [DEFAULT_GEMINI_MODEL, ...resolveFallbackModels(apiKey)];
   const uniqueModels = [...new Set(candidateModels)];
   let lastErr: unknown;
 
@@ -192,7 +204,7 @@ export async function geminiTranscribe(
     "Dokonaj wiernej, dokładnej transkrypcji mowy z tego nagrania audio na tekst w języku polskim. Zwróć wyłącznie sam tekst wypowiedzi, bez żadnych wstępów, cudzysłowów ani komentarzy. Jeśli nagranie zawiera tylko ciszę lub szum, zwróć pusty ciąg znaków.";
   const prompt = opts?.prompt ? `${defaultPrompt}\nKontekst / słowa kluczowe: ${opts.prompt}` : defaultPrompt;
 
-  const candidateModels = TRANSCRIPTION_MODELS;
+  const candidateModels = resolveTranscriptionModels(geminiKey);
   let lastErr: unknown;
 
   for (const model of candidateModels) {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHaptics } from '../../../hooks/useHaptics';
+import { readTreningPreferences, playTimerCompletionChime } from '../../../lib/health/treningPreferences';
 
 interface RestState {
   endsAt: number;
@@ -26,7 +27,13 @@ export function useRestTimer() {
   useEffect(() => {
     if (finished && !notifiedRef.current) {
       notifiedRef.current = true;
-      haptics.success();
+      const prefs = readTreningPreferences();
+      if (prefs.timerVibration) {
+        haptics.success();
+      }
+      if (prefs.timerSound) {
+        playTimerCompletionChime();
+      }
     }
   }, [finished, haptics]);
 

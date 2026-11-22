@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { newSet, type WorkoutExercise, type WorkoutSet } from '../workout/workoutUtils';
 import { canComplete, createToggleGuard, defaultRestSeconds, warmupRamp, type SetGhost } from './liveWorkoutUtils';
+import { readTreningPreferences } from '../../../lib/health/treningPreferences';
 
 interface Options {
   exercise: WorkoutExercise;
@@ -56,13 +57,27 @@ export function useLiveSetOps({ exercise, onChange, ghostOf, fallbackKg, onUndoa
       reps: set.reps.trim() ? set.reps : ghost?.reps ?? '',
     });
     setRirSetId(set.type === 'warmup' || set.rir.trim() ? null : set.id);
-    if (set.type !== 'warmup') onSetDone(defaultRestSeconds(exercise.name), set.id);
+    if (set.type !== 'warmup') {
+      const preferred = readTreningPreferences().defaultRestSeconds;
+      const restDuration = preferred > 0 ? preferred : defaultRestSeconds(exercise.name);
+      onSetDone(restDuration, set.id);
+    }
     if (sets.every((s) => s.id === set.id || s.done)) onAllDone();
   };
 
   const addSet = (type: WorkoutSet['type'] = 'working') => {
     haptics.light();
-    const created: WorkoutSet = newSet(type);
+    // Inherit weight and reps from the preceding set so user doesn't start with empty/zero inputs
+    const lastFilled = [...sets].reverse().find((s) => s.kg.trim() || s.reps.trim()) ?? sets[sets.length - 1];
+    const ghost = lastFilled ? ghostOf(lastFilled, sets.length) : undefined;
+    const prevKg = lastFilled?.kg.trim() ? lastFilled.kg : (ghost?.kg ?? '');
+    const prevReps = lastFilled?.reps.trim() ? lastFilled.reps : (ghost?.reps ?? '');
+
+    const created: WorkoutSet = {
+      ...newSet(type),
+      kg: prevKg,
+      reps: prevReps,
+    };
     onChange({ ...exercise, sets: type === 'warmup' ? [created, ...sets] : [...sets, created] });
   };
 

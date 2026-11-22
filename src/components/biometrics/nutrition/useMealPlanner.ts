@@ -15,10 +15,17 @@ import {TIMEOUTS} from '../../../lib/constants';
 import type {MealPlanState} from '@vanguard/domain';
 
 
-export function useMealPlanner(userId:string,date:string) {
+export function useMealPlanner(
+  userId:string,
+  date:string,
+  initialDays=7,
+  remainingGoals?:{targetKcal:number|null;targetProtein:number|null},
+  initialMealFocus?:string,
+) {
   const queryClient = useQueryClient();
   const today=getTodayWarsaw();
-  const [startDate,setStartDate]=useState(()=>date<today?today:date),[days,setDays]=useState(7);
+  const [startDate,setStartDate]=useState(()=>date<today?today:date),[days,setDays]=useState(initialDays);
+  const [mealFocus,setMealFocus]=useState(initialMealFocus);
   const preferences=useMealPreferences(userId);
   const requestKey = useRef<{signature:string;key:string}|null>(null);
 
@@ -35,8 +42,12 @@ export function useMealPlanner(userId:string,date:string) {
 
   const generateMutation = useMutation({
     mutationFn: async () => {
-      const signature=`${userId}:${startDate}:${days}:${preferences.preferences?.revision}`;
-      if(requestKey.current?.signature !== signature) requestKey.current={signature,key:crypto.randomUUID()};
+      const signature=`${userId}:${startDate}:${days}:${preferences.preferences?.revision}:${JSON.stringify(remainingGoals)}:${mealFocus ?? ''}`;
+      if (requestKey.current?.signature !== signature) {
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        const key = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        requestKey.current = { signature, key };
+      }
       const res = await invokeEdge<'vanguard-nutrition-coach'>(
         'vanguard-nutrition-coach',
         {
@@ -44,6 +55,8 @@ export function useMealPlanner(userId:string,date:string) {
             action: 'generate_meal_plan',
             date:startDate,startDate,days,
             requestKey:requestKey.current.key,
+            ...(remainingGoals ? {remainingToday:true,...remainingGoals} : {}),
+            ...(mealFocus ? {mealFocus} : {}),
           },
           signal:AbortSignal.timeout(TIMEOUTS.llmHeavy),
         }
@@ -60,14 +73,18 @@ export function useMealPlanner(userId:string,date:string) {
       void queryClient.invalidateQueries({queryKey});
       notify('Ułożono propozycję jadłospisu dopasowaną do Twoich celów.', 'success');
     },
-    onError: (err: Error) => {
-      notify(err.message, 'error');
+    onError: () => {
       void queryClient.invalidateQueries({queryKey});
     },
   });
 
   const approveMutation = useMutation({
-    mutationFn: (reviewed?:boolean) => approveMealPlan(userId, storageDate,`approve:${storageDate}:${state?.revision}`,state?.revision,reviewed),
+    mutationFn: ({reviewed,selection}:{reviewed?:boolean;selection?:{date:string;mealKeys:string[]}}) => {
+      const key = `approve:${storageDate}:${state?.revision}`;
+      return selection
+        ? approveMealPlan(userId, storageDate, key, state?.revision, reviewed, selection)
+        : approveMealPlan(userId, storageDate, key, state?.revision, reviewed);
+    },
     onSuccess: (newState) => {
       update(newState);
       notify('Jadłospis został zatwierdzony.', 'success');
@@ -103,10 +120,11 @@ export function useMealPlanner(userId:string,date:string) {
   });
 
   const displayState=state && saved?.coveringActive?{...state,active:saved.coveringActive.state.active,checkedProducts:saved.coveringActive.state.checkedProducts}:state;
-  return {state:displayState,isLoading,error,date:startDate,days,onDays:setDays,onStartDate:(next:string)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(next)) setStartDate(next);},reviewIdentity:`${userId}:${storageDate}`,
+  return {state:displayState,isLoading,error,date:startDate,days,onDays:setDays,onStartDate:(next:string)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(next)) { generateMutation.reset(); setStartDate(next); }},reviewIdentity:`${userId}:${storageDate}`,
     preferences:preferences.preferences ?? null,canGenerate:preferences.preferences?.confirmed === true,
-    isGenerating:generateMutation.isPending,isApproving:approveMutation.isPending,
+    mealFocus,onMealFocus:(next:string)=>{generateMutation.reset();setMealFocus(next);},
+    isGenerating:generateMutation.isPending,generationError:generateMutation.error?.message,isApproving:approveMutation.isPending,approvalError:approveMutation.error?.message,
     busy:generateMutation.isPending || approveMutation.isPending || resizeMutation.isPending || toggleShoppingMutation.isPending,
-    onGenerate:()=>generateMutation.mutate(),onApprove:(reviewed?:boolean)=>approveMutation.mutate(reviewed),
+    onGenerate:()=>generateMutation.mutate(),onApprove:(reviewed?:boolean,selection?:{date:string;mealKeys:string[]})=>approveMutation.mutate({reviewed,selection}),
     onResizeMeal:(mealKey:string,factor:number,mealDate?:string)=>resizeMutation.mutate({mealKey,factor,mealDate}),onToggleShoppingItem:(productId:string)=>toggleShoppingMutation.mutate(productId)};
 }

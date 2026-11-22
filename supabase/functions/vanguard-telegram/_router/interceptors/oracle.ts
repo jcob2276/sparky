@@ -21,9 +21,10 @@ export class OracleResponseInterceptor implements MessageInterceptor {
         responseText = `✓ Zapisano głosówkę · ${durationStr}`;
         showReceiptButtons = true;
       } else {
+        const cleanPreview = ctx.cleanText.replace(/^(poprawka:|korekta:|zmiana:|aktualizacja:)/i, '').trim().slice(0, 100);
         responseText =
           ctx.mode === "knowledge"
-            ? "📖 Zapisano w wiedzy (przez kontrolowany ingest)."
+            ? (cleanPreview ? `📖 Zapisano w wiedzy i grafie: „${cleanPreview}”` : "📖 Zapisano w wiedzy (przez kontrolowany ingest).")
             : ctx.mode === "daily_reconciliation_response"
             ? "✅ Refleksja zapisana."
             : ctx.streamSaveFailed
