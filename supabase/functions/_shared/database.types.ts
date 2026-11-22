@@ -3947,6 +3947,7 @@ export type Database = {
           goal_cialo: string | null
           goal_duch: string | null
           goal_konto: string | null
+          goal_status: Json | null
           id: string
           leverage_note: string | null
           month_start: string
@@ -3966,6 +3967,7 @@ export type Database = {
           goal_cialo?: string | null
           goal_duch?: string | null
           goal_konto?: string | null
+          goal_status?: Json | null
           id?: string
           leverage_note?: string | null
           month_start: string
@@ -3985,6 +3987,7 @@ export type Database = {
           goal_cialo?: string | null
           goal_duch?: string | null
           goal_konto?: string | null
+          goal_status?: Json | null
           id?: string
           leverage_note?: string | null
           month_start?: string
@@ -5408,6 +5411,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          goal_status: Json | null
           id: string
           personal_year: number
           pillar_scores: Json | null
@@ -5419,6 +5423,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          goal_status?: Json | null
           id?: string
           personal_year: number
           pillar_scores?: Json | null
@@ -5430,6 +5435,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          goal_status?: Json | null
           id?: string
           personal_year?: number
           pillar_scores?: Json | null
@@ -7782,6 +7788,7 @@ export type Database = {
           do_differently: string | null
           focus_goal_mappings: Json | null
           focus_task_ids: string[] | null
+          goal_status: Json | null
           id: string
           new_belief: string | null
           obligation: string | null
@@ -7808,6 +7815,7 @@ export type Database = {
           do_differently?: string | null
           focus_goal_mappings?: Json | null
           focus_task_ids?: string[] | null
+          goal_status?: Json | null
           id?: string
           new_belief?: string | null
           obligation?: string | null
@@ -7834,6 +7842,7 @@ export type Database = {
           do_differently?: string | null
           focus_goal_mappings?: Json | null
           focus_task_ids?: string[] | null
+          goal_status?: Json | null
           id?: string
           new_belief?: string | null
           obligation?: string | null
@@ -8533,6 +8542,7 @@ export type Database = {
         Returns: undefined
       }
       is_current_session_active: { Args: never; Returns: boolean }
+      is_review_goal_status: { Args: { value: Json }; Returns: boolean }
       link_planned_running_activity: {
         Args: { p_plan_workout_id: string; p_strava_id: number }
         Returns: undefined

@@ -41,6 +41,7 @@ function ReviewBody({ userId, due, remaining, facts, gaps }: { userId: string; d
   return (
     <ReviewForm
       key={due.key}
+      userId={userId}
       due={due}
       context={context.data}
       facts={facts}

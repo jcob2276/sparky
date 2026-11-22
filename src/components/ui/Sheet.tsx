@@ -16,9 +16,11 @@ interface SheetProps {
   /** Bottom sheet only: cap width and center it on wide screens instead of spanning the viewport. */
   compact?: boolean;
   handleDragOnly?: boolean;
+  /** Otwierany z pełnoekranowego przeżycia (np. przegląd): warstwa wyżej niż ono, inaczej arkusz chowa się pod spodem. */
+  aboveFullscreen?: boolean;
 }
 
-function Sheet({ open, onOpenChange, title, children, side = 'right', compact = false, handleDragOnly = false }: SheetProps) {
+function Sheet({ open, onOpenChange, title, children, side = 'right', compact = false, handleDragOnly = false, aboveFullscreen = false }: SheetProps) {
   const panelRef = useRef<HTMLElement>(null);
   const dragControls = useDragControls();
   const reduceMotion = useReducedMotion();
@@ -52,7 +54,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
   }, [open, light]);
 
   const placement = side === 'bottom'
-    ? `inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]${compact ? ' mx-auto max-w-lg sm:border-x' : ''}`
+    ? `inset-x-0 bottom-0 max-h-[88svh] rounded-t-[28px] !rounded-b-none border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]${compact ? ' mx-auto max-w-lg sm:border-x' : ''}`
     : `${side === 'left' ? 'left-0' : 'right-0'} inset-y-0 w-full max-w-md border-x border-black/10 dark:border-white/10`;
 
   const initial = side === 'bottom' ? { y: '100%' } : { x: side === 'left' ? '-100%' : '100%' };
@@ -66,6 +68,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
         <motion.div
           className="ui-floating-scrim fixed inset-0 z-[var(--z-overlay)]"
           role="presentation"
+          style={aboveFullscreen ? { zIndex: 'calc(var(--z-fullscreen) + 1)' } : undefined}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
               light();
@@ -80,6 +83,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
           <motion.section
             ref={panelRef}
             className={`ui-floating-layer absolute flex flex-col overflow-hidden ${placement}`}
+            style={side === 'bottom' ? { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : undefined}
             role="dialog"
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}

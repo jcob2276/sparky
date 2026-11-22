@@ -4,45 +4,12 @@ import type { Json } from '../database.types';
 import { invalidateGoalSpineCache } from './goalSpine.queries';
 import { addDays, computeDueReviews, sprintKey, type DueReview, type ReviewCycleState } from './reviewCycle';
 
-export type Pillar = 'cialo' | 'duch' | 'konto';
-export const PILLARS: ReadonlyArray<{ key: Pillar; label: string }> = [
-  { key: 'cialo', label: 'Ciało' },
-  { key: 'duch', label: 'Duch' },
-  { key: 'konto', label: 'Konto' },
-];
+import { fetchReviewLadder } from './reviewLadder.data';
+import { fetchWeekReviewContext } from './reviewWeekContext.data';
+import { asScores, type PillarGoals, type ReviewAnswers, type ReviewContext } from './reviewCycle.types';
 
-export type PillarScores = Record<Pillar, number>;
-export type PillarGoals = Record<Pillar, string>;
+export * from './reviewCycle.types';
 
-export interface ReviewAnswers {
-  scores: PillarScores;
-  goals: PillarGoals;
-  note: string;
-}
-
-export interface ReviewContext {
-  /** Cele z poprzedniego okresu: to z nimi porównujesz stan. */
-  previousGoals: Partial<Record<Pillar, string>> | null;
-  /** Oceny z zamkniętych tygodni okresu (tylko dla miesiąca i sprintu). */
-  weekScores: Array<{ weekStart: string; scores: Partial<Record<Pillar, number>> }>;
-}
-
-/** Średnia ocen filaru z zamkniętych tygodni okresu, do porównania z własną oceną. */
-export function averageScore(weekScores: ReviewContext['weekScores'], pillar: Pillar): number | null {
-  const values = weekScores.map((w) => w.scores[pillar]).filter((v): v is number => typeof v === 'number');
-  if (values.length === 0) return null;
-  return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
-}
-
-const asScores = (raw: Json | null | undefined): Partial<Record<Pillar, number>> => {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  const out: Partial<Record<Pillar, number>> = {};
-  for (const { key } of PILLARS) {
-    const value = (raw as Record<string, unknown>)[key];
-    if (typeof value === 'number' && Number.isFinite(value)) out[key] = value;
-  }
-  return out;
-};
 
 const goalsFrom = (row: { goal_cialo?: string | null; goal_duch?: string | null; goal_konto?: string | null } | null) =>
   row ? { cialo: row.goal_cialo?.trim() || undefined, duch: row.goal_duch?.trim() || undefined, konto: row.goal_konto?.trim() || undefined } : null;
@@ -68,22 +35,20 @@ export async function fetchDueReviews(userId: string, today: string): Promise<Du
   return computeDueReviews(await fetchReviewCycleState(userId, today));
 }
 
+
 export async function fetchReviewContext(userId: string, due: DueReview): Promise<ReviewContext> {
-  if (due.kind === 'week') {
-    const { data, error } = await supabase
-      .from('weekly_reviews')
-      .select('week_goal_cialo, week_goal_duch, week_goal_konto')
-      .eq('user_id', userId)
-      .eq('week_start', due.periodStart)
-      .maybeSingle();
-    if (error) throw error;
-    return {
-      previousGoals: data
-        ? { cialo: data.week_goal_cialo?.trim() || undefined, duch: data.week_goal_duch?.trim() || undefined, konto: data.week_goal_konto?.trim() || undefined }
-        : null,
-      weekScores: [],
-    };
-  }
+  const [base, ladder] = await Promise.all([
+    due.kind === 'week' ? fetchWeekReviewContext(userId, due) : fetchPeriodReviewContext(userId, due),
+    fetchReviewLadder(userId, due).catch((err) => {
+      // Drabinka to dodatek do widoku: jej błąd nie może zablokować zamknięcia przeglądu.
+      console.warn('[reviewCycle] ladder error:', err);
+      return null;
+    }),
+  ]);
+  return { ...base, ladder };
+}
+
+async function fetchPeriodReviewContext(userId: string, due: DueReview): Promise<ReviewContext> {
 
   const weeksQuery = supabase
     .from('weekly_reviews')
@@ -128,6 +93,7 @@ const joinGoals = (goals: PillarGoals) => `Ciało: ${goals.cialo} · Duch: ${goa
 /** Zamyka okres i zapisuje cele na następny. Wszystko w istniejących tabelach przeglądów. */
 export async function closeReview(userId: string, due: DueReview, answers: ReviewAnswers): Promise<void> {
   const { scores, note } = answers;
+  const goalStatus: Json | null = Object.keys(answers.goalStatus).length > 0 ? answers.goalStatus : null;
   const goals: PillarGoals = { cialo: answers.goals.cialo.trim(), duch: answers.goals.duch.trim(), konto: answers.goals.konto.trim() };
   const now = new Date().toISOString();
   const cleanNote = note.trim() || null;
@@ -135,7 +101,7 @@ export async function closeReview(userId: string, due: DueReview, answers: Revie
 
   if (due.kind === 'week') {
     const closing = await supabase.from('weekly_reviews').upsert(
-      { user_id: userId, week_start: due.periodStart, pillar_scores: scoresJson, week_highlight: cleanNote, review_completed_at: now },
+      { user_id: userId, week_start: due.periodStart, pillar_scores: scoresJson, goal_status: goalStatus, week_highlight: cleanNote, review_completed_at: now },
       { onConflict: 'user_id,week_start' },
     );
     if (closing.error) throw closing.error;
@@ -150,6 +116,7 @@ export async function closeReview(userId: string, due: DueReview, answers: Revie
         user_id: userId,
         month_start: due.periodStart,
         pillar_scores: scoresJson,
+        goal_status: goalStatus,
         goal_cialo: goals.cialo,
         goal_duch: goals.duch,
         goal_konto: goals.konto,
@@ -170,6 +137,7 @@ export async function closeReview(userId: string, due: DueReview, answers: Revie
         personal_year: closing.personalYear,
         sprint_number: closing.sprintNumber,
         pillar_scores: scoresJson,
+        goal_status: goalStatus,
         reflection: cleanNote,
         completed_at: now,
         updated_at: now,
