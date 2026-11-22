@@ -921,8 +921,8 @@
 /* iOS editor gets more breathing room */
 .keep-ios-editor {
   min-height: var(--ds-local-css-200px);
-  font-size: max(var(--notes-editor-font-size), 1.05rem);
-  line-height: 1.72;
+  font-size: max(var(--notes-editor-font-size), 1rem);
+  line-height: var(--ds-local-css-1-7);
 }
 
 /* Fix caret color in table cells */
@@ -1854,7 +1854,7 @@
 
   .keep-inline-editor > div:nth-child(2) {
     max-width: none;
-    padding: 8px 16px calc(140px + env(safe-area-inset-bottom));
+    padding: 8px 16px calc(var(--note-keyboard-inset, 0px) + var(--touch-target) + env(safe-area-inset-bottom));
     gap: 8px;
   }
 
@@ -2487,9 +2487,4 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   overscroll-behavior: contain;
-}
-
-.keep-more-menu {
-  background: var(--surface-solid) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
 }

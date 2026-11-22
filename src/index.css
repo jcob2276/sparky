@@ -3705,7 +3705,7 @@ progress,
 .keep-static-bar.keep-static-bar-docked {
   position: fixed;
   bottom: env(safe-area-inset-bottom);
-  z-index: calc(var(--z-overlay) - 5);
+  z-index: calc(var(--z-fullscreen) + 1);
   margin: 0;
   width: auto;
   max-width: none;
@@ -3717,13 +3717,6 @@ progress,
   overscroll-behavior: none;
   touch-action: pan-x;
   -webkit-overflow-scrolling: auto;
-}
-
-body[style*="overflow: hidden"] .keep-static-bar-docked,
-body.has-open-sheet .keep-static-bar-docked {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
 }
 
 .keep-static-bar-docked .keep-static-btn {
