@@ -146,7 +146,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2 text-text-primary transition-transform duration-150 group-hover:scale-105">
                       <Icon size={20} aria-hidden="true" />
                       {badge > 0 && (
-                        <span className="absolute -right-2 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold tabular-nums text-white shadow-xs">
+                        <span className="absolute -right-2 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-2xs font-bold tabular-nums text-white shadow-xs">
                           {badge > 9 ? '9+' : badge}
                         </span>
                       )}

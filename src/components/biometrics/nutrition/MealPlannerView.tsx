@@ -4,7 +4,6 @@ import {getTodayWarsaw,shiftDateStr,type MealPlanDraft,type MealPlanState,type M
 import {ControlInput,ControlSelect} from '../../ui/ControlPrimitives';
 import { MealShoppingListView } from './MealShoppingListView';
 import { MealProposalRow } from './MealProposalRow';
-import { PlannedMealCard } from './PlannedMealCard';
 import Button from '../../ui/Button';
 import { TodayMealPlanner } from './TodayMealPlanner';
 
@@ -31,6 +30,20 @@ export interface MealPlannerViewProps {
 
 export function MealPlannerView(props: MealPlannerViewProps) {
   return props.logged ? <TodayMealPlanner {...props} /> : <FullMealPlanner {...props} />;
+}
+
+function DraftBanner({ isApproving, disabled, onApprove }: { isApproving: boolean; disabled: boolean; onApprove: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning/20 bg-warning/5 p-3">
+      <div className="flex items-center gap-2 text-xs text-warning">
+        <AlertCircle size={16} />
+        <span>To jest szkic jadłospisu. Zatwierdź, aby aktywować plan i listę zakupów.</span>
+      </div>
+      <Button variant="primary" size="sm" onClick={onApprove} disabled={disabled} loading={isApproving} icon={<Check size={14} />} className="h-7 px-3 text-xs">
+        {isApproving ? 'Zapisuję…' : 'Zatwierdź menu'}
+      </Button>
+    </div>
+  );
 }
 
 function FullMealPlanner({
@@ -134,23 +147,11 @@ function FullMealPlanner({
       ) : (
         <div className="space-y-4">
           {isDraftOnly && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning/20 bg-warning/5 p-3">
-              <div className="flex items-center gap-2 text-xs text-warning">
-                <AlertCircle size={16} />
-                <span>To jest szkic jadłospisu. Zatwierdź, aby aktywować plan i listę zakupów.</span>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={()=>onApprove(requiresAllergenReview ? reviewed : undefined)}
-                disabled={busy || isApproving || preferencesChanged || !canGenerate || requiresAllergenReview && !reviewed}
-                loading={isApproving}
-                icon={<Check size={14} />}
-                className="h-7 px-3 text-xs"
-              >
-                {isApproving ? 'Zapisuję…' : 'Zatwierdź menu'}
-              </Button>
-            </div>
+            <DraftBanner
+              isApproving={isApproving}
+              disabled={busy || isApproving || preferencesChanged || !canGenerate || (requiresAllergenReview && !reviewed)}
+              onApprove={() => onApprove(requiresAllergenReview ? reviewed : undefined)}
+            />
           )}
           {isDraftOnly && requiresAllergenReview && <label className="flex gap-2 text-xs"><ControlInput type="checkbox" checked={reviewed} onChange={event=>setReviewedPlan(event.target.checked?reviewKey:null)}/>Sprawdziłem skład i etykiety wszystkich proponowanych produktów względem zgłoszonych alergii.</label>}
           {displayPlan.days.length>1 && <label className="block text-xs">Podgląd dnia<ControlSelect className="mt-1 w-full" value={currentDay?.date ?? ''} onChange={event=>setSelectedDate(event.target.value)}>{displayPlan.days.map(day=><option key={day.date} value={day.date}>{day.date}</option>)}</ControlSelect></label>}

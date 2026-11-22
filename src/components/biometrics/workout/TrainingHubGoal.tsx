@@ -60,7 +60,7 @@ export default function TrainingHubGoal({ goal }: { goal: BenchGoal | undefined 
           aria-valuemax={100}
         >
           <div
-            className="h-full rounded-full bg-primary transition-all duration-500 shadow-sm shadow-primary/30"
+            className="h-full rounded-full bg-primary transition-all duration-500 shadow-sm"
             style={{ width: `${pct}%` }}
           />
         </div>

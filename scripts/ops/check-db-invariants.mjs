@@ -55,9 +55,13 @@ const CHECKS = [
   },
   {
     name: "no overlapping permissive policies per table/command (service_role bypasses RLS: do not add policies for it)",
-    sql: `WITH p AS (SELECT tablename, policyname, unnest(CASE WHEN cmd = 'ALL' THEN ARRAY['SELECT','INSERT','UPDATE','DELETE'] ELSE ARRAY[cmd] END) eff
+    // Two permissive policies only cost anything when one role can reach both. Policies bound to disjoint
+    // roles (for example `authenticated` and the standalone `sparky_worker`) never overlap in practice.
+    sql: `WITH p AS (SELECT tablename, policyname, roles, unnest(CASE WHEN cmd = 'ALL' THEN ARRAY['SELECT','INSERT','UPDATE','DELETE'] ELSE ARRAY[cmd] END) eff
                  FROM pg_policies WHERE schemaname = 'public' AND permissive = 'PERMISSIVE')
-          SELECT tablename || ' / ' || eff AS overlap FROM p GROUP BY tablename, eff HAVING count(*) > 1`,
+          SELECT DISTINCT a.tablename || ' / ' || a.eff AS overlap FROM p a JOIN p b
+            ON a.tablename = b.tablename AND a.eff = b.eff AND a.policyname < b.policyname
+           AND (a.roles && b.roles OR 'public' = ANY(a.roles) OR 'public' = ANY(b.roles))`,
   },
   {
     name: "no SECURITY DEFINER function in public is executable by anon",

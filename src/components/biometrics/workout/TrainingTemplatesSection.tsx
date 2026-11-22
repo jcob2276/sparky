@@ -111,7 +111,7 @@ export default function TrainingTemplatesSection({
                 <div
                   className={`flex h-9 w-9 items-center justify-center rounded-full text-on-accent shrink-0 mt-0.5 transition-transform group-hover:scale-105 shadow-sm ${
                     tpl.isNextInRotation
-                      ? 'bg-primary shadow-primary/25'
+                      ? 'bg-primary'
                       : 'bg-primary/90'
                   }`}
                   aria-label="Rozpocznij ten trening"

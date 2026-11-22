@@ -1,4 +1,4 @@
-import { ShieldAlert, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import BodyMap from './BodyMap';
 import type { HubWeekStats } from '../../../lib/health/hubRecovery';
 import { formatWorkoutTonnage } from '../../../lib/health/workoutDisplay';
@@ -20,7 +20,7 @@ export default function TrainingHubWeekPanel({ fatigueByTag, week }: Props) {
       <div className="flex items-center justify-between px-0.5">
         <div className="flex items-center gap-1.5">
           <Zap size={13} className="text-primary" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+          <h2 className="text-xs font-bold tracking-wider text-text-muted">
             Regeneracja & Objętość tygodnia
           </h2>
         </div>
@@ -42,13 +42,13 @@ export default function TrainingHubWeekPanel({ fatigueByTag, week }: Props) {
 
         <div className="w-24 shrink-0 flex flex-col justify-center gap-3.5 border-l border-border-custom/50 pl-3.5">
           <div>
-            <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Powtórzenia</p>
+            <p className="text-2xs font-bold tracking-wider text-text-muted">Powtórzenia</p>
             <p className="text-2xl font-bold text-text-primary font-mono tabular-nums leading-none mt-1">
               {week.reps.toLocaleString('pl-PL')}
             </p>
           </div>
           <div>
-            <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Objętość</p>
+            <p className="text-2xs font-bold tracking-wider text-text-muted">Objętość</p>
             <p className="text-2xl font-bold text-primary font-mono tabular-nums leading-none mt-1">
               {volumeLabel}
             </p>

@@ -52,8 +52,8 @@ export default function ReviewWeekStrip({ days }: { days: ReviewDay[] }) {
   const { best, worst } = bestAndWorstDay(days);
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[auto_repeat(7,minmax(0,1fr))] gap-1">
-        <div className="flex flex-col items-end gap-1 py-1.5 pr-1 text-2xs text-text-muted">
+      <div className="flex gap-1">
+        <div className="flex shrink-0 flex-col items-end gap-1 py-1.5 pr-1 text-2xs text-text-muted">
           <span>&nbsp;</span>
           <span className="flex h-16 items-center">ocena</span>
           <span>&nbsp;</span>
@@ -61,9 +61,11 @@ export default function ReviewWeekStrip({ days }: { days: ReviewDay[] }) {
           <span>zaśn.</span>
           <span>plan</span>
         </div>
-        {days.map((d) => (
-          <DayColumn key={d.date} day={d} best={best?.date === d.date} />
-        ))}
+        <div className="grid min-w-0 flex-1 grid-cols-7 gap-1">
+          {days.map((d) => (
+            <DayColumn key={d.date} day={d} best={best?.date === d.date} />
+          ))}
+        </div>
       </div>
       {best && <DaySummary label="Najlepszy" day={best} tone="text-success" />}
       {worst && <DaySummary label="Najsłabszy" day={worst} tone="text-danger" />}

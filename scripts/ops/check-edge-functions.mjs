@@ -103,12 +103,13 @@ for (const fn of functionsNoJwt) {
     executableContent.includes('requireServiceRole') ||
     executableContent.includes('resolveUserScope') ||
     executableContent.includes('verifyTelegramSecret') ||
+    executableContent.includes('verifyFathomSignature') ||
     executableContent.includes('requireWidgetUser') ||
     executableContent.includes('MCP_SERVER_SECRET') ||
     serveJsonAuthed;
 
   if (!hasAuth) {
-    console.error(`❌ Security Violation: Function '${fn}' has verify_jwt = false but lacks requireServiceRole, resolveUserScope, verifyTelegramSecret, or MCP_SERVER_SECRET check in its index.ts.`);
+    console.error(`❌ Security Violation: Function '${fn}' has verify_jwt = false but lacks requireServiceRole, resolveUserScope, verifyTelegramSecret, verifyFathomSignature, or MCP_SERVER_SECRET check in its index.ts.`);
     failed = true;
   } else {
     console.log(`  [OK] ${fn}`);

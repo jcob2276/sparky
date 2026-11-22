@@ -63,7 +63,7 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
       )}
       <div className="flex gap-2">
         {showStart && (
-          <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm font-bold shadow-md shadow-primary/20">
+          <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm font-bold shadow-md">
             <Plus size={16} strokeWidth={2.5} />
             Pusty trening
           </Pressable>

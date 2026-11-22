@@ -108,13 +108,13 @@ export default function TodoCardExpandedPanel({
         <div className="px-3 py-2.5">
           <div className="flex min-h-9 items-center justify-between text-sm text-text-primary">
             <span className="flex items-center gap-2 font-medium"><Tag size={16} className="text-text-secondary" aria-hidden="true" />Tagi</span>
-            <button
+            <Pressable
               type="button"
               onClick={() => tagInputRef.current?.focus()}
               className="text-xs text-primary font-semibold hover:underline"
             >
               + Dodaj
-            </button>
+            </Pressable>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 pl-6">
             {tags.map((tag) => (
@@ -141,16 +141,16 @@ export default function TodoCardExpandedPanel({
           </div>
           {quickSuggestedTags.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-1 pl-6">
-              <span className="text-3xs text-text-muted mr-1">Szybkie:</span>
+              <span className="text-2xs text-text-muted mr-1">Szybkie:</span>
               {quickSuggestedTags.slice(0, 4).map((st) => (
-                <button
+                <Pressable
                   key={st}
                   type="button"
                   onClick={() => onSetTags([...tags, st])}
-                  className="rounded-full bg-surface-2/60 hover:bg-surface-2 px-2 py-0.5 text-3xs font-medium text-text-secondary hover:text-text-primary active:scale-95 transition-all"
+                  className="rounded-full bg-surface-2/60 hover:bg-surface-2 px-2 py-0.5 text-2xs font-medium text-text-secondary hover:text-text-primary active:scale-95 transition-all"
                 >
                   +{st}
-                </button>
+                </Pressable>
               ))}
             </div>
           )}

@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, Check, Grid3X3, List, SlidersHorizontal } from 'luc
 import { useEffect, useRef, useState } from 'react';
 import type { NoteCollectionPreferences, NoteSortField } from '../../lib/noteOrganization';
 import { Pressable } from '../ui/ControlPrimitives';
+import PopoverScrim from '../ui/PopoverScrim';
 import Sheet from '../ui/Sheet';
 
 interface NoteViewOptionsProps {
@@ -11,6 +12,8 @@ interface NoteViewOptionsProps {
   onViewModeChange?: (mode: 'list' | 'gallery') => void;
   isMobile?: boolean;
 }
+
+type SharedProps = Pick<NoteViewOptionsProps, 'value' | 'onChange' | 'viewMode' | 'onViewModeChange'> & { selectField: (field: NoteSortField) => void };
 
 const FIELDS: Array<{ value: NoteSortField; label: string }> = [
   { value: 'updated_at', label: 'Data edycji' },
@@ -81,192 +84,200 @@ export default function NoteViewOptions({
           title="Widok i sortowanie"
           handleDragOnly
         >
-          <div className="space-y-4 pb-2" role="menu" aria-label="Opcje widoku notatek">
-            {/* Układ: Lista / Galeria */}
-            {onViewModeChange && viewMode && (
-              <div className="space-y-1.5">
-                <span className="text-2xs font-bold uppercase tracking-wider text-text-muted px-1">Układ</span>
-                <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-border-custom/40 bg-surface-2/40">
-                  <Pressable
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={viewMode === 'list'}
-                    onClick={() => onViewModeChange('list')}
-                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
-                      viewMode === 'list'
-                        ? 'bg-surface-solid text-primary font-bold shadow-xs'
-                        : 'text-text-muted hover:text-text-primary'
-                    }`}
-                  >
-                    <List size={16} />
-                    <span>Lista</span>
-                  </Pressable>
-                  <Pressable
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={viewMode === 'gallery'}
-                    onClick={() => onViewModeChange('gallery')}
-                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
-                      viewMode === 'gallery'
-                        ? 'bg-surface-solid text-primary font-bold shadow-xs'
-                        : 'text-text-muted hover:text-text-primary'
-                    }`}
-                  >
-                    <Grid3X3 size={16} />
-                    <span>Galeria</span>
-                  </Pressable>
-                </div>
-              </div>
-            )}
-
-            {/* Sortuj według */}
-            <div className="space-y-1.5">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted px-1">Sortuj według</span>
-              <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-                {FIELDS.map(field => {
-                  const isSelected = value.sortField === field.value;
-                  return (
-                    <Pressable
-                      key={field.value}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={isSelected}
-                      onClick={() => selectField(field.value)}
-                      className={`w-full flex min-h-[46px] items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                        isSelected
-                          ? 'bg-primary/15 text-primary font-bold shadow-2xs'
-                          : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
-                      }`}
-                    >
-                      <span>{field.label}</span>
-                      {isSelected && <Check size={16} className="text-primary shrink-0" />}
-                    </Pressable>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Kierunek i grupowanie */}
-            <div className="space-y-1.5">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted px-1">Opcje wyświetlania</span>
-              <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-                <Pressable
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={value.direction === 'desc'}
-                  onClick={() => onChange({ ...value, direction: value.direction === 'desc' ? 'asc' : 'desc' })}
-                  className="w-full flex min-h-[46px] items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    {value.direction === 'desc' ? <ArrowDown size={16} className="text-primary shrink-0" /> : <ArrowUp size={16} className="text-primary shrink-0" />}
-                    <span>{value.direction === 'desc' ? 'Najnowsze najpierw' : 'Najstarsze najpierw'}</span>
-                  </div>
-                  <span className="text-2xs text-text-muted">{value.direction === 'desc' ? 'Malejąco' : 'Rosnąco'}</span>
-                </Pressable>
-
-                {value.sortField !== 'title' && (
-                  <Pressable
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={value.groupByDate}
-                    onClick={() => onChange({ ...value, groupByDate: !value.groupByDate })}
-                    className="w-full flex min-h-[46px] items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <span>Grupuj według daty</span>
-                    {value.groupByDate && <Check size={16} className="text-primary shrink-0" />}
-                  </Pressable>
-                )}
-              </div>
-            </div>
-          </div>
+          <SheetBody value={value} onChange={onChange} viewMode={viewMode} onViewModeChange={onViewModeChange} selectField={selectField} />
         </Sheet>
       ) : (
         /* Widok na komputerze: precyzyjny popover zakotwiczony pod przyciskiem (100% nieprzezroczysty) */
         open && (
-          <>
-            <Pressable
-              className="fixed inset-0 z-[var(--z-overlay)] bg-black/15 backdrop-blur-[1px]"
-              onClick={() => setOpen(false)}
-              aria-label="Zamknij opcje widoku"
-            />
-            <div className="keep-view-options-menu" role="menu" aria-label="Opcje widoku notatek">
-              {onViewModeChange && viewMode && (
-                <>
-                  <p className="keep-view-options-label">Układ</p>
-                  <div className="flex gap-1 p-1 rounded-lg bg-surface-2/60 mb-1">
-                    <Pressable
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={viewMode === 'list'}
-                      onClick={() => onViewModeChange('list')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
-                        viewMode === 'list'
-                          ? 'bg-surface-solid text-primary font-bold shadow-2xs'
-                          : 'text-text-muted hover:text-text-primary'
-                      }`}
-                    >
-                      <List size={13} />
-                      <span>Lista</span>
-                    </Pressable>
-                    <Pressable
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={viewMode === 'gallery'}
-                      onClick={() => onViewModeChange('gallery')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
-                        viewMode === 'gallery'
-                          ? 'bg-surface-solid text-primary font-bold shadow-2xs'
-                          : 'text-text-muted hover:text-text-primary'
-                      }`}
-                    >
-                      <Grid3X3 size={13} />
-                      <span>Galeria</span>
-                    </Pressable>
-                  </div>
-                  <div className="keep-view-options-separator" />
-                </>
-              )}
-              <p className="keep-view-options-label">Sortuj według</p>
-              {FIELDS.map(field => (
-                <Pressable
-                  key={field.value}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={value.sortField === field.value}
-                  onClick={() => selectField(field.value)}
-                  className="flex items-center justify-between w-full"
-                >
-                  <span>{field.label}</span>
-                  {value.sortField === field.value && <Check size={14} className="text-primary shrink-0" />}
-                </Pressable>
-              ))}
-              <div className="keep-view-options-separator" />
-              <Pressable
-                type="button"
-                role="menuitemradio"
-                aria-checked={value.direction === 'desc'}
-                onClick={() => onChange({ ...value, direction: value.direction === 'desc' ? 'asc' : 'desc' })}
-                className="flex items-center gap-2.5 w-full text-left"
-              >
-                {value.direction === 'desc' ? <ArrowDown size={14} className="text-primary shrink-0" /> : <ArrowUp size={14} className="text-primary shrink-0" />}
-                <span>{value.direction === 'desc' ? 'Najnowsze najpierw' : 'Najstarsze najpierw'}</span>
-              </Pressable>
-              {value.sortField !== 'title' && (
-                <Pressable
-                  type="button"
-                  role="menuitemcheckbox"
-                  aria-checked={value.groupByDate}
-                  onClick={() => onChange({ ...value, groupByDate: !value.groupByDate })}
-                  className="flex items-center justify-between w-full"
-                >
-                  <span>Grupuj według daty</span>
-                  {value.groupByDate && <Check size={14} className="text-primary shrink-0" />}
-                </Pressable>
-              )}
-            </div>
-          </>
+          <PopoverMenu value={value} onChange={onChange} viewMode={viewMode} onViewModeChange={onViewModeChange} selectField={selectField} close={() => setOpen(false)} />
         )
       )}
     </div>
+  );
+}
+
+function SheetBody({ value, onChange, viewMode, onViewModeChange, selectField }: SharedProps) {
+  return (
+    <div className="space-y-4 pb-2" role="menu" aria-label="Opcje widoku notatek">
+      {/* Układ: Lista / Galeria */}
+      {onViewModeChange && viewMode && (
+        <div className="space-y-1.5">
+          <span className="text-2xs font-bold tracking-wider text-text-muted px-1">Układ</span>
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl border border-border-custom/40 bg-surface-2/40">
+            <Pressable
+              type="button"
+              role="menuitemradio"
+              aria-checked={viewMode === 'list'}
+              onClick={() => onViewModeChange('list')}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+                viewMode === 'list'
+                  ? 'bg-surface-solid text-primary font-bold shadow-xs'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              <List size={16} />
+              <span>Lista</span>
+            </Pressable>
+            <Pressable
+              type="button"
+              role="menuitemradio"
+              aria-checked={viewMode === 'gallery'}
+              onClick={() => onViewModeChange('gallery')}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+                viewMode === 'gallery'
+                  ? 'bg-surface-solid text-primary font-bold shadow-xs'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              <Grid3X3 size={16} />
+              <span>Galeria</span>
+            </Pressable>
+          </div>
+        </div>
+      )}
+
+      {/* Sortuj według */}
+      <div className="space-y-1.5">
+        <span className="text-2xs font-bold tracking-wider text-text-muted px-1">Sortuj według</span>
+        <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+          {FIELDS.map(field => {
+            const isSelected = value.sortField === field.value;
+            return (
+              <Pressable
+                key={field.value}
+                type="button"
+                role="menuitemradio"
+                aria-checked={isSelected}
+                onClick={() => selectField(field.value)}
+                className={`w-full flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  isSelected
+                    ? 'bg-primary/15 text-primary font-bold shadow-2xs'
+                    : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
+                }`}
+              >
+                <span>{field.label}</span>
+                {isSelected && <Check size={16} className="text-primary shrink-0" />}
+              </Pressable>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Kierunek i grupowanie */}
+      <div className="space-y-1.5">
+        <span className="text-2xs font-bold tracking-wider text-text-muted px-1">Opcje wyświetlania</span>
+        <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+          <Pressable
+            type="button"
+            role="menuitemradio"
+            aria-checked={value.direction === 'desc'}
+            onClick={() => onChange({ ...value, direction: value.direction === 'desc' ? 'asc' : 'desc' })}
+            className="w-full flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              {value.direction === 'desc' ? <ArrowDown size={16} className="text-primary shrink-0" /> : <ArrowUp size={16} className="text-primary shrink-0" />}
+              <span>{value.direction === 'desc' ? 'Najnowsze najpierw' : 'Najstarsze najpierw'}</span>
+            </div>
+            <span className="text-2xs text-text-muted">{value.direction === 'desc' ? 'Malejąco' : 'Rosnąco'}</span>
+          </Pressable>
+
+          {value.sortField !== 'title' && (
+            <Pressable
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={value.groupByDate}
+              onClick={() => onChange({ ...value, groupByDate: !value.groupByDate })}
+              className="w-full flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+            >
+              <span>Grupuj według daty</span>
+              {value.groupByDate && <Check size={16} className="text-primary shrink-0" />}
+            </Pressable>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PopoverMenu({ value, onChange, viewMode, onViewModeChange, selectField, close }: SharedProps & { close: () => void }) {
+  return (
+    <>
+      <PopoverScrim className="z-[var(--z-overlay)] bg-black/15 backdrop-blur-xs" onClick={close} label="Zamknij opcje widoku" />
+      <div className="keep-view-options-menu" role="menu" aria-label="Opcje widoku notatek">
+        {onViewModeChange && viewMode && (
+          <>
+            <p className="keep-view-options-label">Układ</p>
+            <div className="flex gap-1 p-1 rounded-lg bg-surface-2/60 mb-1">
+              <Pressable
+                type="button"
+                role="menuitemradio"
+                aria-checked={viewMode === 'list'}
+                onClick={() => onViewModeChange('list')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
+                  viewMode === 'list'
+                    ? 'bg-surface-solid text-primary font-bold shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                <List size={13} />
+                <span>Lista</span>
+              </Pressable>
+              <Pressable
+                type="button"
+                role="menuitemradio"
+                aria-checked={viewMode === 'gallery'}
+                onClick={() => onViewModeChange('gallery')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs font-semibold rounded-lg transition-[color,background-color,border-color,box-shadow,opacity,transform] ${
+                  viewMode === 'gallery'
+                    ? 'bg-surface-solid text-primary font-bold shadow-2xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                <Grid3X3 size={13} />
+                <span>Galeria</span>
+              </Pressable>
+            </div>
+            <div className="keep-view-options-separator" />
+          </>
+        )}
+        <p className="keep-view-options-label">Sortuj według</p>
+        {FIELDS.map(field => (
+          <Pressable
+            key={field.value}
+            type="button"
+            role="menuitemradio"
+            aria-checked={value.sortField === field.value}
+            onClick={() => selectField(field.value)}
+            className="flex items-center justify-between w-full"
+          >
+            <span>{field.label}</span>
+            {value.sortField === field.value && <Check size={14} className="text-primary shrink-0" />}
+          </Pressable>
+        ))}
+        <div className="keep-view-options-separator" />
+        <Pressable
+          type="button"
+          role="menuitemradio"
+          aria-checked={value.direction === 'desc'}
+          onClick={() => onChange({ ...value, direction: value.direction === 'desc' ? 'asc' : 'desc' })}
+          className="flex items-center gap-2.5 w-full text-left"
+        >
+          {value.direction === 'desc' ? <ArrowDown size={14} className="text-primary shrink-0" /> : <ArrowUp size={14} className="text-primary shrink-0" />}
+          <span>{value.direction === 'desc' ? 'Najnowsze najpierw' : 'Najstarsze najpierw'}</span>
+        </Pressable>
+        {value.sortField !== 'title' && (
+          <Pressable
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={value.groupByDate}
+            onClick={() => onChange({ ...value, groupByDate: !value.groupByDate })}
+            className="flex items-center justify-between w-full"
+          >
+            <span>Grupuj według daty</span>
+            {value.groupByDate && <Check size={14} className="text-primary shrink-0" />}
+          </Pressable>
+        )}
+      </div>
+    </>
   );
 }

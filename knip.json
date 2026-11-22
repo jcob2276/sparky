@@ -15,8 +15,9 @@
   ],
   "ignoreIssues": {},
   "ignoreDependencies": [
-    "npm",
-    "playwright",
-    "@playwright/test"
+    "npm"
+  ],
+  "ignoreBinaries": [
+    "powershell"
   ]
 }

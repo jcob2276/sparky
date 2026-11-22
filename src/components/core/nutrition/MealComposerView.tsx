@@ -1,7 +1,6 @@
 import { lazy, Suspense, useState, startTransition } from 'react';
 import { ChefHat } from 'lucide-react';
 import Button from '../../ui/Button';
-import Modal from '../../ui/Modal';
 import Sheet from '../../ui/Sheet';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';

@@ -2,7 +2,7 @@ import { Suspense, memo, useEffect, useState } from 'react';
 import { useSession } from '../../store/useStore';
 import Skeleton from '../ui/Skeleton';
 import Button from '../ui/Button';
-import { BookOpen, BarChart3, Sparkles } from 'lucide-react';
+import { BookOpen, BarChart3 } from 'lucide-react';
 import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';

@@ -48,6 +48,7 @@ $all = @(
   "vanguard-wiki-compiler",
   "period-compare",
   "week-insight",
+  "widget-finance",
   "widget-food",
   "widget-tasks"
 )

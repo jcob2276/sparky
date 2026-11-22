@@ -13,7 +13,7 @@ function TaskChip({ task }: { task: PillarTask }) {
       : 'bg-warning/15 text-text-primary';
   return (
     <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-medium ${tone}`}>
-      <span className="max-w-[11rem] truncate">{task.title}</span>
+      <span className="max-w-44 truncate">{task.title}</span>
       <span className="tabular-nums opacity-80">
         {task.done > 0 && `✓${task.done}`}
         {task.done > 0 && task.missed > 0 && ' '}

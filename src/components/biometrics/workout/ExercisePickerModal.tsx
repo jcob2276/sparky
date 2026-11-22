@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, X, ChevronLeft } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import EmptyState from '../../ui/EmptyState';
 import Spinner from '../../ui/Spinner';
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import { useHaptics } from '../../../hooks/useHaptics';
 import ExercisePickerRow from './ExercisePickerRow';
+import { ExercisePickerCustomRow, ExercisePickerNav } from './ExercisePickerParts';
 import ExercisePickerGroupChips from './ExercisePickerGroupChips';
 import { MUSCLE_GROUPS } from './muscleGroups';
 import { resolveExercisePickName } from '../../../lib/health/exerciseSearch';
@@ -77,35 +78,7 @@ export default function ExercisePickerModal({
         {/* iOS Grab bar indicator */}
         <div className="w-12 h-1 bg-border-custom rounded-full mx-auto mb-2 shrink-0 sm:hidden" />
 
-        {/* Modal Navigation Bar */}
-        <div className="flex items-center justify-between pb-2.5 shrink-0 -mx-1">
-          <Pressable
-            onClick={() => {
-              haptics.light();
-              onClose();
-            }}
-            aria-label="Wróć do treningu"
-            className="flex items-center gap-1 py-1.5 px-2 -ml-1 rounded-lg text-text-secondary hover:text-text-primary active:bg-surface-2 transition-colors cursor-pointer min-h-11"
-          >
-            <ChevronLeft size={20} />
-            <span className="text-sm font-semibold">Wróć</span>
-          </Pressable>
-
-          <h2 className="text-base font-bold text-text-primary font-display">
-            Wybierz ćwiczenie
-          </h2>
-
-          <Pressable
-            onClick={() => {
-              haptics.light();
-              onClose();
-            }}
-            aria-label="Anuluj wybór ćwiczenia"
-            className="text-sm font-semibold text-primary hover:text-primary-hover active:opacity-70 py-1.5 px-2 rounded-lg cursor-pointer min-h-11 flex items-center"
-          >
-            Anuluj
-          </Pressable>
-        </div>
+        <ExercisePickerNav onClose={onClose} />
 
         {/* Search & Muscle Filters */}
         <div className="shrink-0 -mx-4 border-b border-border-custom px-4 pb-3">
@@ -148,23 +121,7 @@ export default function ExercisePickerModal({
         </div>
 
         <div className="-mx-4 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          {canUseCustom ? (
-            <Pressable
-              type="button"
-              onClick={pickCustom}
-              className="tren-picker-row flex w-full items-center gap-3 border-b border-border-custom px-4 py-3 text-left ui-interactive"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-surface-tonal text-sm font-semibold text-primary">
-                +
-              </span>
-              <span className="min-w-0">
-                <span className="block text-base font-semibold text-text-primary">
-                  Użyj „{queryTrim}”
-                </span>
-                <span className="mt-0.5 block text-xs text-text-muted">Własna nazwa</span>
-              </span>
-            </Pressable>
-          ) : null}
+          {canUseCustom ? <ExercisePickerCustomRow name={queryTrim} onPick={pickCustom} /> : null}
 
           {matches.length > 0 ? (
             <p className="px-4 pb-1 pt-3 text-2xs font-bold tracking-normal text-text-tertiary">

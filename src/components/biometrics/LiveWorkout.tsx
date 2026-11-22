@@ -91,7 +91,7 @@ export default function LiveWorkout({
   const currentId = activeId != null && exercises.some((e) => e.id === activeId) ? activeId : (firstOpen ?? exercises[0])?.id ?? null;
   const summary = summarize(logger.exercises);
 
-  const { setSwapId, requestSwap, undo, setUndo, expireUndo, pickExercise, advanceFrom, removeExercise, moveExercise } = useLiveExerciseOps(logger, exercises, setActiveId);
+  const { setSwapId, requestSwap, undo, setUndo, expireUndo, pickExercise, removeExercise, moveExercise } = useLiveExerciseOps(logger, exercises, setActiveId);
 
   return (
     <div className="trening-theme flex min-h-screen flex-col" data-tren-accent={accent}>

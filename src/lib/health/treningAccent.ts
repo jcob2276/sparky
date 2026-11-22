@@ -28,10 +28,10 @@ export const TRENING_ACCENT_PRESETS: TreningAccentPreset[] = [
   { id: 'teal', label: 'Teal', hint: 'Miami Athletic', swatch: '#2DD4BF' },
   { id: 'orange', label: 'Flame', hint: 'Stronger Magma', swatch: '#FF9F0A' },
   { id: 'blue', label: 'Ocean', hint: 'Electric Blue', swatch: '#64D2FF' },
-  { id: 'crimson', label: 'Crimson', hint: 'Beast Red PR', swatch: '#FF3B30' },
-  { id: 'purple', label: 'Violet', hint: 'Cyber Whoop', swatch: '#BF5AF2' },
-  { id: 'gold', label: 'Gold', hint: 'Prestige Amber', swatch: '#FFD60A' },
-  { id: 'stealth', label: 'Stealth', hint: 'Carbon Onyx', swatch: '#A1A1A6' },
+  { id: 'crimson', label: 'Crimson', hint: 'Beast Red PR', swatch: 'var(--tren-swatch-crimson)' },
+  { id: 'purple', label: 'Violet', hint: 'Cyber Whoop', swatch: 'var(--tren-swatch-purple)' },
+  { id: 'gold', label: 'Gold', hint: 'Prestige Amber', swatch: 'var(--tren-swatch-gold)' },
+  { id: 'stealth', label: 'Stealth', hint: 'Carbon Onyx', swatch: 'var(--tren-swatch-stealth)' },
 ];
 
 export const DEFAULT_TRENING_ACCENT: TreningAccentId = 'lime';

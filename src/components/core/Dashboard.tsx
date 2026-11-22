@@ -84,7 +84,7 @@ function DashboardContent() {
   const fastCaptureItems = useMemo(() => [
     { label: 'Centrum Treningowe', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => s.navigate('/trening'), hint: 'Trening i aktywność' },
     { label: 'Zarejestruj posiłek', emoji: '🥗', icon: Utensils, color: 'var(--color-success)', action: () => s.setShowQuickFoodEntry(true), hint: 'Szybki wpis jedzenia' },
-    { label: 'Sesja sauny', emoji: '🔥', icon: Flame, color: '#f97316', action: () => s.navigate('/sauna'), hint: 'Ciepło i regeneracja' },
+    { label: 'Sesja sauny', emoji: '🔥', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna'), hint: 'Ciepło i regeneracja' },
     { label: 'Domknij dzień', emoji: '🌙', icon: Moon, color: 'var(--color-primary)', action: () => s.setShowShutdown(true), hint: 'Rytuał wieczorny' },
   ], [s]);
 

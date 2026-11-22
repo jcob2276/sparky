@@ -1,16 +1,14 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { LIFE_OBLIGATION_KIND_LABELS } from '@vanguard/domain';
-import { Sparkles, Calendar, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Button from '../ui/Button';
 import EmptyState from '../ui/EmptyState';
 import { Pressable } from '../ui/ControlPrimitives';
-import { formatLongDateWarsaw } from '../../lib/date';
 import { TerminyObligationCard } from './TerminyObligationCard';
 import {
   STARTER_TEMPLATES,
   URGENCY_BUCKET_LABELS,
   bucketMap,
-  countdownLabel,
   type DerivedObligation,
   type StarterTemplate,
   type UrgencyBucket,

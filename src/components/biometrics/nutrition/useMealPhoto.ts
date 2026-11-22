@@ -62,7 +62,7 @@ const DEFAULT_FOOD_PHOTO = {
   attribution: 'Zdjęcie: Unsplash',
 };
 
-export function getCuratedFoodPhoto(name: string, ingredients: string[] = []): { photoUrl: string; attribution: string } {
+function getCuratedFoodPhoto(name: string, ingredients: string[] = []): { photoUrl: string; attribution: string } {
   const haystack = `${name} ${ingredients.join(' ')}`.toLowerCase();
   for (const entry of CURATED_MEAL_PHOTOS) {
     if (entry.keywords.some((k) => haystack.includes(k))) {
@@ -76,45 +76,47 @@ function cacheKey(meal: PlannedMeal): string {
   return `${meal.name}|${meal.ingredients.map((item) => item.product.name).join(',')}`;
 }
 
+type MealPhoto = { photoUrl: string; attribution?: string };
+const inflight = new Map<string, Promise<MealPhoto | null>>();
+
+function resolveMealPhoto(key: string, name: string, ingredients: string[]): Promise<MealPhoto | null> {
+  const pending = inflight.get(key);
+  if (pending) return pending;
+  const request = invokeEdge('vanguard-nutrition-coach', {
+    body: { action: 'resolve_meal_photo', name, ingredients },
+    signal: AbortSignal.timeout(15_000),
+  })
+    .then((result): MealPhoto | null => {
+      if (!result?.photoUrl) return null;
+      const next = { photoUrl: result.photoUrl, attribution: result.attribution };
+      cache.set(key, next);
+      return next;
+    })
+    .catch(() => null) // The curated fallback is already shown.
+    .finally(() => inflight.delete(key));
+  inflight.set(key, request);
+  return request;
+}
+
 /** Loads a real food photo for a planned meal. Instant curated match + background Openverse enhancement. */
 export function useMealPhoto(meal: PlannedMeal) {
   const key = cacheKey(meal);
-  const ingredientNames = meal.ingredients.map(({ product }) => product.name);
-  const fallback = getCuratedFoodPhoto(meal.name, ingredientNames);
-
-  const [photo, setPhoto] = useState<{ photoUrl: string; attribution?: string }>(() => {
-    return cache.get(key) ?? fallback;
-  });
+  const [resolved, setResolved] = useState<{ key: string; photo: MealPhoto } | null>(null);
 
   useEffect(() => {
-    if (cache.has(key)) {
-      setPhoto(cache.get(key)!);
-      return;
-    }
-
+    if (cache.has(key)) return;
     let cancelled = false;
-    void invokeEdge('vanguard-nutrition-coach', {
-      body: {
-        action: 'resolve_meal_photo',
-        name: meal.name,
-        ingredients: ingredientNames,
-      },
-      signal: AbortSignal.timeout(15_000),
-    })
-      .then((result) => {
-        if (cancelled || !result?.photoUrl) return;
-        const next = { photoUrl: result.photoUrl, attribution: result.attribution };
-        cache.set(key, next);
-        setPhoto(next);
-      })
-      .catch(() => {
-        // Fallback is already set as initial state
-      });
-
+    void resolveMealPhoto(key, meal.name, meal.ingredients.map(({ product }) => product.name)).then((photo) => {
+      if (!cancelled && photo) setResolved({ key, photo });
+    });
     return () => {
       cancelled = true;
     };
-  }, [key, meal.name]);
+  }, [key, meal.name, meal.ingredients]);
 
+  const photo =
+    (resolved?.key === key ? resolved.photo : undefined) ??
+    cache.get(key) ??
+    getCuratedFoodPhoto(meal.name, meal.ingredients.map(({ product }) => product.name));
   return { photoUrl: photo.photoUrl, attribution: photo.attribution, loading: false };
 }

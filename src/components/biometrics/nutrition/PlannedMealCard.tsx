@@ -27,7 +27,7 @@ export function PlannedMealCard({ meal, onResizeMeal, disabled }: PlannedMealCar
       <MealIllustration meal={meal} />
 
       <div className="space-y-2 text-center">
-        <p className="text-2xs font-semibold uppercase tracking-wide text-text-muted">
+        <p className="text-2xs font-semibold tracking-wide text-text-muted">
           {mealSlotLabel(meal.key)}
         </p>
         <h3 className="text-lg font-semibold leading-snug tracking-tight text-text-primary">{meal.name}</h3>
@@ -66,7 +66,7 @@ export function PlannedMealCard({ meal, onResizeMeal, disabled }: PlannedMealCar
       </div>
 
       <div className="rounded-xl bg-surface-2 p-3">
-        <p className="text-2xs font-semibold uppercase tracking-wide text-text-muted">Składniki</p>
+        <p className="text-2xs font-semibold tracking-wide text-text-muted">Składniki</p>
         <ul className="mt-2 space-y-2">
           {meal.ingredients.map(ing => (
             <li key={ing.product.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 text-xs">
@@ -80,7 +80,7 @@ export function PlannedMealCard({ meal, onResizeMeal, disabled }: PlannedMealCar
       </div>
 
       <div className="rounded-xl bg-surface-2 p-3">
-        <p className="text-2xs font-semibold uppercase tracking-wide text-text-muted">Przygotowanie</p>
+        <p className="text-2xs font-semibold tracking-wide text-text-muted">Przygotowanie</p>
         <p className="mt-2 text-sm leading-relaxed text-text-secondary">{meal.instructions}</p>
       </div>
 

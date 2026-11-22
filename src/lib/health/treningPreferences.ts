@@ -11,7 +11,7 @@ export interface TreningPreferences {
   plateCalculator: boolean;
 }
 
-export const DEFAULT_TRENING_PREFERENCES: TreningPreferences = {
+const DEFAULT_TRENING_PREFERENCES: TreningPreferences = {
   timerSound: true,
   timerVibration: true,
   keepAwake: true,
@@ -52,7 +52,7 @@ export function playTimerCompletionChime(): void {
   try {
     const AudioContextClass =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     const now = ctx.currentTime;

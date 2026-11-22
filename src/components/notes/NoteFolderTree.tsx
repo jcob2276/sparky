@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Folder, FolderInput, Fol
 import { useEffect, useState } from 'react';
 import type { NoteFolderNode } from '../../lib/noteFoldersApi';
 import { Pressable } from '../ui/ControlPrimitives';
+import PopoverScrim from '../ui/PopoverScrim';
 import Sheet from '../ui/Sheet';
 
 interface NoteFolderTreeProps {
@@ -20,6 +21,12 @@ interface NoteFolderTreeProps {
 interface FolderBranchProps extends Omit<NoteFolderTreeProps, 'tree'> {
   folder: NoteFolderNode;
   level: number;
+}
+
+interface FolderSheetMenuProps extends Pick<NoteFolderTreeProps, 'onCreateChild' | 'onRename' | 'onMove' | 'onReorder' | 'onDelete'> {
+  folder: NoteFolderNode;
+  run: (action: (value: NoteFolderNode) => void) => void;
+  closeMenu: () => void;
 }
 
 function FolderBranch({
@@ -111,78 +118,16 @@ function FolderBranch({
               title={`Folder: ${folder.name}`}
               handleDragOnly
             >
-              <div className="space-y-3 pb-2" role="menu" aria-label={`Akcje folderu ${folder.name}`}>
-                <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    onClick={() => run(onCreateChild)}
-                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <FolderPlus size={18} className="text-text-muted" />
-                    <span>Nowy podfolder</span>
-                  </Pressable>
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    onClick={() => run(onRename)}
-                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <Pencil size={18} className="text-text-muted" />
-                    <span>Zmień nazwę</span>
-                  </Pressable>
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    onClick={() => run(onMove)}
-                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <FolderInput size={18} className="text-text-muted" />
-                    <span>Przenieś</span>
-                  </Pressable>
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}
-                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <ArrowUp size={18} className="text-text-muted" />
-                    <span>Przesuń wyżej</span>
-                  </Pressable>
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}
-                    className="w-full flex min-h-[46px] items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
-                  >
-                    <ArrowDown size={18} className="text-text-muted" />
-                    <span>Przesuń niżej</span>
-                  </Pressable>
-                </div>
-
-                <div className="pt-1">
-                  <Pressable
-                    type="button"
-                    role="menuitem"
-                    variant="ghost"
-                    onClick={() => run(onDelete)}
-                    className="w-full flex min-h-[46px] items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 active:bg-danger/15"
-                  >
-                    <Trash2 size={16} />
-                    <span>Usuń folder</span>
-                  </Pressable>
-                </div>
-              </div>
+              <FolderSheetMenu folder={folder} run={run} closeMenu={() => setMenuOpen(false)} onCreateChild={onCreateChild} onRename={onRename} onMove={onMove} onReorder={onReorder} onDelete={onDelete} />
             </Sheet>
           ) : (
             /* Na komputerze: popover z właściwym z-index i scrimem */
             menuOpen && createPortal(
               <>
-                <Pressable
-                  type="button"
-                  className="fixed inset-0 z-[calc(var(--z-overlay)+49)] bg-black/10 backdrop-blur-[1px]"
+                <PopoverScrim
+                  className="z-[calc(var(--z-overlay)+49)] bg-black/10 backdrop-blur-xs"
                   onClick={() => setMenuOpen(false)}
-                  aria-label="Zamknij menu folderu"
+                  label="Zamknij menu folderu"
                 />
                 <div
                   role="menu"
@@ -236,5 +181,72 @@ export default function NoteFolderTree(props: NoteFolderTreeProps) {
     <ul role="tree" aria-label="Foldery notatek" className="keep-folder-tree">
       {props.tree.map(folder => <FolderBranch key={folder.id} {...props} folder={folder} level={0} />)}
     </ul>
+  );
+}
+
+function FolderSheetMenu({ folder, run, closeMenu, onCreateChild, onRename, onMove, onReorder, onDelete }: FolderSheetMenuProps) {
+  return (
+    <div className="space-y-3 pb-2" role="menu" aria-label={`Akcje folderu ${folder.name}`}>
+      <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+        <Pressable
+          type="button"
+          role="menuitem"
+          onClick={() => run(onCreateChild)}
+          className="w-full flex min-h-12 items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+        >
+          <FolderPlus size={18} className="text-text-muted" />
+          <span>Nowy podfolder</span>
+        </Pressable>
+        <Pressable
+          type="button"
+          role="menuitem"
+          onClick={() => run(onRename)}
+          className="w-full flex min-h-12 items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+        >
+          <Pencil size={18} className="text-text-muted" />
+          <span>Zmień nazwę</span>
+        </Pressable>
+        <Pressable
+          type="button"
+          role="menuitem"
+          onClick={() => run(onMove)}
+          className="w-full flex min-h-12 items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+        >
+          <FolderInput size={18} className="text-text-muted" />
+          <span>Przenieś</span>
+        </Pressable>
+        <Pressable
+          type="button"
+          role="menuitem"
+          onClick={() => { closeMenu(); onReorder(folder, 'up'); }}
+          className="w-full flex min-h-12 items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+        >
+          <ArrowUp size={18} className="text-text-muted" />
+          <span>Przesuń wyżej</span>
+        </Pressable>
+        <Pressable
+          type="button"
+          role="menuitem"
+          onClick={() => { closeMenu(); onReorder(folder, 'down'); }}
+          className="w-full flex min-h-12 items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10 transition-colors"
+        >
+          <ArrowDown size={18} className="text-text-muted" />
+          <span>Przesuń niżej</span>
+        </Pressable>
+      </div>
+
+      <div className="pt-1">
+        <Pressable
+          type="button"
+          role="menuitem"
+          variant="ghost"
+          onClick={() => run(onDelete)}
+          className="w-full flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 active:bg-danger/15"
+        >
+          <Trash2 size={16} />
+          <span>Usuń folder</span>
+        </Pressable>
+      </div>
+    </div>
   );
 }

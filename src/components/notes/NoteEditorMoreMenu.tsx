@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
+import PopoverScrim from '../ui/PopoverScrim';
 import Sheet from '../ui/Sheet';
 import { COLORS } from './keepUtils';
 
@@ -81,134 +82,27 @@ export default function NoteEditorMoreMenu(props: Props) {
           title="Czynności notatki"
           handleDragOnly
         >
-          <div className="space-y-4 pb-2" role="menu" aria-label="Czynności notatki">
-            {/* Paleta kolorów */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kolor notatki</span>
-                <span className="text-2xs text-text-muted">{selectedColorLabel}</span>
-              </div>
-              <div className="flex items-center justify-between gap-1.5 px-0.5 py-1 overflow-x-auto" role="group" aria-label="Wybierz kolor">
-                {COLORS.map(c => {
-                  const isSelected = props.color === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => props.onColor(c.id)}
-                      title={c.label}
-                      aria-label={c.label}
-                      className={`h-8 w-8 rounded-full border border-black/10 dark:border-white/10 transition-transform active:scale-90 flex items-center justify-center shrink-0 ${
-                        isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-solid scale-110 shadow-xs' : 'hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: c.dot }}
-                    >
-                      {isSelected && <div className="h-2 w-2 rounded-full bg-text-primary/70" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Grupa: Organizacja i ochrona */}
-            <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-              <SheetActionRow
-                icon={<Pin size={18} className={props.pinned ? 'text-primary fill-primary/20' : 'text-text-muted'} />}
-                label={props.pinned ? 'Odepnij notatkę' : 'Przypnij notatkę'}
-                hint={props.pinned ? 'Przypięta' : 'Góra listy'}
-                onClick={() => run(props.onPin)}
-              />
-              {props.onLock && (
-                <SheetActionRow
-                  icon={<Lock size={18} className="text-text-muted" />}
-                  label="Zablokuj notatkę"
-                  hint="Hasło / PIN"
-                  onClick={() => run(props.onLock!)}
-                />
-              )}
-              <SheetActionRow
-                icon={<Archive size={18} className="text-text-muted" />}
-                label="Archiwizuj notatkę"
-                hint="Przenieś do archiwum"
-                onClick={() => run(props.onArchive)}
-              />
-            </div>
-
-            {/* Grupa: Inteligentne narzędzia AI */}
-            <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-              <SheetActionRow
-                icon={<Sparkles size={18} className="text-amber-500" />}
-                label="Podsumuj przez AI"
-                hint="Synteza tekstu"
-                onClick={() => run(props.onSummarize)}
-              />
-              <SheetActionRow
-                icon={<ListTodo size={18} className="text-primary" />}
-                label="Wyciągnij zadania"
-                hint="Dodaj do Listy zadań"
-                onClick={() => run(props.onExtractTasks)}
-              />
-            </div>
-
-            {/* Grupa: Udostępnianie i Eksport */}
-            {(props.onShare || props.onExport || props.onExportPdf) && (
-              <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-                {props.onShare && (
-                  <SheetActionRow
-                    icon={<Share2 size={18} className="text-text-muted" />}
-                    label="Udostępnij kopię"
-                    onClick={() => run(props.onShare!)}
-                  />
-                )}
-                {props.onExportPdf && (
-                  <SheetActionRow
-                    icon={<FileText size={18} className="text-text-muted" />}
-                    label="Eksportuj jako PDF"
-                    onClick={() => run(props.onExportPdf!)}
-                  />
-                )}
-                {props.onExport && (
-                  <SheetActionRow
-                    icon={<Download size={18} className="text-text-muted" />}
-                    label="Eksportuj Markdown"
-                    onClick={() => run(props.onExport!)}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Grupa: Strefa usuwania */}
-            <div className="pt-1">
-              <Pressable
-                variant="ghost"
-                onClick={() => run(props.onDelete)}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 active:bg-danger/15"
-              >
-                <Trash2 size={16} />
-                <span>Usuń notatkę</span>
-              </Pressable>
-            </div>
-          </div>
+          <SheetMenuBody props={props} run={run} selectedColorLabel={selectedColorLabel} />
         </Sheet>
       ) : (
         /* Widok na komputerze: precyzyjny popover zakotwiczony pod przyciskiem */
         open && (
           <>
-            <Pressable
-              className="fixed inset-0 z-[var(--z-overlay)] bg-black/20 backdrop-blur-[2px] transition-opacity duration-150"
+            <PopoverScrim
+              className="z-[var(--z-overlay)] bg-black/20 backdrop-blur-xs transition-opacity"
               onClick={() => setOpen(false)}
-              aria-label="Zamknij menu"
+              label="Zamknij menu"
             />
             <div
               role="menu"
               aria-label="Czynności notatki"
               style={{ transformOrigin: 'top right' }}
-              className="keep-more-menu absolute right-0 top-10 z-[calc(var(--z-overlay)+10)] w-64 max-h-[min(540px,calc(100dvh-5rem))] overflow-y-auto rounded-2xl border border-border-custom/50 bg-surface-solid py-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+              className="keep-more-menu absolute right-0 top-10 z-[calc(var(--z-overlay)+10)] w-64 max-h-96 overflow-y-auto rounded-2xl border border-border-custom/50 bg-surface-solid py-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
             >
               <DesktopMenuItem icon={<Pin size={16} />} label={props.pinned ? 'Odepnij notatkę' : 'Przypnij notatkę'} onClick={() => run(props.onPin)} />
               {props.onLock && <DesktopMenuItem icon={<Lock size={16} />} label="Zablokuj notatkę" onClick={() => run(props.onLock!)} />}
               <DesktopDivider />
-              <DesktopMenuItem icon={<Sparkles size={16} className="text-amber-500" />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />
+              <DesktopMenuItem icon={<Sparkles size={16} className="text-warning" />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />
               <DesktopMenuItem icon={<ListTodo size={16} className="text-primary" />} label="Wyciągnij zadania" onClick={() => run(props.onExtractTasks)} />
               {(props.onShare || props.onExport || props.onExportPdf) && <DesktopDivider />}
               {props.onShare && <DesktopMenuItem icon={<Share2 size={16} />} label="Udostępnij kopię" onClick={() => run(props.onShare!)} />}
@@ -217,7 +111,7 @@ export default function NoteEditorMoreMenu(props: Props) {
               <DesktopDivider />
               <div className="flex items-center gap-2 px-4 py-2.5" role="group" aria-label="Kolor notatki">
                 {COLORS.map(color => (
-                  <button
+                  <Pressable
                     key={color.id}
                     type="button"
                     className={`h-6 w-6 rounded-full border border-border-custom/40 transition-transform active:scale-95 ${props.color === color.id ? 'ring-2 ring-primary ring-offset-1' : ''}`}
@@ -257,7 +151,7 @@ function SheetActionRow({
       role="menuitem"
       haptic="selection"
       onClick={onClick}
-      className={`group flex min-h-[46px] w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left transition-colors active:bg-text-primary/10 ${
+      className={`group flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-left transition-colors active:bg-text-primary/10 ${
         danger ? 'text-danger font-medium hover:bg-danger/10' : 'text-text-primary hover:bg-text-primary/[0.06]'
       }`}
     >
@@ -289,5 +183,118 @@ function DesktopMenuItem({ icon, label, onClick, danger = false }: {
     >
       <span className="flex w-5 shrink-0 justify-center">{icon}</span>{label}
     </Pressable>
+  );
+}
+
+function SheetMenuBody({ props, run, selectedColorLabel }: { props: Props; run: (action: () => void) => void; selectedColorLabel: string }) {
+  return (
+    <div className="space-y-4 pb-2" role="menu" aria-label="Czynności notatki">
+      {/* Paleta kolorów */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kolor notatki</span>
+          <span className="text-2xs text-text-muted">{selectedColorLabel}</span>
+        </div>
+        <div className="flex items-center justify-between gap-1.5 px-0.5 py-1 overflow-x-auto" role="group" aria-label="Wybierz kolor">
+          {COLORS.map(c => {
+            const isSelected = props.color === c.id;
+            return (
+              <Pressable
+                key={c.id}
+                type="button"
+                onClick={() => props.onColor(c.id)}
+                title={c.label}
+                aria-label={c.label}
+                className={`h-8 w-8 rounded-full border border-black/10 dark:border-white/10 transition-transform active:scale-90 flex items-center justify-center shrink-0 ${
+                  isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-solid scale-110 shadow-xs' : 'hover:scale-105'
+                }`}
+                style={{ backgroundColor: c.dot }}
+              >
+                {isSelected && <div className="h-2 w-2 rounded-full bg-text-primary/70" />}
+              </Pressable>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Grupa: Organizacja i ochrona */}
+      <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+        <SheetActionRow
+          icon={<Pin size={18} className={props.pinned ? 'text-primary fill-primary/20' : 'text-text-muted'} />}
+          label={props.pinned ? 'Odepnij notatkę' : 'Przypnij notatkę'}
+          hint={props.pinned ? 'Przypięta' : 'Góra listy'}
+          onClick={() => run(props.onPin)}
+        />
+        {props.onLock && (
+          <SheetActionRow
+            icon={<Lock size={18} className="text-text-muted" />}
+            label="Zablokuj notatkę"
+            hint="Hasło / PIN"
+            onClick={() => run(props.onLock!)}
+          />
+        )}
+        <SheetActionRow
+          icon={<Archive size={18} className="text-text-muted" />}
+          label="Archiwizuj notatkę"
+          hint="Przenieś do archiwum"
+          onClick={() => run(props.onArchive)}
+        />
+      </div>
+
+      {/* Grupa: Inteligentne narzędzia AI */}
+      <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+        <SheetActionRow
+          icon={<Sparkles size={18} className="text-warning" />}
+          label="Podsumuj przez AI"
+          hint="Synteza tekstu"
+          onClick={() => run(props.onSummarize)}
+        />
+        <SheetActionRow
+          icon={<ListTodo size={18} className="text-primary" />}
+          label="Wyciągnij zadania"
+          hint="Dodaj do Listy zadań"
+          onClick={() => run(props.onExtractTasks)}
+        />
+      </div>
+
+      {/* Grupa: Udostępnianie i Eksport */}
+      {(props.onShare || props.onExport || props.onExportPdf) && (
+        <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+          {props.onShare && (
+            <SheetActionRow
+              icon={<Share2 size={18} className="text-text-muted" />}
+              label="Udostępnij kopię"
+              onClick={() => run(props.onShare!)}
+            />
+          )}
+          {props.onExportPdf && (
+            <SheetActionRow
+              icon={<FileText size={18} className="text-text-muted" />}
+              label="Eksportuj jako PDF"
+              onClick={() => run(props.onExportPdf!)}
+            />
+          )}
+          {props.onExport && (
+            <SheetActionRow
+              icon={<Download size={18} className="text-text-muted" />}
+              label="Eksportuj Markdown"
+              onClick={() => run(props.onExport!)}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Grupa: Strefa usuwania */}
+      <div className="pt-1">
+        <Pressable
+          variant="ghost"
+          onClick={() => run(props.onDelete)}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 active:bg-danger/15"
+        >
+          <Trash2 size={16} />
+          <span>Usuń notatkę</span>
+        </Pressable>
+      </div>
+    </div>
   );
 }

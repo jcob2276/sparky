@@ -160,7 +160,7 @@ const CANONICAL_DATE_FORMATTERS = [
 
 
 export default defineConfig([
-  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/**', 'scratch/**', 'tmp/**', '.tmp/**', '.worktrees/**']),
+  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/**', 'scratch/**', 'tmp/**', '.tmp/**', '.worktrees/**', 'dymora-*/**']),
   {
     files: ['scripts/**/*.{js,cjs,mjs}'],
     extends: [

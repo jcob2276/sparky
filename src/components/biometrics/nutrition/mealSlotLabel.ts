@@ -21,6 +21,3 @@ export function mealFocusPrompt(type: MealTypeId): string {
   return FOCUS_LABEL[type];
 }
 
-function isMealTypeId(value: string): value is MealTypeId {
-  return MEAL_TYPES.some(type => type.id === value);
-}

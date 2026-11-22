@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Folder, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
+import PopoverScrim from '../ui/PopoverScrim';
 import Sheet from '../ui/Sheet';
 import { notify, promptDialog } from '../../lib/notify';
 import type { NoteFolder } from '../../lib/noteFoldersApi';
@@ -80,10 +81,10 @@ export default function NoteFolderPicker({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Folder notatki: ${activeLabel}`}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border-custom/30 bg-surface-solid/70 hover:bg-surface-solid text-2xs font-semibold text-text-primary shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] active:scale-[0.96]"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border-custom/30 bg-surface-solid/70 hover:bg-surface-solid text-2xs font-semibold text-text-primary shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] active:scale-95"
       >
         <Folder size={12} className="text-warning shrink-0" />
-        <span className="truncate max-w-[120px]">{activeLabel}</span>
+        <span className="truncate max-w-30">{activeLabel}</span>
         <ChevronDown size={11} className={`text-text-muted transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
       </Pressable>
 
@@ -97,78 +98,20 @@ export default function NoteFolderPicker({
           title="Folder notatki"
           handleDragOnly
         >
-          <div className="space-y-4 pb-2" role="listbox" aria-label="Wybierz folder">
-            <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
-              <Pressable
-                type="button"
-                role="option"
-                aria-selected={!folderId}
-                onClick={() => handleSelect(null)}
-                className={`w-full flex min-h-[48px] items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  !folderId
-                    ? 'bg-primary/15 text-primary font-bold shadow-2xs'
-                    : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Folder size={18} className={!folderId ? 'text-primary' : 'text-text-muted'} />
-                  <span className="truncate">Bez folderu</span>
-                </div>
-                {!folderId && <Check size={16} className="shrink-0 text-primary" />}
-              </Pressable>
-
-              {folders.map((folder) => {
-                const isSelected = folderId === folder.id;
-                return (
-                  <Pressable
-                    key={folder.id}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleSelect(folder.id)}
-                    className={`w-full flex min-h-[48px] items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      isSelected
-                        ? 'bg-primary/15 text-primary font-bold shadow-2xs'
-                        : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Folder size={18} className={isSelected ? 'text-primary' : 'text-warning'} />
-                      <span className="truncate">{folder.name}</span>
-                    </div>
-                    {isSelected && <Check size={16} className="shrink-0 text-primary" />}
-                  </Pressable>
-                );
-              })}
-            </div>
-
-            {onCreateFolder && (
-              <div className="pt-1">
-                <Pressable
-                  type="button"
-                  variant="ghost"
-                  onClick={() => { void handleCreateNew(); }}
-                  className="w-full flex min-h-[48px] items-center justify-center gap-2 rounded-2xl border border-border-custom/40 bg-surface-solid py-3 text-sm font-semibold text-primary transition-colors hover:bg-surface-2 active:scale-[0.98]"
-                >
-                  <Plus size={16} className="text-primary" />
-                  <span>Utwórz nowy folder…</span>
-                </Pressable>
-              </div>
-            )}
-          </div>
+          <FolderSheetList folderId={folderId} folders={folders} onSelect={handleSelect} onCreate={onCreateFolder ? () => { void handleCreateNew(); } : undefined} />
         </Sheet>
       ) : (
         /* Widok na komputerze: precyzyjny popover zakotwiczony pod przyciskiem */
         open && (
           <>
-            <Pressable
-              className="fixed inset-0 z-[var(--z-overlay)] bg-black/20 backdrop-blur-[2px] transition-opacity duration-150"
+            <PopoverScrim
+              className="z-[var(--z-overlay)] bg-black/20 backdrop-blur-xs transition-opacity"
               onClick={() => setOpen(false)}
-              aria-label="Zamknij"
+              label="Zamknij"
             />
             <div
               role="listbox"
-              className="absolute left-0 top-full mt-1.5 z-[calc(var(--z-overlay)+10)] min-w-[220px] max-w-[280px] rounded-2xl border border-border-custom/50 bg-surface-solid p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-100"
+              className="absolute left-0 top-full mt-1.5 z-[calc(var(--z-overlay)+10)] min-w-55 max-w-70 rounded-2xl border border-border-custom/50 bg-surface-solid p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-100"
             >
               <div className="max-h-56 overflow-y-auto space-y-0.5">
                 <Pressable
@@ -227,6 +170,70 @@ export default function NoteFolderPicker({
             </div>
           </>
         )
+      )}
+    </div>
+  );
+}
+
+function FolderSheetList({ folderId, folders, onSelect, onCreate }: { folderId: string | null; folders: NoteFolder[]; onSelect: (id: string | null) => void; onCreate?: () => void }) {
+  return (
+    <div className="space-y-4 pb-2" role="listbox" aria-label="Wybierz folder">
+      <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface-2/40 p-1.5">
+        <Pressable
+          type="button"
+          role="option"
+          aria-selected={!folderId}
+          onClick={() => onSelect(null)}
+          className={`w-full flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+            !folderId
+              ? 'bg-primary/15 text-primary font-bold shadow-2xs'
+              : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <Folder size={18} className={!folderId ? 'text-primary' : 'text-text-muted'} />
+            <span className="truncate">Bez folderu</span>
+          </div>
+          {!folderId && <Check size={16} className="shrink-0 text-primary" />}
+        </Pressable>
+
+        {folders.map((folder) => {
+          const isSelected = folderId === folder.id;
+          return (
+            <Pressable
+              key={folder.id}
+              type="button"
+              role="option"
+              aria-selected={isSelected}
+              onClick={() => onSelect(folder.id)}
+              className={`w-full flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                isSelected
+                  ? 'bg-primary/15 text-primary font-bold shadow-2xs'
+                  : 'text-text-primary hover:bg-text-primary/[0.06] active:bg-text-primary/10'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Folder size={18} className={isSelected ? 'text-primary' : 'text-warning'} />
+                <span className="truncate">{folder.name}</span>
+              </div>
+              {isSelected && <Check size={16} className="shrink-0 text-primary" />}
+            </Pressable>
+          );
+        })}
+      </div>
+
+      {onCreate && (
+        <div className="pt-1">
+          <Pressable
+            type="button"
+            variant="ghost"
+            onClick={onCreate}
+            className="w-full flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-border-custom/40 bg-surface-solid py-3 text-sm font-semibold text-primary transition-colors hover:bg-surface-2 active:scale-95"
+          >
+            <Plus size={16} className="text-primary" />
+            <span>Utwórz nowy folder…</span>
+          </Pressable>
+        </div>
       )}
     </div>
   );

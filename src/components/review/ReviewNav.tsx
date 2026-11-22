@@ -17,7 +17,7 @@ export default function ReviewNav({
   loading?: boolean;
 }) {
   return (
-    <div className="sticky bottom-0 -mx-4 space-y-1.5 border-t border-border-custom/60 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+    <div className="sticky bottom-0 -mx-4 space-y-1.5 border-t border-border-custom/60 bg-background/95 px-4 pb-safe-nav pt-3 backdrop-blur">
       {hint && <p className="text-center text-2xs font-semibold text-warning">{hint}</p>}
       <div className="flex items-center gap-2">
         {onBack && (

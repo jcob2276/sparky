@@ -5,17 +5,16 @@
  * @usedBy SplitNotesView
  */
 import { Pressable } from '../ui/ControlPrimitives';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFocusEmptyEditor } from './hooks/useFocusEmptyEditor';
 import { ChevronLeft, X } from 'lucide-react';
 import TitledRichEditor from './TitledRichEditor';
 import { getColor, Note, getPlainText, noteFullDate } from './keepUtils';
-import { invokeEdge } from '../../lib/supabase';
 import { notify, confirmDialog } from '../../lib/notify';
 import NoteFolderPicker from './NoteFolderPicker';
 import { useUserId } from '../../store/useStore';
-import { createSourceTodos } from '../../lib/behavior/captureBridge';
 import { useNoteDraftAutosave } from './useNoteDraftAutosave';
+import { useNoteAi } from './useNoteAi';
 import NoteAttachments from './NoteAttachments';
 import type { NoteFolder } from '../../lib/noteFoldersApi';
 import NoteSaveIndicator from './NoteSaveIndicator';
@@ -56,8 +55,6 @@ export default function InlineEditor({
     const text = getPlainText(content).trim();
     return text ? text.split(/\s+/).length : 0;
   }, [content]);
-  const [_aiLoading, setAiLoading] = useState<string | null>(null);
-  const [aiResult, setAiResult] = useState<{ type: string; text: string } | null>(null);
   const c = getColor(color);
   const metadata = deriveNoteMetadata(content);
   const navigateReference = (id: string) => {
@@ -68,42 +65,7 @@ export default function InlineEditor({
     flushSave();
     onNavigateToNote?.(id);
   };
-  const aiSummarize = async () => {
-    setAiLoading('summary');
-    setAiResult(null);
-    try {
-      const plain = getPlainText(content);
-      if (plain.length < 20) { notify('Notatka jest za krótka.', 'error'); setAiLoading(null); return; }
-      const data = await invokeEdge('vanguard-oracle', {
-        body: { mode: 'note_summary', content: plain, title: metadata.title }
-      }) as { summary?: string; response?: string; content?: string };
-      setAiResult({ type: 'summary', text: data?.summary || data?.response || data?.content || 'Brak odpowiedzi.' });
-    } catch (e: unknown) {
-      notify('Błąd AI: ' + (e instanceof Error ? e.message : 'Nieznany błąd'), 'error');
-    }
-    setAiLoading(null);
-  };
-  const aiExtractTasks = async () => {
-    setAiLoading('tasks');
-    setAiResult(null);
-    try {
-      const plain = getPlainText(content);
-      if (plain.length < 20) { notify('Notatka jest za krótka.', 'error'); setAiLoading(null); return; }
-      const data = await invokeEdge('vanguard-oracle', {
-        body: { mode: 'extract_tasks', content: plain, title: metadata.title }
-      }) as { tasks?: string[] };
-      const tasks: string[] = data?.tasks || [];
-      if (tasks.length === 0) { setAiResult({ type: 'tasks', text: 'Brak zadań.' }); setAiLoading(null); return; }
-      if (!userId) throw new Error('Brak zalogowanego użytkownika');
-      
-      const created = await createSourceTodos(userId, tasks, `source:note:${note.id}`);
-      setAiResult({ type: 'tasks', text: created.length ? `Dodano ${created.length} zadań.` : 'Nie dodano duplikatów.' });
-      notify(created.length ? `Dodano ${created.length} zadań do listy.` : 'Te zadania są już na liście.', 'success');
-    } catch (e: unknown) {
-      notify('Błąd AI: ' + (e instanceof Error ? e.message : 'Nieznany błąd'), 'error');
-    }
-    setAiLoading(null);
-  };
+  const { aiResult, setAiResult, aiSummarize, aiExtractTasks } = useNoteAi({ content, title: metadata.title, noteId: note.id, userId });
   return (
     <div
       ref={rootRef}

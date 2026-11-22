@@ -2,6 +2,9 @@
 import Model, { type IMuscleStats } from 'react-body-highlighter';
 import { BODY_BASE, HEAT_SCALE, buildHighlighterData } from '../../lib/health/muscleMapData';
 
+const BODY_STYLE = { width: '100%', padding: '0.25rem 0.25rem 0.5rem' } as const;
+const BODY_SVG_STYLE = { display: 'block', overflow: 'visible', maxHeight: '220px', width: 'auto', margin: '0 auto' } as const;
+
 export default function BodyModel({
   view,
   loadByTag,
@@ -20,8 +23,8 @@ export default function BodyModel({
       bodyColor={BODY_BASE}
       highlightedColors={[...HEAT_SCALE]}
       onClick={onMuscleClick}
-      style={{ width: '100%', padding: '0.25rem 0.25rem 0.5rem' }}
-      svgStyle={{ display: 'block', overflow: 'visible', maxHeight: '220px', width: 'auto', margin: '0 auto' }}
+      style={BODY_STYLE}
+      svgStyle={BODY_SVG_STYLE}
     />
   );
 }

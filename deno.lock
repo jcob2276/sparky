@@ -1,16 +1,17 @@
 {
   "version": "5",
   "specifiers": {
-    "npm:@capacitor/android@^8.4.2": "8.5.2_@capacitor+core@8.5.2",
-    "npm:@capacitor/app@^8.1.1": "8.1.2_@capacitor+core@8.5.2",
-    "npm:@capacitor/camera@^8.2.4": "8.2.5_@capacitor+core@8.5.2",
+    "npm:@capacitor/android@^8.4.2": "8.5.2_@capacitor+core@8.6.0",
+    "npm:@capacitor/app@^8.1.1": "8.1.2_@capacitor+core@8.6.0",
+    "npm:@capacitor/camera@^8.2.4": "8.2.5_@capacitor+core@8.6.0",
     "npm:@capacitor/cli@^8.4.2": "8.5.2",
-    "npm:@capacitor/core@^8.4.2": "8.5.2",
-    "npm:@capacitor/geolocation@^8.2.0": "8.2.3_@capacitor+core@8.5.2",
-    "npm:@capacitor/haptics@^8.0.2": "8.0.2_@capacitor+core@8.5.2",
-    "npm:@capacitor/push-notifications@^8.1.2": "8.1.3_@capacitor+core@8.5.2",
-    "npm:@capacitor/splash-screen@^8.0.2": "8.0.2_@capacitor+core@8.5.2",
-    "npm:@capacitor/status-bar@^8.0.3": "8.0.4_@capacitor+core@8.5.2",
+    "npm:@capacitor/core@^8.4.2": "8.6.0",
+    "npm:@capacitor/geolocation@^8.2.0": "8.2.3_@capacitor+core@8.6.0",
+    "npm:@capacitor/haptics@^8.0.2": "8.0.2_@capacitor+core@8.6.0",
+    "npm:@capacitor/ios@^8.6.2": "8.6.2_@capacitor+core@8.6.0",
+    "npm:@capacitor/push-notifications@^8.1.2": "8.1.3_@capacitor+core@8.6.0",
+    "npm:@capacitor/splash-screen@^8.0.2": "8.0.2_@capacitor+core@8.6.0",
+    "npm:@capacitor/status-bar@^8.0.3": "8.0.4_@capacitor+core@8.6.0",
     "npm:@electric-sql/pglite@~0.3.14": "0.3.16",
     "npm:@eslint/js@^10.0.1": "10.0.1_eslint@10.5.0",
     "npm:@mediapipe/tasks-vision@~0.10.35": "0.10.35",
@@ -23,6 +24,7 @@
     "npm:@types/react-dom@^19.2.3": "19.2.3_@types+react@19.2.17",
     "npm:@types/react@^19.2.14": "19.2.17",
     "npm:@vitejs/plugin-react@^6.0.1": "6.0.2_vite@8.0.16",
+    "npm:@zxing/library@0.23.0": "0.23.0",
     "npm:autoprefixer@^10.5.0": "10.5.0_postcss@8.5.15",
     "npm:date-fns@^4.1.0": "4.4.0",
     "npm:eslint-plugin-react-hooks@^7.1.1": "7.1.1_eslint@10.5.0",
@@ -877,19 +879,19 @@
       ],
       "bin": true
     },
-    "@capacitor/android@8.5.2_@capacitor+core@8.5.2": {
+    "@capacitor/android@8.5.2_@capacitor+core@8.6.0": {
       "integrity": "sha512-rtiaz78egCcS+vs29wkWCL3C+RhazKMSygXcjutwWP8NmO6r5UBxOvGf3Wjz5+ahobyQ723tn9gCePwRwcNDZQ==",
       "dependencies": [
         "@capacitor/core"
       ]
     },
-    "@capacitor/app@8.1.2_@capacitor+core@8.5.2": {
+    "@capacitor/app@8.1.2_@capacitor+core@8.6.0": {
       "integrity": "sha512-uKBlsrXH0IdvUn69e/KKYbZ32A06pcrUdG8LWuZ/6y33YMXZXLEEdNSwl+jKS/SrsTWqnePs8EqSWaiQM3mUGA==",
       "dependencies": [
         "@capacitor/core"
       ]
     },
-    "@capacitor/camera@8.2.5_@capacitor+core@8.5.2": {
+    "@capacitor/camera@8.2.5_@capacitor+core@8.6.0": {
       "integrity": "sha512-FPuwY7byjTlBjeUKm17eTjLCPhuqBPJqTF4N3JCQuymLn2FUgfu0SMSN6OUQvCiiz/EVJVyZ9Mmg5GEmDfFoIA==",
       "dependencies": [
         "@capacitor/core"
@@ -919,38 +921,44 @@
       ],
       "bin": true
     },
-    "@capacitor/core@8.5.2": {
-      "integrity": "sha512-agnQbGdhGw/KZFuLf7H9SY2o+oE7upkr/WPQsYaokXP6f9chaE8iVmbKkfN6SVl4w3pmz7oZ3Ur1hbkmy1hx+w==",
+    "@capacitor/core@8.6.0": {
+      "integrity": "sha512-9F2zzuGYTJu+wqmQSEmqnFBfGrhC/njjMCfmxbvg9mq8xJT4wNh5pxbMFZxvW/yDhYJWPEBFQxeqzfo1gKrvxg==",
       "dependencies": [
         "tslib@2.8.1"
       ]
     },
-    "@capacitor/geolocation@8.2.3_@capacitor+core@8.5.2": {
+    "@capacitor/geolocation@8.2.3_@capacitor+core@8.6.0": {
       "integrity": "sha512-tJWi6Vmj1tncFaFpruxrmXRsmvDb8i9Pp6Z04Bxsp39JeBavvvtHPMaNVf/jN/lKlohI8i7BqHqbrDVq3RD+cA==",
       "dependencies": [
         "@capacitor/core",
         "@capacitor/synapse"
       ]
     },
-    "@capacitor/haptics@8.0.2_@capacitor+core@8.5.2": {
+    "@capacitor/haptics@8.0.2_@capacitor+core@8.6.0": {
       "integrity": "sha512-c2hZzRR5Fk1tbTvhG1jhh2XBAf3EhnIerMIb2sl7Mt41Gxx1fhBJFDa0/BI1IbY4loVepyyuqNC9820/GZuoWQ==",
       "dependencies": [
         "@capacitor/core"
       ]
     },
-    "@capacitor/push-notifications@8.1.3_@capacitor+core@8.5.2": {
+    "@capacitor/ios@8.6.2_@capacitor+core@8.6.0": {
+      "integrity": "sha512-YnVm0lRA1mQWK0SKd2bdJIOG+PXRRDDdndZ1+nGqeiob+QmHZmb4wWo5gVpWhoHO37pGi2qzH5w5WGvfKrs+Gg==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/push-notifications@8.1.3_@capacitor+core@8.6.0": {
       "integrity": "sha512-UlOCTS3uiw8ZUJ1rkFKJgoqPADipHDNn0lq5mNRwtXALVxQXIeIoRd3iqpzC+962R2LpCRJRkCTjPX2OHK3tBA==",
       "dependencies": [
         "@capacitor/core"
       ]
     },
-    "@capacitor/splash-screen@8.0.2_@capacitor+core@8.5.2": {
+    "@capacitor/splash-screen@8.0.2_@capacitor+core@8.6.0": {
       "integrity": "sha512-0C6rYScr13WfAE9nPl4ScOQynmjFv9NT3Th+RZkD4ezYHmER6mcl1/lDYsv7jg3Rj3FOvLrlTlmNkUrr83kZzQ==",
       "dependencies": [
         "@capacitor/core"
       ]
     },
-    "@capacitor/status-bar@8.0.4_@capacitor+core@8.5.2": {
+    "@capacitor/status-bar@8.0.4_@capacitor+core@8.6.0": {
       "integrity": "sha512-ZMzBUyHBzwDUxcHadEhvOvmoPmMQGMZgaMRJu8ohELeI6IaxoVH9ZhdF/OHnY3/yykv3Glev8Tnbh4aZY/0B0w==",
       "dependencies": [
         "@capacitor/core"
@@ -2338,6 +2346,18 @@
     },
     "@xmldom/xmldom@0.9.12": {
       "integrity": "sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A=="
+    },
+    "@zxing/library@0.23.0": {
+      "integrity": "sha512-6fkkoFwP8CHxl6ugnPsj74PLJgX2iRv5zczGAyt5OBzQgxFhuhF0NCEc4t4OvSr8xAv2MRLlI0Iu9ZGDZQ2urA==",
+      "dependencies": [
+        "ts-custom-error"
+      ],
+      "optionalDependencies": [
+        "@zxing/text-encoding"
+      ]
+    },
+    "@zxing/text-encoding@0.9.0": {
+      "integrity": "sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA=="
     },
     "acorn-jsx@5.3.2_acorn@8.17.0": {
       "integrity": "sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==",
@@ -5071,6 +5091,9 @@
       "dependencies": [
         "typescript"
       ]
+    },
+    "ts-custom-error@3.3.1": {
+      "integrity": "sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A=="
     },
     "tslib@1.14.1": {
       "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg=="

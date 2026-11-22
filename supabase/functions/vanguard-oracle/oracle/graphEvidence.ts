@@ -43,7 +43,7 @@ function partitionByEvidence(facts: GraphFactRow[]): { strong: GraphFactRow[]; w
   return { strong, weak };
 }
 
-export function findMultiHopChains(facts: GraphFactRow[], maxChains = 6): string[] {
+function findMultiHopChains(facts: GraphFactRow[], maxChains = 6): string[] {
   const chains: string[] = [];
   const seenChains = new Set<string>();
 

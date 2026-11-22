@@ -49,26 +49,27 @@ export default function ReviewSprintGrid({ ladder }: { ladder: ReviewLadder }) {
         )}
       </div>
 
-      <div className="space-y-1">
-        <div className="grid grid-cols-[2.5rem_repeat(12,minmax(0,1fr))] items-center gap-0.5">
-          <span />
-          {[1, 2, 3].map((m) => (
-            <span key={m} className="col-span-4 text-center text-2xs font-semibold text-text-muted">
-              Miesiąc {m}
+      <div className="flex gap-0.5">
+        <div className="flex w-10 shrink-0 flex-col items-end gap-1 pr-1 pt-9 text-2xs text-text-muted">
+          {PILLARS.map(({ key, label }) => (
+            <span key={key} className="flex h-3.5 items-center">
+              {label}
             </span>
           ))}
         </div>
-        <div className="grid grid-cols-[2.5rem_repeat(12,minmax(0,1fr))] gap-0.5">
-          <div className="flex flex-col items-end gap-1 pr-1 pt-[1.1rem] text-2xs text-text-muted">
-            {PILLARS.map(({ key, label }) => (
-              <span key={key} className="flex h-3.5 items-center">
-                {label}
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="grid grid-cols-3 gap-0.5">
+            {[1, 2, 3].map((m) => (
+              <span key={m} className="text-center text-2xs font-semibold text-text-muted">
+                Miesiąc {m}
               </span>
             ))}
           </div>
-          {ladder.weeks.map((w) => (
-            <WeekColumn key={w.weekStart} week={w} selected={selected === w.number} onSelect={() => setSelected(w.number)} />
-          ))}
+          <div className="grid grid-cols-12 gap-0.5">
+            {ladder.weeks.map((w) => (
+              <WeekColumn key={w.weekStart} week={w} selected={selected === w.number} onSelect={() => setSelected(w.number)} />
+            ))}
+          </div>
         </div>
       </div>
 
