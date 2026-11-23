@@ -5,6 +5,7 @@ import Sheet from '../../ui/Sheet';
 import Tabs from '../../ui/Tabs';
 import MacroFillPanel from './MacroFillPanel';
 import AiStatusNotice from './AiStatusNotice';
+import MemoryWeekPlan from './MemoryWeekPlan';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -49,6 +50,7 @@ interface ModalsProps {
 
 function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry, onCloseEdit, copyDayOpen, onCloseCopyDay, onSaved }: ModalsProps) {
   const [plannerScope, setPlannerScope] = useState<'today' | 'week' | 'fill'>('today');
+  const [weekWithAi, setWeekWithAi] = useState(false);
   return (
     <>
       {plannerOpen && c.userId && (
@@ -78,6 +80,12 @@ function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry,
                     carbs: c.totals.targetCarbs != null ? c.totals.targetCarbs - (macros.carbs ?? 0) : null,
                   }}
                   onAdd={(items) => { items.forEach(({ food, grams }) => c.addFoodToDraft(food, grams)); onClosePlanner(); }}
+                />
+              ) : plannerScope === 'week' && !weekWithAi && c.totals.targetKcal != null && c.totals.targetProtein != null ? (
+                <MemoryWeekPlan
+                  userId={c.userId}
+                  target={{ kcal: c.totals.targetKcal, protein: c.totals.targetProtein, fat: c.totals.targetFat ?? null, carbs: c.totals.targetCarbs ?? null }}
+                  onAiPlan={() => setWeekWithAi(true)}
                 />
               ) : plannerScope === 'week' ? (
                 <MealPlanner key="week" userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
