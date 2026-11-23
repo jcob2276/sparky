@@ -39,10 +39,26 @@ describe('BaselineRow', () => {
     expect(onSave).toHaveBeenCalledWith({ skipped: false });
   });
 
-  it('pokazuje przyciski wideo i odtwarza zapisane nagranie', async () => {
+  it('odtwarza wgrany plik', async () => {
     show({ result: { test_key: 't05', main_set: null, max_value: null, skipped: null, video_path: 'u/t05.mp4', video_url: null } });
-    expect(screen.getByRole('button', { name: 'Zmień wideo' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Zmień plik' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Odtwórz plik' }));
+    expect(await screen.findByRole('button', { name: 'Ukryj plik' })).toBeVisible();
+  });
+
+  it('zapisuje link z Dysku Google i osadza odtwarzacz', () => {
+    const id = '1AbCdEfGhIjKlMnOpQrStUvWxYz012345';
+    const onSave = show();
+    const input = screen.getByLabelText(`Link do wideo: ${test.name}`);
+    fireEvent.change(input, { target: { value: `https://drive.google.com/file/d/${id}/view?usp=sharing` } });
+    fireEvent.blur(input);
+    expect(onSave).toHaveBeenCalledWith({ video_url: `https://drive.google.com/file/d/${id}/view?usp=sharing` });
+  });
+
+  it('dla zapisanego linku z Dysku pokazuje odtwarzacz w aplikacji', () => {
+    const id = '1AbCdEfGhIjKlMnOpQrStUvWxYz012345';
+    show({ result: { test_key: 't05', main_set: null, max_value: null, skipped: null, video_path: null, video_url: `https://drive.google.com/file/d/${id}/view` } });
     fireEvent.click(screen.getByRole('button', { name: 'Odtwórz' }));
-    expect(await screen.findByRole('button', { name: 'Ukryj' })).toBeVisible();
+    expect(screen.getByTitle(`Wideo: ${test.name}`)).toHaveAttribute('src', `https://drive.google.com/file/d/${id}/preview`);
   });
 });
