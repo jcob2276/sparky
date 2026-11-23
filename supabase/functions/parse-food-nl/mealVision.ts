@@ -10,7 +10,13 @@ import {
   normalizeMealPhotoResponse,
   type MealPhotoDraft,
 } from '../_shared/foodParse/mealPhoto.ts'
+import { firstSuccess } from './hedgedRequest.ts'
 import { classifyMealPhotoResponse, geminiFailureReason, readGeminiText } from './visionResponse.ts'
+
+/** Limity zdjęcia: jeden model max 20 s, kolejny startuje po 12 s bez odpowiedzi (typowa odpowiedź to ok. 8–11 s, więc zapas kwoty nie jest marnowany), całość max 30 s. */
+const VISION_MODEL_TIMEOUT_MS = 20_000
+const VISION_HEDGE_MS = 12_000
+const VISION_TOTAL_MS = 30_000
 
 function validMacro(value: unknown, max = 100): number | null {
   if (value == null) return null
@@ -55,47 +61,50 @@ export async function callVisionLlm({
     'gemini-3.5-flash',
   ]
 
-  let lastError: unknown = null
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              ...(imageBase64 && mimeType ? [{ inlineData: { mimeType, data: imageBase64 } }] : []),
-            ],
-          }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            maxOutputTokens: maxTokens,
-          },
-        }),
-        signal: AbortSignal.timeout(25000),
-      })
-      if (res.ok) {
-        const result = readGeminiText(await res.json())
-        const failure = geminiFailureReason(result)
-        if (!failure && result.text) return result.text
-        console.warn(`[mealVision] Gemini (${model}) ${failure}; feature=${feature}`)
-        lastError = new Error(`Gemini: ${failure}`)
-      } else {
-        const errBody = await res.text().catch(() => '')
-        console.warn(`[mealVision] Gemini (${model}) HTTP ${res.status}: ${errBody.slice(0, 200)}`)
-        lastError = new Error(`Gemini HTTP ${res.status}: ${errBody.slice(0, 100)}`)
-      }
-    } catch (err) {
-      console.warn(`[mealVision] Gemini (${model}) failed:`, err)
-      lastError = err
+  const callModel = async (model: string, signal: AbortSignal): Promise<string> => {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`
+    const request = (withThinkingOff: boolean) => fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            ...(imageBase64 && mimeType ? [{ inlineData: { mimeType, data: imageBase64 } }] : []),
+          ],
+        }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          maxOutputTokens: maxTokens,
+          // Rozpoznanie składników nie potrzebuje „myślenia”; wyłączone skraca czas o kilka sekund.
+          ...(withThinkingOff ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+        },
+      }),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(VISION_MODEL_TIMEOUT_MS)]),
+    })
+    let res = await request(true)
+    // Nie każdy model przyjmuje thinkingConfig; wtedy ponawiamy ten sam model bez niego.
+    if (res.status === 400) res = await request(false)
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.warn(`[mealVision] Gemini (${model}) HTTP ${res.status}: ${errBody.slice(0, 200)}`)
+      throw new Error(`Gemini HTTP ${res.status}: ${errBody.slice(0, 100)}`)
     }
+    const result = readGeminiText(await res.json())
+    const failure = geminiFailureReason(result)
+    if (failure || !result.text) {
+      console.warn(`[mealVision] Gemini (${model}) ${failure}; feature=${feature}`)
+      throw new Error(`Gemini: ${failure}`)
+    }
+    return result.text
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Błąd analizy obrazu przez modele Gemini')
+  try {
+    return await firstSuccess(models, callModel, { hedgeMs: VISION_HEDGE_MS, totalMs: VISION_TOTAL_MS })
+  } catch (err) {
+    console.warn('[mealVision] all Gemini models failed:', err)
+    throw err instanceof Error ? err : new Error('Błąd analizy obrazu przez modele Gemini')
+  }
 }
 
 export async function parseNutritionLabel(imageBase64: string, mimeType: string, userId?: string) {
