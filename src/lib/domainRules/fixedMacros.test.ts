@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveFixedMacros, weeklyFixedMacros } from './fixedMacros';
+import { resolveFixedMacros, weeklyFixedMacros } from '@vanguard/domain';
 
 describe('resolveFixedMacros', () => {
   it('liczy węglowodany jako resztę energii', () => {

@@ -43,6 +43,7 @@ export * from './closer/callTalkMetrics.ts';
 export * from './growth/sprint.ts';
 export * from './health/personalTargets.ts';
 export * from './health/fixedMacros.ts';
+export * from './health/macroFill.ts';
 export * from './health/mergeSyncedRow.ts';
 export * from './epistemic/thresholds.ts';
 export * from './todoSchedule.ts';

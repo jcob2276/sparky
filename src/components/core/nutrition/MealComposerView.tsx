@@ -3,6 +3,7 @@ import { ChefHat } from 'lucide-react';
 import Button from '../../ui/Button';
 import Sheet from '../../ui/Sheet';
 import Tabs from '../../ui/Tabs';
+import MacroFillPanel from './MacroFillPanel';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -46,14 +47,14 @@ interface ModalsProps {
 }
 
 function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry, onCloseEdit, copyDayOpen, onCloseCopyDay, onSaved }: ModalsProps) {
-  const [plannerScope, setPlannerScope] = useState<'today' | 'week'>('today');
+  const [plannerScope, setPlannerScope] = useState<'today' | 'week' | 'fill'>('today');
   return (
     <>
       {plannerOpen && c.userId && (
         <Sheet
           open={plannerOpen}
           onOpenChange={(open) => { if (!open) onClosePlanner(); }}
-          title={plannerScope === 'week' ? 'Posiłki na tydzień' : 'Posiłki na dziś'}
+          title={plannerScope === 'week' ? 'Posiłki na tydzień' : plannerScope === 'fill' ? 'Dopełnij makra' : 'Posiłki na dziś'}
           side="bottom"
           compact
           handleDragOnly
@@ -61,12 +62,23 @@ function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry,
           <div className="pb-2">
             <Tabs
               className="mb-3"
-              tabs={[{ key: 'today', label: 'Dziś' }, { key: 'week', label: 'Cały tydzień' }]}
+              tabs={[{ key: 'today', label: 'Dziś' }, { key: 'week', label: 'Cały tydzień' }, { key: 'fill', label: 'Dopełnij' }]}
               active={plannerScope}
-              onChange={(key) => setPlannerScope(key === 'week' ? 'week' : 'today')}
+              onChange={(key) => setPlannerScope(key === 'week' ? 'week' : key === 'fill' ? 'fill' : 'today')}
             />
             <Suspense fallback={<p role="status" className="py-8 text-center text-xs text-text-muted">Wczytuję planer…</p>}>
-              {plannerScope === 'week' ? (
+              {plannerScope === 'fill' ? (
+                <MacroFillPanel
+                  userId={c.userId}
+                  remaining={{
+                    kcal: (c.totals.targetKcal ?? 0) - c.totals.calories,
+                    protein: (c.totals.targetProtein ?? 0) - c.totals.protein,
+                    fat: c.totals.targetFat != null ? c.totals.targetFat - (macros.fat ?? 0) : null,
+                    carbs: c.totals.targetCarbs != null ? c.totals.targetCarbs - (macros.carbs ?? 0) : null,
+                  }}
+                  onAdd={(items) => { items.forEach(({ food, grams }) => c.addFoodToDraft(food, grams)); onClosePlanner(); }}
+                />
+              ) : plannerScope === 'week' ? (
                 <MealPlanner key="week" userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
                   targetProtein={c.totals.targetProtein} />
               ) : (

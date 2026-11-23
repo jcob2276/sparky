@@ -2,12 +2,12 @@ import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import type { FoodBase } from './foodTypes';
 
-export async function fetchFavorites(userId: string) {
+export async function fetchFavorites(userId: string, limit = 20) {
   const { data, error } = await supabase.from('food_favorites')
     .select('id,library_id,use_count,last_used,is_pinned,default_grams,food_library!inner(name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,nutrient_sources)')
     .eq('user_id', userId).eq('food_library.user_id', userId)
     .neq('food_library.validation_status', 'quarantined')
-    .order('use_count', { ascending: false }).order('last_used', { ascending: false }).limit(20);
+    .order('use_count', { ascending: false }).order('last_used', { ascending: false }).limit(limit);
   if (error) throw error;
   return (data ?? []).map(({ food_library: food, ...usage }) => ({
     ...food, ...usage, library_id: usage.library_id ?? undefined,
