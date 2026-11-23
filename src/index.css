@@ -1625,6 +1625,12 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/* Pomiary wstępne: dwa kolory naprzemiennie jak w arkuszu trenera (żółty i pomarańczowy). */
+.baseline-tone-yellow { background: color-mix(in srgb, #facc15 22%, transparent); }
+.baseline-tone-orange { background: color-mix(in srgb, #fb923c 26%, transparent); }
+.baseline-badge-yellow { background: color-mix(in srgb, #facc15 55%, transparent); color: var(--text-primary); }
+.baseline-badge-orange { background: color-mix(in srgb, #fb923c 55%, transparent); color: var(--text-primary); }
+
 /* These workspace shells already reserve the top inset. */
 .capacitor-ios header.workspace-page-toolbar {
   padding-top: 0;

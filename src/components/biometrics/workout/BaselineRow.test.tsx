@@ -12,7 +12,7 @@ const show = (props: Partial<Parameters<typeof BaselineRow>[0]> = {}) => {
   const onSave = vi.fn();
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <BaselineRow test={test} tone="a" onSave={onSave} onUpload={vi.fn()} onRemoveVideo={vi.fn()} {...props} />
+      <BaselineRow test={test} tone="a" expanded onToggle={vi.fn()} onSave={onSave} onUpload={vi.fn()} onRemoveVideo={vi.fn()} {...props} />
     </QueryClientProvider>,
   );
   return onSave;
@@ -32,10 +32,24 @@ describe('BaselineRow', () => {
     expect(onSave).toHaveBeenLastCalledWith({ max_value: '180' });
   });
 
+  it('zwinięty wiersz pokazuje wpisany wynik i wywołuje przełączenie', () => {
+    const onToggle = vi.fn();
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <BaselineRow test={test} tone="b" expanded={false} onToggle={onToggle} onSave={vi.fn()} onUpload={vi.fn()} onRemoveVideo={vi.fn()}
+          result={{ test_key: 't05', main_set: '160 kg × 3', max_value: '180 kg', skipped: null, video_path: null, video_url: null }} />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText('seria 160 kg × 3 · max 180 kg')).toBeVisible();
+    expect(screen.queryByLabelText(`Mój max: ${test.name}`)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: `${test.no}. ${test.name}` }));
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
   it('pominięty test chowa pola i pozwala go przywrócić', () => {
     const onSave = show({ result: { test_key: 't05', main_set: null, max_value: null, skipped: true, video_path: null, video_url: null } });
     expect(screen.queryByLabelText(`Mój max: ${test.name}`)).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Przywróć' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Przywróć test' }));
     expect(onSave).toHaveBeenCalledWith({ skipped: false });
   });
 
