@@ -177,6 +177,13 @@ def h_build_context_cache(payload):
     return build_and_save_cache()
 
 
+@handler("curate_graph")
+def h_curate_graph(payload):
+    """Kurator grafu wiedzy (raporty dry-run; apply tylko dla selekcji wiki). Payload: {"task": "all|claims_audit|...", "apply": false}."""
+    from graph_curator import run
+    return run(payload)
+
+
 def post_multipart(url, fields, files, headers=None, timeout=120):
     boundary = f"----FormBoundary{uuid.uuid4().hex}"
     body = bytearray()
