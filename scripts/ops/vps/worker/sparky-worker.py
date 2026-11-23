@@ -191,7 +191,8 @@ def post_multipart(url, fields, files, headers=None, timeout=120):
 
 def transcribe_groq(audio_bytes, filename, api_key):
     url = "https://api.groq.com/openai/v1/audio/transcriptions"
-    headers = {"Authorization": f"Bearer {api_key}"}
+    # Groq (Cloudflare) blokuje domyslny User-Agent Pythona (403), wiec ustawiamy wlasny.
+    headers = {"Authorization": f"Bearer {api_key}", "User-Agent": "sparky-worker/1.0"}
     fields = {
         "model": "whisper-large-v3-turbo",
         "language": "pl",
