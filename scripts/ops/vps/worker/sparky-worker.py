@@ -30,6 +30,11 @@ POLL = float(os.getenv("POLL_SECONDS", "5"))
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 FUNCTION_KEY = os.getenv("SUPABASE_FUNCTION_KEY", "")
 ARCHIVE_SECRET = os.getenv("ARCHIVE_SECRET", "")  # waski sekret archiwizatora (odczyt okien tetna)
+# Gloswki Telegrama: klucze w /etc/sparky-worker.env (nie przez HTTP z funkcji edge).
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GEMINI_AUDIO_MODELS = [m.strip() for m in os.getenv("GEMINI_AUDIO_MODELS", "gemini-3.5-flash").split(",") if m.strip()]
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger("sparky-worker")
@@ -204,10 +209,9 @@ def transcribe_gemini(audio_bytes, mime_type, api_key):
         "Zwróć wyłącznie sam tekst wypowiedzi, bez żadnych wstępów, cudzysłowów ani komentarzy. "
         "Jeśli nagranie zawiera tylko ciszę lub szum, zwróć pusty ciąg znaków."
     )
-    models = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-transcribe"]
     last_err = None
-    for model in models:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    for model in GEMINI_AUDIO_MODELS:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         payload = json.dumps({
             "contents": [{
                 "parts": [
@@ -216,7 +220,9 @@ def transcribe_gemini(audio_bytes, mime_type, api_key):
                 ]
             }]
         }).encode("utf-8")
-        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        req = urllib.request.Request(
+            url, data=payload, method="POST",
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key})
         try:
             with urllib.request.urlopen(req, timeout=90) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
@@ -247,29 +253,19 @@ def h_transcribe_telegram_voice(payload):
         raise ValueError(f"niepoprawny inbox_id: {inbox_id}")
 
     with psycopg.connect(DSN, autocommit=True, row_factory=dict_row) as conn:
+        # Atomowe przejecie rekordu: worker_type='vps' (watchdog liczy wtedy 300 s), pomija ukonczone.
         row = conn.execute(
-            "SELECT id, payload, status FROM vanguard_telegram_inbox WHERE id = %s",
+            "UPDATE vanguard_telegram_inbox SET status = 'processing', worker_type = 'vps', updated_at = now() "
+            "WHERE id = %s AND status <> 'completed' RETURNING id, payload",
             (inbox_id,)
         ).fetchone()
         if not row:
-            log.error("Nie znaleziono rekordu inbox_id=%s", inbox_id)
-            return {"error": "inbox_id not found"}
-        if row["status"] == "completed":
-            log.info("Rekord inbox_id=%s już ukończony, pomijam", inbox_id)
-            return {"status": "already_completed"}
+            log.info("inbox_id=%s nie istnieje albo jest ukończony, pomijam", inbox_id)
+            return {"status": "skipped"}
 
-        conn.execute(
-            "UPDATE vanguard_telegram_inbox SET status = 'processing', updated_at = now() WHERE id = %s",
-            (inbox_id,)
-        )
-
-    tokens = call_archive_function("sync", {"service": "worker-voice-tokens"})
-    gemini_key = tokens.get("geminiApiKey", "")
-    tg_token = tokens.get("telegramBotToken", "")
-    groq_key = tokens.get("groqApiKey", "")
-
+    gemini_key, tg_token, groq_key = GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, GROQ_API_KEY
     if not tg_token:
-        raise RuntimeError("Brak telegramBotToken")
+        raise RuntimeError("Brak TELEGRAM_BOT_TOKEN w /etc/sparky-worker.env")
 
     inbox_payload = row["payload"] or {}
     msg = inbox_payload.get("message") or {}
@@ -350,7 +346,7 @@ def h_transcribe_telegram_voice(payload):
     inbox_payload["message"]["text"] = transcription
     with psycopg.connect(DSN, autocommit=True, row_factory=dict_row) as conn:
         conn.execute(
-            "UPDATE vanguard_telegram_inbox SET payload = %s WHERE id = %s",
+            "UPDATE vanguard_telegram_inbox SET payload = %s, updated_at = now() WHERE id = %s",
             (json.dumps(inbox_payload), inbox_id)
         )
         updated_row = conn.execute(
@@ -363,14 +359,13 @@ def h_transcribe_telegram_voice(payload):
     worker_url = f"{SUPABASE_URL}/functions/v1/vanguard-telegram-worker"
     worker_body = json.dumps({"record": dict(updated_row)}, default=str).encode("utf-8")
     
-    service_role_key = tokens.get("serviceRoleKey", "") or FUNCTION_KEY
+    # Uwierzytelnienie wylacznie waskim sekretem (bez klucza serwisowego).
+    if len(ARCHIVE_SECRET) < 32:
+        raise RuntimeError("brak ARCHIVE_SECRET w /etc/sparky-worker.env")
     worker_headers = {
         "Content-Type": "application/json",
         "x-archive-secret": ARCHIVE_SECRET,
     }
-    if service_role_key:
-        worker_headers["apikey"] = service_role_key
-        worker_headers["Authorization"] = f"Bearer {service_role_key}"
 
     req = urllib.request.Request(
         worker_url,

@@ -17,7 +17,9 @@ import { logCriticalError } from "../_shared/errorLogging.ts";
 // Same "always 200" design as vanguard-outbox-sender — the async DB trigger must not see
 // a non-2xx or it retries indefinitely. Errors are caught, logged, and swallowed here.
 Deno.serve(serveJson(async (req, ctx) => {
-  const isArchiveSecret = req.headers.get("x-archive-secret") === Deno.env.get("ARCHIVE_SECRET");
+  // Wąski sekret VPS-a (przekazanie przetranskrybowanej głosówki); pusty/krótki sekret nigdy nie pasuje.
+  const archiveSecret = Deno.env.get("ARCHIVE_SECRET") ?? "";
+  const isArchiveSecret = archiveSecret.length >= 32 && req.headers.get("x-archive-secret") === archiveSecret;
   const authHeader = req.headers.get("Authorization") || "";
   const apiKey = req.headers.get("apikey") || "";
   const token = (authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader) || apiKey;

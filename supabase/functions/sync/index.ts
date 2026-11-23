@@ -33,24 +33,9 @@ Deno.serve(serveJson(async (req) => {
     service = body.service
   }
 
-  // `quotes` jest publiczne, a `oura-hr-raw` i `worker-voice-tokens` uwierzytelniają się własnym sekretem (ARCHIVE_SECRET), nie JWT.
-  if (service !== 'quotes' && service !== 'oura-hr-raw' && service !== 'worker-voice-tokens') {
+  // `quotes` jest publiczne, a `oura-hr-raw` uwierzytelnia się własnym sekretem (ARCHIVE_SECRET), nie JWT.
+  if (service !== 'quotes' && service !== 'oura-hr-raw') {
     await resolveUserScope(req, userId ?? null)
-  }
-
-  if (service === 'worker-voice-tokens') {
-    const expected = Deno.env.get('ARCHIVE_SECRET') ?? ''
-    const given = req.headers.get('x-archive-secret') ?? ''
-    if (expected.length < 32 || given !== expected) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { 'Content-Type': 'application/json' } })
-    }
-    return {
-      geminiApiKey: Deno.env.get('GEMINI_API_KEY') ?? '',
-      telegramBotToken: Deno.env.get('TELEGRAM_BOT_TOKEN') ?? '',
-      deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY') ?? '',
-      groqApiKey: Deno.env.get('GROQ_API_KEY') ?? '',
-      serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    }
   }
 
   if (service === 'oura') {
