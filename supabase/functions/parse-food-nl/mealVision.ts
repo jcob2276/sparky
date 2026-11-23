@@ -1,5 +1,6 @@
 import { buildMealPhotoPrompt } from './mealPhotoPrompt.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
+import { HttpError } from '../_shared/http.ts'
 import { parseJsonFromContent } from '../_shared/deepseek.ts'
 import {
   finalizeParsedItems,
@@ -106,7 +107,12 @@ export async function callVisionLlm({
     return await firstSuccess(models, callModel, { hedgeMs: VISION_HEDGE_MS, totalMs: VISION_TOTAL_MS })
   } catch (err) {
     console.warn('[mealVision] all Gemini models failed:', err)
-    throw err instanceof Error ? err : new Error('Błąd analizy obrazu przez modele Gemini')
+    const reason = err instanceof Error ? err.message : String(err)
+    // Czytelny komunikat zamiast ogólnego błędu serwera: limit darmowej kwoty vs chwilowe przeciążenie.
+    if (/HTTP 429/.test(reason)) {
+      throw new HttpError(429, 'Darmowy limit analizy zdjęć na dziś jest wyczerpany (odnawia się rano). Opisz posiłek tekstem albo spróbuj później.')
+    }
+    throw new HttpError(503, 'Analiza zdjęć jest chwilowo przeciążona. Spróbuj za chwilę lub opisz posiłek tekstem.')
   }
 }
 
