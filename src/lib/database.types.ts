@@ -6049,6 +6049,7 @@ export type Database = {
         Row: {
           main_set: string | null
           max_value: string | null
+          sets: Json | null
           skipped: boolean
           test_key: string
           updated_at: string
@@ -6059,6 +6060,7 @@ export type Database = {
         Insert: {
           main_set?: string | null
           max_value?: string | null
+          sets?: Json | null
           skipped?: boolean
           test_key: string
           updated_at?: string
@@ -6069,6 +6071,7 @@ export type Database = {
         Update: {
           main_set?: string | null
           max_value?: string | null
+          sets?: Json | null
           skipped?: boolean
           test_key?: string
           updated_at?: string

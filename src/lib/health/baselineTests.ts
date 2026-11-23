@@ -44,8 +44,11 @@ export const BASELINE_PLACEHOLDER: Record<BaselineUnit, { main: string; max: str
   time: { main: 'np. 45 s', max: 'sekundy' },
 };
 
+import type { SetRow } from './baselineRamp';
+
 export interface BaselineResult {
   test_key: string;
+  sets?: SetRow[] | null;
   main_set: string | null;
   max_value: string | null;
   skipped: boolean | null;

@@ -4,6 +4,8 @@ import Button from '../../ui/Button';
 import { BASELINE_PLACEHOLDER, isBaselineSkipped, type BaselineResult, type BaselineTest } from '../../../lib/health/baselineTests';
 import type { BaselinePatch } from '../../../lib/health/baselineApi';
 import BaselineVideoCell, { baselineInputClass } from './BaselineVideoCell';
+import BaselineSetsEditor from './BaselineSetsEditor';
+import { heaviestSetKg, summarizeSets, type SetRow } from '../../../lib/health/baselineRamp';
 
 interface Props {
   test: BaselineTest;
@@ -56,16 +58,32 @@ export default function BaselineRow({ test, result, tone, expanded, onToggle, on
         <div className="space-y-3 px-3 pb-3">
           {!skipped && (
             <>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="space-y-1 text-2xs font-semibold text-text-muted">Główna seria
-                  <ControlInput className={baselineInputClass} placeholder={hint.main} defaultValue={result?.main_set ?? ''} aria-label={`Główna seria: ${test.name}`}
-                    onBlur={(e) => { const v = e.target.value.trim(); if (v !== (result?.main_set ?? '')) onSave({ main_set: v || null }); }} />
-                </label>
-                <label className="space-y-1 text-2xs font-semibold text-text-muted">Mój max
-                  <ControlInput className={baselineInputClass} placeholder={hint.max} defaultValue={result?.max_value ?? ''} aria-label={`Mój max: ${test.name}`}
-                    onBlur={(e) => { const v = e.target.value.trim(); if (v !== (result?.max_value ?? '')) onSave({ max_value: v || null }); }} />
-                </label>
-              </div>
+              {test.unit === 'weight' ? (
+                <>
+                  <BaselineSetsEditor
+                    sets={result?.sets?.length ? result.sets : [{ kg: null, reps: null }]}
+                    onCommit={(rows: SetRow[]) => {
+                      const filled = rows.filter((r) => r.kg != null || r.reps != null);
+                      onSave({ sets: filled.length ? filled : null, main_set: summarizeSets(filled) || null });
+                    }}
+                  />
+                  <label className="block space-y-1 text-2xs font-semibold text-text-muted">Mój max
+                    <ControlInput className={baselineInputClass} placeholder={heaviestSetKg(result?.sets ?? []) != null ? `${heaviestSetKg(result?.sets ?? [])} kg` : hint.max} defaultValue={result?.max_value ?? ''} aria-label={`Mój max: ${test.name}`}
+                      onBlur={(e) => { const v = e.target.value.trim(); if (v !== (result?.max_value ?? '')) onSave({ max_value: v || null }); }} />
+                  </label>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="space-y-1 text-2xs font-semibold text-text-muted">Główna seria
+                    <ControlInput className={baselineInputClass} placeholder={hint.main} defaultValue={result?.main_set ?? ''} aria-label={`Główna seria: ${test.name}`}
+                      onBlur={(e) => { const v = e.target.value.trim(); if (v !== (result?.main_set ?? '')) onSave({ main_set: v || null }); }} />
+                  </label>
+                  <label className="space-y-1 text-2xs font-semibold text-text-muted">Mój max
+                    <ControlInput className={baselineInputClass} placeholder={hint.max} defaultValue={result?.max_value ?? ''} aria-label={`Mój max: ${test.name}`}
+                      onBlur={(e) => { const v = e.target.value.trim(); if (v !== (result?.max_value ?? '')) onSave({ max_value: v || null }); }} />
+                  </label>
+                </div>
+              )}
               <BaselineVideoCell test={test} result={result} onSave={onSave} onUpload={onUpload} onRemoveVideo={onRemoveVideo} />
             </>
           )}

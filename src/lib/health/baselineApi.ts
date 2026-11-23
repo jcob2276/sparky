@@ -1,17 +1,19 @@
 import { supabase } from '../supabase';
 import type { BaselineResult } from './baselineTests';
+import { parseSets, type SetRow } from './baselineRamp';
 
 const BUCKET = 'baseline-videos';
 const BASELINE_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 
 export async function fetchBaselineResults(userId: string): Promise<BaselineResult[]> {
   const { data, error } = await supabase.from('training_baseline_results')
-    .select('test_key,main_set,max_value,skipped,video_path,video_url').eq('user_id', userId);
+    .select('test_key,sets,main_set,max_value,skipped,video_path,video_url').eq('user_id', userId);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((row) => ({ ...row, sets: parseSets(row.sets) }));
 }
 
 export interface BaselinePatch {
+  sets?: SetRow[] | null;
   main_set?: string | null;
   max_value?: string | null;
   skipped?: boolean;

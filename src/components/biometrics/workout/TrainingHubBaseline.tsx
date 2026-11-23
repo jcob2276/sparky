@@ -36,8 +36,17 @@ function BaselineList({ userId }: { userId: string }) {
           <Button size="sm" variant="tonal" icon={<Copy size={14} />} onClick={() => void copy()}>Kopiuj dla trenera</Button>
         </div>
         <ProgressBar done={done} total={total} />
-        <p className="text-2xs text-text-muted">Dotknij testu, żeby wpisać serię i max oraz dodać wideo.</p>
+        <p className="text-2xs text-text-muted">Dotknij testu, żeby wpisać serie i max oraz dodać wideo.</p>
       </div>
+      <details className="rounded-2xl border border-border-custom bg-surface p-3 text-xs text-text-secondary">
+        <summary className="cursor-pointer text-sm font-semibold text-text-primary">Jak robić testy (wg trenera)</summary>
+        <ul className="mt-2 list-disc space-y-1.5 pl-4 leading-snug">
+          <li>Główne serie to serie, w których stopniowo zwiększasz trudność: ciężar, powtórzenia albo samo ćwiczenie, aż dojdziesz do maksa.</li>
+          <li>Test z ciężarem (np. dipy, stary max 40 kg): lekka seria bez ciężaru, potem 25% starego maksa, 50% (2 serie), 75% (2 serie, mało powtórzeń: 1–2), na końcu 90% i 100%. Przycisk „Podpowiedz serie” wylicza to z Twojego starego maksa.</li>
+          <li>Nie wiesz, jak to zrobić? Rozgrzej się, dojdź do starych maksów i zrób na nich połowę powtórzeń albo max reps. Możesz też zrobić max reps z połową ciężaru starego maksa.</li>
+          <li>Pomiar ma być szacunkowy, nie idealny.</li>
+        </ul>
+      </details>
       <ul className="list-none space-y-1.5 p-0">
         {BASELINE_TESTS.map((test, index) => (
           <BaselineRow
