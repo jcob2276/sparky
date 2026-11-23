@@ -1,3 +1,4 @@
+import { noteTextProviderFailure } from '../aiStatus.ts'
 import { offNutrimentsPer100, searchOffProducts } from '../offClient.ts';
 import { pickUsdaMatch } from "@vanguard/domain";
 import { assessEnergyConsistency, mergeMicronutrients, type MicronutrientSources } from "@vanguard/domain";
@@ -259,6 +260,7 @@ export async function callParseLLM(apiKey: string, system: string, userText: str
     return parseJsonFromContent(result.content);
   } catch (err) {
     console.warn('[callParseLLM] DeepSeek failed, trying Gemini fallback:', err);
+    noteTextProviderFailure(err);
     const openAiKey = Deno.env.get('GEMINI_API_KEY');
     if (openAiKey) {
       const { content } = await openaiChat({

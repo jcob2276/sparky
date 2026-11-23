@@ -4,6 +4,7 @@ import Button from '../../ui/Button';
 import Sheet from '../../ui/Sheet';
 import Tabs from '../../ui/Tabs';
 import MacroFillPanel from './MacroFillPanel';
+import AiStatusNotice from './AiStatusNotice';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -154,6 +155,8 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
             Zaplanuj posiłki
           </Button>
         )}
+        {c.userId && <AiStatusNotice userId={c.userId} />}
+
         <ComposerInput
           text={c.text}
           setText={c.setText}

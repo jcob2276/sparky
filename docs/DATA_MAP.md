@@ -22,23 +22,24 @@
 | `_trigger_secrets` | — | `fn:trigger_outbound_message_worker`, `fn:trigger_vanguard_classification`, `fn:trigger_vanguard_telegram_worker` |
 | `ai_chat_messages` | `edge:vanguard-oracle`, `edge:vanguard-telegram` | — |
 | `ai_insight_results` | `src/lib/aiInsightStore` | — |
-| `audit_events` | `edge:_shared`, `edge:recap`, `edge:sync`, `edge:vanguard-telegram`, `scripts`, `src/lib/systemApi` | `fn:resolve_entity_decision`, `fn:vanguard_graph_cleanup` |
+| `ai_provider_status` | `edge:_shared`, `src/lib/health` | — |
+| `audit_events` | `edge:_shared`, `edge:recap`, `edge:sync`, `edge:vanguard-telegram`, `scripts`, `src/lib/systemApi` | `fn:resolve_entity_decision`, `fn:vanguard_graph_cleanup`, `fn:vanguard_inbox_watchdog` |
 | `auth_session_history` | — | `fn:get_my_session_activity` |
 | `aw_daily_summary` | `edge:_shared`, `edge:sync`, `edge:vanguard-oracle`, `scripts`, `src/lib/biometrics`, `src/lib/stats` | — |
 | `bank_accounts` | `edge:bank-sync`, `edge:vanguard-push-reminder`, `edge:widget-finance`, `src/lib/finance` | `fn:set_bank_account_visibility` |
-| `bank_category_rules` | `edge:bank-sync` | `fn:forget_bank_category_rule`, `fn:set_bank_transaction_category` |
+| `bank_category_rules` | `edge:bank-sync`, `src/lib/finance` | `fn:forget_bank_category_rule`, `fn:set_bank_transaction_category` |
 | `bank_connection_secrets` | `edge:bank-sync` | — |
 | `bank_connections` | `edge:bank-sync`, `src/lib/finance` | `fn:bank_consent_watch` |
-| `bank_transactions` | `edge:_shared`, `edge:bank-sync`, `edge:vanguard-push-reminder`, `edge:widget-finance`, `src/lib/finance` | `fn:forget_bank_category_rule`, `fn:set_bank_transaction_category`, `fn:validate_finance_bank_match`, `fn:week_facts` |
+| `bank_transactions` | `edge:_shared`, `edge:bank-sync`, `edge:vanguard-push-reminder`, `edge:widget-finance`, `src/lib/finance`, `src/lib/goal` | `fn:forget_bank_category_rule`, `fn:set_bank_transaction_category`, `fn:validate_finance_bank_match`, `fn:week_facts` |
 | `behavior_log` | `edge:_shared`, `edge:compute-behavior-effects`, `scripts`, `src/lib/behavior`, `src/lib/healthspanApi` | `view:vanguard_consolidated_activities` |
 | `body_composition_measurements` | `edge:_shared`, `src/lib/health` | — |
 | `body_metrics` | `edge:_shared`, `edge:parse-food-nl`, `edge:vanguard-nutrition-coach`, `pkg:domain`, `src/components`, `src/lib/chronicle`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/stats`, `src/lib/statsOverviewApi` | `fn:get_desktop_dashboard_data` |
-| `claims` | `edge:_shared`, `edge:recap`, `edge:vanguard-oracle`, `edge:vanguard-telegram` | `fn:get_vanguard_graph_context`, `fn:revoke_my_session`, `fn:search_entity_links`, `fn:search_entity_links_fulltext`, `fn:sync_vanguard_entity_links_to_claims`, `fn:upsert_vanguard_entity_link`, `fn:vanguard_graph_cleanup` |
+| `claims` | `edge:_shared`, `edge:recap`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `scripts` | `fn:get_vanguard_graph_context`, `fn:revoke_my_session`, `fn:search_entity_links`, `fn:search_entity_links_fulltext`, `fn:sync_vanguard_entity_links_to_claims`, `fn:upsert_vanguard_entity_link`, `fn:vanguard_graph_cleanup` |
 | `closer_calls` | `edge:_shared`, `edge:closer-reanalyze`, `edge:fathom-webhook`, `src/lib/closer` | `fn:closer_apply_fathom_floor` |
 | `closer_daily_logs` | `edge:period-compare`, `src/lib/chronicle`, `src/lib/closer` | `fn:closer_daily_refresh_weekly_kpis`, `fn:closer_recording_refresh_day` |
-| `daily_food_entries` | `edge:_shared`, `edge:analyze-food-quality`, `edge:food-integrity-audit`, `edge:food-micronutrient-backfill`, `edge:parse-food-nl`, `edge:vanguard-librarian`, `edge:vanguard-oracle`, `edge:widget-food`, `pkg:domain`, `scripts`, `src/components`, `src/lib/behavior`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/dashboardApi`, `src/lib/health`, `src/lib/stats` | `fn:_recompute_daily_nutrition`, `fn:add_food_entry`, `fn:confirm_nutrition_meal_capture`, `fn:remove_food_entry`, `fn:repeat_food_entry`, `fn:update_food_entry` |
+| `daily_food_entries` | `edge:_shared`, `edge:analyze-food-quality`, `edge:food-integrity-audit`, `edge:food-micronutrient-backfill`, `edge:parse-food-nl`, `edge:vanguard-librarian`, `edge:vanguard-nutrition-coach`, `edge:vanguard-oracle`, `edge:widget-food`, `pkg:domain`, `scripts`, `src/components`, `src/lib/behavior`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/dashboardApi`, `src/lib/health`, `src/lib/stats` | `fn:_recompute_daily_nutrition`, `fn:add_food_entry`, `fn:confirm_nutrition_meal_capture`, `fn:remove_food_entry`, `fn:repeat_food_entry`, `fn:update_food_entry` |
 | `daily_nutrition` | `edge:_shared`, `edge:analyze-food-quality`, `edge:food-integrity-audit`, `edge:period-compare`, `edge:recap`, `edge:vanguard-kpi-suggest`, `edge:vanguard-nightly`, `edge:vanguard-nutrition-coach`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/lib/chronicle`, `src/lib/dashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/multiDomainMatrixApi`, `src/lib/stats` | `fn:_recompute_daily_nutrition`, `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `view:strain_correlations` |
-| `daily_reconciliations` | `edge:_shared`, `edge:period-compare`, `edge:recap`, `edge:vanguard-eval-runner`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `edge:vanguard-wiki-compiler`, `edge:week-insight`, `scripts`, `src/components`, `src/lib/chronicle`, `src/lib/dailySnapshotApi`, `src/lib/shutdownApi`, `src/lib/weeklyWinsMap` | `fn:get_data_coverage` |
+| `daily_reconciliations` | `edge:_shared`, `edge:period-compare`, `edge:recap`, `edge:vanguard-eval-runner`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `edge:vanguard-wiki-compiler`, `edge:week-insight`, `scripts`, `src/components`, `src/lib/chronicle`, `src/lib/dailySnapshotApi`, `src/lib/goal`, `src/lib/shutdownApi`, `src/lib/weeklyWinsMap` | `fn:get_data_coverage` |
 | `daily_strain` | `edge:_shared`, `edge:analyze-training-load`, `edge:compute-behavior-effects`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/components`, `src/lib/biometricsApi`, `src/lib/dailySnapshotApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/statsOverviewApi` | `fn:get_desktop_dashboard_data`, `view:strain_correlations` |
 | `daily_win_tasks` | `edge:_shared`, `src/components`, `src/lib/dailyWinTasksApi`, `src/lib/dashboardApi`, `src/lib/daySlots`, `src/lib/db-json-guards`, `src/lib/morningPlanApi`, `src/lib/todo` | `fn:daily_win_result_for`, `fn:submit_morning_plan`, `fn:sync_todo_to_daily_win_tasks`, `fn:week_facts` |
 | `daily_wins` | `edge:_shared`, `edge:period-compare`, `edge:recap`, `edge:vanguard-eval-runner`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `edge:week-insight`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/dailyWinTasksApi`, `src/lib/dashboardApi`, `src/lib/db-json-guards`, `src/lib/goal`, `src/lib/morningPlanApi`, `src/lib/stats`, `src/lib/todo` | `fn:get_brain_health_report`, `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `fn:match_vanguard_content`, `fn:submit_morning_plan`, `fn:sync_daily_win_result_from_tasks`, `fn:sync_todo_to_daily_win_tasks`, `fn:week_facts` |
@@ -47,7 +48,7 @@
 | `dreams` | `src/lib/checkpoints`, `src/lib/goal`, `src/lib/projects`, `src/lib/queryKeys`, `src/lib/todo` | — |
 | `endmyopia_measurements` | `src/lib/endmyopiaApi`, `src/lib/visionApi` | — |
 | `endmyopia_prescriptions` ⚠ | — | — |
-| `entities` | `edge:_shared`, `edge:vanguard-telegram` | `fn:canonicalize_vanguard_entity`, `fn:find_mentioned_entities`, `fn:get_vanguard_graph_context`, `fn:resolve_entity`, `fn:resolve_entity_decision`, `fn:resolve_entity_fuzzy_candidates`, `fn:search_entity_links`, `fn:search_entity_links_fulltext`, `fn:sync_vanguard_entity_links_to_claims`, `fn:upsert_vanguard_entity_link`, `fn:vanguard_graph_cleanup` |
+| `entities` | `edge:_shared`, `edge:vanguard-telegram`, `scripts` | `fn:canonicalize_vanguard_entity`, `fn:find_mentioned_entities`, `fn:get_vanguard_graph_context`, `fn:resolve_entity`, `fn:resolve_entity_decision`, `fn:resolve_entity_fuzzy_candidates`, `fn:search_entity_links`, `fn:search_entity_links_fulltext`, `fn:sync_vanguard_entity_links_to_claims`, `fn:upsert_vanguard_entity_link`, `fn:vanguard_graph_cleanup` |
 | `entity_aliases` | `edge:_shared` | `fn:canonicalize_vanguard_entity`, `fn:find_mentioned_entities`, `fn:get_vanguard_graph_context`, `fn:handle_new_entity_alias`, `fn:resolve_entity_decision`, `fn:resolve_entity_fuzzy_candidates`, `fn:vanguard_graph_cleanup` |
 | `exercise_logs` | `edge:_shared`, `edge:parse-workout-nl`, `pkg:domain`, `src/components`, `src/lib/health`, `src/lib/stats`, `src/lib/statsOverviewApi` | `fn:get_desktop_dashboard_data`, `fn:save_workout_atomic`, `fn:trg_sync_workout_session_to_calendar` |
 | `fasting_logs` | `edge:analyze-food-quality`, `edge:vanguard-telegram` | — |
@@ -56,12 +57,13 @@
 | `finance_bills` | `src/lib/financeApi`, `src/lib/financeMutations` | — |
 | `finance_category_budgets` | `edge:vanguard-push-reminder`, `edge:widget-finance`, `src/lib/finance` | — |
 | `finance_goals` | `src/lib/finance`, `src/lib/financeApi`, `src/lib/financeMutations` | — |
-| `finance_holdings` | `src/lib/finance` | `fn:record_finance_holding_purchase` |
+| `finance_holding_events` | `src/lib/finance` | `fn:log_finance_holding_event` |
+| `finance_holdings` | `src/lib/finance` | `fn:log_finance_holding_event`, `fn:record_finance_holding_purchase` |
 | `finance_income_sources` | `src/lib/financeApi`, `src/lib/financeMutations` | — |
 | `finance_portfolio_daily` ⚠ | — | — |
 | `finance_price_history` | `src/lib/finance` | — |
 | `finance_profile` | `src/lib/finance`, `src/lib/financeApi` | — |
-| `finance_snapshots` | `src/lib/finance`, `src/lib/financeApi` | — |
+| `finance_snapshots` | `scripts`, `src/lib/finance`, `src/lib/financeApi` | — |
 | `finance_subscriptions` | `src/lib/financeApi`, `src/lib/financeMutations` | — |
 | `finance_transactions` | `src/lib/finance`, `src/lib/financeApi`, `src/lib/financeMutations` | `fn:add_finance_cash_entry` |
 | `finance_wishlist` | `src/lib/finance`, `src/lib/financeApi`, `src/lib/financeMutations` | — |
@@ -91,7 +93,7 @@
 | `learning_week_pins` | `src/lib/directionApi` | `fn:sync_link_read_to_growth_pins`, `fn:sync_todo_done_to_growth_pins` |
 | `library_items` | `src/lib/learning` | `fn:log_learning_progress` |
 | `life_goals` | `edge:recap`, `edge:vanguard-kpi-suggest`, `edge:vanguard-oracle`, `src/lib/desktopDashboardFallback`, `src/lib/goal`, `src/lib/stats` | `fn:get_desktop_dashboard_data` |
-| `life_obligations` | `edge:vanguard-push-reminder`, `src/lib/lifeObligationsApi` | — |
+| `life_obligations` | `edge:vanguard-push-reminder`, `src/lib/lifeObligationsApi` | `fn:push_reminder_snapshot` |
 | `life_targets` | `edge:vanguard-oracle`, `src/components`, `src/lib/lifeGoals`, `src/lib/lifeTargetsApi` | — |
 | `location_history` | `src/lib/deviceSignalsDailyApi`, `src/lib/locationHistoryApi`, `src/lib/stats` | — |
 | `marathons` | `src/lib/desktopDashboardFallback` | `fn:get_desktop_dashboard_data` |
@@ -113,20 +115,20 @@
 | `oracle_clarification_requests` | `edge:vanguard-eval-interview`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `src/lib/actionCenterApi` | — |
 | `oracle_pending_actions` | `edge:vanguard-oracle` | — |
 | `oracle_recommendations` | `edge:_shared`, `edge:vanguard-analyst`, `edge:vanguard-backtester`, `edge:vanguard-oracle`, `src/lib/recommendationsApi` | — |
-| `oura_daily_summary` | `edge:_shared`, `edge:analyze-training-load`, `edge:period-compare`, `edge:recap`, `edge:sync`, `edge:vanguard-eval-interview`, `edge:vanguard-nightly`, `edge:vanguard-nutrition-coach`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/components`, `src/hooks/useSyncOura`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/chronicle`, `src/lib/dashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/multiDomainMatrixApi`, `src/lib/stats`, `src/lib/statsOverviewApi` | `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `fn:refresh_oura_steps_projection`, `fn:week_facts`, `view:strain_correlations` |
+| `oura_daily_summary` | `edge:_shared`, `edge:analyze-training-load`, `edge:period-compare`, `edge:recap`, `edge:sync`, `edge:vanguard-eval-interview`, `edge:vanguard-nightly`, `edge:vanguard-nutrition-coach`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/components`, `src/hooks/useSyncOura`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/chronicle`, `src/lib/dashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/goal`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/multiDomainMatrixApi`, `src/lib/stats`, `src/lib/statsOverviewApi` | `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `fn:refresh_oura_steps_projection`, `fn:week_facts`, `view:strain_correlations` |
 | `oura_enhanced` | `edge:_shared`, `edge:sync`, `edge:vanguard-analyst`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/deviceSignalsDailyApi`, `src/lib/healthspanApi`, `src/lib/stats` | `fn:project_oura_daily_steps`, `fn:refresh_oura_steps_projection` |
 | `oura_heartrate` | `edge:_shared`, `edge:sync` | `view:oura_hr_zones_daily` |
 | `oura_hr_daily` | `edge:_shared`, `edge:sync` | — |
 | `oura_sleep_hr_timeline` | `edge:sync`, `src/lib/biometrics`, `src/lib/biometricsApi` | — |
 | `oura_sleep_hrv_timeline` | `edge:sync`, `src/lib/biometrics`, `src/lib/biometricsApi` | — |
 | `oura_sleep_phase_timeline` | `edge:sync`, `src/lib/biometrics`, `src/lib/biometricsApi` | — |
-| `outbound_messages` | `edge:_shared`, `edge:vanguard-oracle`, `edge:vanguard-outbox-sender`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `scripts` | `fn:bank_consent_watch` |
+| `outbound_messages` | `edge:_shared`, `edge:vanguard-oracle`, `edge:vanguard-outbox-sender`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `scripts` | `fn:bank_consent_watch`, `fn:push_reminder_snapshot`, `fn:vanguard_inbox_watchdog` |
 | `pattern_events` | `edge:_shared` | — |
-| `phone_usage_daily` | `edge:recap`, `edge:vanguard-oracle`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/phoneUsageApi`, `src/lib/stats` | — |
+| `phone_usage_daily` | `edge:recap`, `edge:vanguard-oracle`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/goal`, `src/lib/phoneUsageApi`, `src/lib/stats` | — |
 | `progress_photos` | `edge:analyze-physique`, `src/lib/photosApi`, `src/lib/stats` | — |
 | `projects` | `edge:recap`, `edge:vanguard-kpi-suggest`, `edge:vanguard-oracle`, `src/components`, `src/lib/checkpoints`, `src/lib/closer`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/directionApi`, `src/lib/goal`, `src/lib/health`, `src/lib/projects`, `src/lib/queryKeys`, `src/lib/todo`, `src/lib/workspacePrefetch` | `fn:closer_daily_refresh_weekly_kpis`, `fn:get_desktop_dashboard_data` |
-| `push_fcm_tokens` | `edge:vanguard-push-reminder`, `src/hooks/usePushNotifications`, `src/lib/push` | — |
-| `push_subscriptions` | `edge:vanguard-push-reminder`, `src/hooks/usePushNotifications` | — |
+| `push_fcm_tokens` | `edge:vanguard-push-reminder`, `src/hooks/usePushNotifications`, `src/lib/push` | `fn:push_reminder_snapshot` |
+| `push_subscriptions` | `edge:vanguard-push-reminder`, `src/hooks/usePushNotifications` | `fn:push_reminder_snapshot` |
 | `reality_slides` | `src/lib/realitySlide`, `src/lib/realitySlideApi` | `fn:set_reality_slide` |
 | `relations` | — | `fn:check_graph_relation_known`, `fn:deprecate_superseded_facts`, `fn:get_vanguard_graph_context`, `fn:search_entity_links`, `fn:search_entity_links_fulltext`, `fn:sync_vanguard_entity_links_to_claims`, `fn:upsert_vanguard_entity_link` |
 | `sales_playbook_criteria` | `edge:_shared`, `pkg:domain` | — |
@@ -135,10 +137,10 @@
 | `strava_activities` | `edge:period-compare`, `edge:sync`, `edge:vanguard-kpi-suggest`, `scripts`, `src/lib/biometrics`, `src/lib/stats` | `fn:trg_sync_strava_activity_to_calendar`, `view:strava_activities_clean` |
 | `strava_tokens` ⚠ | — | — |
 | `supplement_logs` | `edge:_shared`, `edge:vanguard-telegram`, `src/lib/biometrics`, `src/lib/health` | — |
-| `supplements` | `edge:_shared`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `src/lib/health` | — |
+| `supplements` | `edge:_shared`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `src/lib/health` | `fn:push_reminder_snapshot` |
 | `system_proposals` | `edge:vanguard-oracle`, `src/lib/actionCenterApi`, `src/lib/systemProposals` | `fn:sync_friction_proposals` |
 | `todo_attachments` | `src/lib/todo` | — |
-| `todo_items` | `edge:recap`, `edge:vanguard-auto-classify`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `edge:widget-tasks`, `src/components`, `src/lib/behavior`, `src/lib/checkpoints`, `src/lib/desktopDashboardFallback`, `src/lib/directionApi`, `src/lib/morningPlanApi`, `src/lib/nudgeApi`, `src/lib/queryKeys`, `src/lib/todo`, `src/lib/workspacePrefetch` | `fn:create_next_recurring_todo`, `fn:get_desktop_dashboard_data`, `fn:submit_morning_plan`, `fn:sync_daily_win_tasks_to_todo` |
+| `todo_items` | `edge:recap`, `edge:vanguard-auto-classify`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `edge:widget-tasks`, `src/components`, `src/lib/behavior`, `src/lib/checkpoints`, `src/lib/desktopDashboardFallback`, `src/lib/directionApi`, `src/lib/morningPlanApi`, `src/lib/nudgeApi`, `src/lib/queryKeys`, `src/lib/todo`, `src/lib/workspacePrefetch` | `fn:create_next_recurring_todo`, `fn:get_desktop_dashboard_data`, `fn:push_reminder_snapshot`, `fn:submit_morning_plan`, `fn:sync_daily_win_tasks_to_todo` |
 | `todo_sections` | `edge:recap`, `src/components`, `src/lib/directionApi`, `src/lib/todo` | — |
 | `todo_smart_lists` | `src/components`, `src/lib/todo` | — |
 | `training_plan_versions` | `edge:analyze-training-load` | `fn:activate_training_plan`, `fn:create_health_plan_draft`, `fn:enqueue_health_coach_job`, `fn:start_planned_workout` |
@@ -147,11 +149,14 @@
 | `user_portions` | `edge:parse-food-nl`, `src/lib/health` | — |
 | `user_settings` | `edge:_shared`, `edge:sync`, `edge:vanguard-analyst`, `edge:vanguard-wiki-compiler`, `src/components`, `src/hooks/useUserSettings`, `src/lib/biometrics`, `src/lib/native`, `src/lib/noteViewPreferences`, `src/lib/userSettingsApi` | `cron:archive-oura-hr-daily` |
 | `vanguard_behavioral_patterns` | `edge:_shared`, `edge:recap`, `edge:vanguard-analyst`, `edge:vanguard-eval-interview`, `edge:vanguard-wiki-compiler`, `src/lib/generalMemoryApi` | `fn:get_desktop_dashboard_data` |
-| `vanguard_calendar` | `edge:_shared`, `edge:calendar-write`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `pkg:domain`, `src/components`, `src/hooks/useSyncActivities`, `src/hooks/useSyncOura`, `src/lib/calendarAgendaApi`, `src/lib/calendarApi`, `src/lib/dashboardApi`, `src/lib/morningPlanApi`, `src/lib/workspacePrefetch` | `fn:replace_calendar_window`, `fn:trg_deduplicate_calendar_sleep`, `fn:trg_sync_oura_sleep_to_calendar`, `fn:trg_sync_strava_activity_to_calendar`, `fn:trg_sync_workout_session_to_calendar` |
+| `vanguard_calendar` | `edge:_shared`, `edge:calendar-write`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `pkg:domain`, `src/components`, `src/hooks/useSyncActivities`, `src/hooks/useSyncOura`, `src/lib/calendarAgendaApi`, `src/lib/calendarApi`, `src/lib/dashboardApi`, `src/lib/morningPlanApi`, `src/lib/workspacePrefetch` | `fn:push_reminder_snapshot`, `fn:replace_calendar_window`, `fn:trg_deduplicate_calendar_sleep`, `fn:trg_sync_oura_sleep_to_calendar`, `fn:trg_sync_strava_activity_to_calendar`, `fn:trg_sync_workout_session_to_calendar` |
 | `vanguard_calendar_watch` | `edge:_shared`, `edge:calendar-watch` | — |
+| `vanguard_context_caches` ⚠ | — | — |
 | `vanguard_core_memory_revisions` | `src/lib/coreMemoryHistoryApi` | `fn:record_core_memory_revision`, `fn:restore_core_memory_revision` |
+| `vanguard_curation_reports` ⚠ | — | — |
 | `vanguard_curiosity_queue` | `edge:recap`, `edge:vanguard-analyst`, `edge:vanguard-eval-interview`, `src/lib/generalMemoryApi` | — |
 | `vanguard_daily_aggregates` | `edge:_shared`, `edge:recap`, `edge:vanguard-analyst`, `edge:vanguard-backtester`, `edge:vanguard-eval-runner`, `edge:vanguard-metabolism`, `edge:vanguard-telegram`, `edge:vanguard-wiki-compiler`, `scripts` | — |
+| `vanguard_dossiers` | `edge:vanguard-oracle` | — |
 | `vanguard_entity_links` | `edge:_shared`, `edge:vanguard-analyst`, `edge:vanguard-architect`, `edge:vanguard-eval-interview`, `edge:vanguard-graph-embedder`, `edge:vanguard-metabolism`, `edge:vanguard-telegram`, `scripts` | `fn:deprecate_superseded_facts`, `fn:find_entity_seeds_by_embedding`, `fn:find_mentioned_entities`, `fn:get_brain_health_report`, `fn:handle_clarification_writeback`, `fn:upsert_vanguard_entity_link`, `fn:vanguard_graph_cleanup`, `view:v_graph_temporal_guard` |
 | `vanguard_eval_questions` | `edge:vanguard-eval-runner` | — |
 | `vanguard_eval_results` | `edge:vanguard-eval-interview`, `edge:vanguard-eval-runner` | — |
@@ -168,8 +173,8 @@
 | `vanguard_predictions` | `edge:_shared`, `edge:vanguard-backtester`, `src/lib/predictionsApi`, `src/lib/systemApi` | — |
 | `vanguard_preferences` | `edge:_shared`, `edge:sync`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `pkg:domain`, `src/lib/aiContextPreferences`, `src/lib/coreMemoryHistoryApi`, `src/lib/health`, `src/lib/todayLayoutApi` | `fn:health_coach_fingerprint`, `fn:restore_core_memory_revision`, `fn:save_health_goals` |
 | `vanguard_raw_events` | `edge:vanguard-capture` | `fn:cleanup_old_logs` |
-| `vanguard_stream` | `edge:_shared`, `edge:period-compare`, `edge:recap`, `edge:vanguard-analyst`, `edge:vanguard-architect`, `edge:vanguard-auto-classify`, `edge:vanguard-eval-interview`, `edge:vanguard-metabolism`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `edge:vanguard-wiki-compiler`, `edge:week-insight`, `pkg:domain`, `src/components`, `src/lib/behavior`, `src/lib/chronicle`, `src/lib/stats`, `src/lib/todo` | `fn:get_brain_health_report`, `fn:get_desktop_dashboard_data`, `fn:match_vanguard_content`, `fn:week_facts`, `view:v_friction_daily_qa`, `view:v_friction_debug`, `view:v_friction_pipeline_status`, `view:v_friction_review` |
-| `vanguard_telegram_inbox` | `edge:vanguard-nightly`, `edge:vanguard-telegram`, `edge:vanguard-telegram-worker` | — |
+| `vanguard_stream` | `edge:_shared`, `edge:period-compare`, `edge:recap`, `edge:vanguard-analyst`, `edge:vanguard-architect`, `edge:vanguard-auto-classify`, `edge:vanguard-eval-interview`, `edge:vanguard-metabolism`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `edge:vanguard-wiki-compiler`, `edge:week-insight`, `pkg:domain`, `src/components`, `src/lib/behavior`, `src/lib/chronicle`, `src/lib/goal`, `src/lib/stats`, `src/lib/todo` | `fn:get_brain_health_report`, `fn:get_desktop_dashboard_data`, `fn:match_vanguard_content`, `fn:week_facts`, `view:v_friction_daily_qa`, `view:v_friction_debug`, `view:v_friction_pipeline_status`, `view:v_friction_review` |
+| `vanguard_telegram_inbox` | `edge:vanguard-nightly`, `edge:vanguard-telegram`, `edge:vanguard-telegram-worker` | `fn:trigger_vanguard_telegram_worker`, `fn:vanguard_inbox_watchdog` |
 | `vanguard_time_budgets` | `src/components` | — |
 | `vanguard_tokens` | `edge:_shared`, `edge:sync`, `scripts` | — |
 | `vanguard_wiki_pages` | `edge:vanguard-eval-interview`, `edge:vanguard-oracle`, `edge:vanguard-wiki-compiler`, `src/lib/generalMemoryApi` | `fn:get_desktop_dashboard_data` |

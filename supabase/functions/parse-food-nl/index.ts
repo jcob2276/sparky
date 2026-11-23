@@ -3,7 +3,7 @@
  * @trigger HTTP POST / Frontend NL meal parser
  * @role Parser posiłków z języka naturalnego na struktury danych z uwzględnieniem kontekstu użytkownika.
  * @reads daily_food_entries, user_settings, food_library, nutrition_profile, nutrition_targets, body_metrics, food_favorites, food_corrections, user_portions, nutrition_meal_memories, user_preferences
- * @writes —
+ * @writes ai_provider_status
  * @calls deepseek-chat (text), Gemini (meal/menu/fridge/label vision)
  * @consumer Zapis posiłków w aplikacji frontendowej i Telegramie
  * @status active
@@ -19,6 +19,7 @@ import {
 import { parseNutritionLabel, parseMealPhoto } from './mealVision.ts'
 import { parseRestaurantMenu, parseFridgeIngredients } from './foodAssistVision.ts'
 import {loadUserContext} from './userContext.ts'
+import {classifyAiError, recordAiStatus, takeTextProviderFailure} from '../_shared/aiStatus.ts'
 import {warsawTimeOfDay} from '@vanguard/domain';
 
 Deno.serve(serveJson(async (req, auth) => {
@@ -94,17 +95,24 @@ Deno.serve(serveJson(async (req, auth) => {
 
   if (body.mode === 'meal_photo') {
     const hint = typeof body.hint === 'string' ? body.hint.trim() : ''
-    const meal = await parseMealPhoto(
-      String(body.imageBase64 || ''),
-      String(body.mimeType || ''),
-      userId,
-      ctx,
-      corrections,
-      db,
-      supabaseUrl,
-      serviceKey,
-      hint || undefined,
-    )
+    let meal: Awaited<ReturnType<typeof parseMealPhoto>>
+    try {
+      meal = await parseMealPhoto(
+        String(body.imageBase64 || ''),
+        String(body.mimeType || ''),
+        userId,
+        ctx,
+        corrections,
+        db,
+        supabaseUrl,
+        serviceKey,
+        hint || undefined,
+      )
+    } catch (err) {
+      await recordAiStatus(db, userId, 'vision', { ok: false, kind: classifyAiError(err) })
+      throw err
+    }
+    await recordAiStatus(db, userId, 'vision', { ok: true })
     console.log(`[parse-food-nl] photo -> ${meal.items.length} items (user=${userId ?? 'anon'})`)
     // `hintApplied` lets old clients tell a hint-aware answer from one that ignored the hint.
     return { meal: { ...meal, hintApplied: Boolean(hint) } }
@@ -128,6 +136,8 @@ Deno.serve(serveJson(async (req, auth) => {
   })
 
   console.log(`[parse-food-nl] "${text.slice(0, 60)}" → ${items.length} items (user=${userId ?? 'anon'})`)
+  const primaryFailure = takeTextProviderFailure()
+  await recordAiStatus(db, userId, 'text', primaryFailure ? { ok: false, kind: primaryFailure } : { ok: true })
 
   return { items }
 }, { auth: 'user' }))

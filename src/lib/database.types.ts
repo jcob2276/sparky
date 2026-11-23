@@ -102,6 +102,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_provider_status: {
+        Row: {
+          last_error_at: string | null
+          last_error_kind: string | null
+          last_ok_at: string | null
+          provider: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_error_at?: string | null
+          last_error_kind?: string | null
+          last_ok_at?: string | null
+          provider: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_error_at?: string | null
+          last_error_kind?: string | null
+          last_ok_at?: string | null
+          provider?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_events: {
         Row: {
           created_at: string
