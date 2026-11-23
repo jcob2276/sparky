@@ -10,6 +10,16 @@ import { mealFocusPrompt } from './mealSlotLabel';
 import type { MealPlannerViewProps } from './MealPlannerView';
 
 const format = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 1 });
+/** Poniżej tylu pozostałych kcal nie da się sensownie ułożyć posiłku, więc nie pytamy modelu. */
+const MIN_PLAN_KCAL = 150;
+
+function LowBudgetNote({ remaining }: { remaining: number | null }) {
+  return (
+    <p role="note" className="rounded-xl bg-warning/10 p-3 text-sm text-warning">
+      {remaining != null && remaining > 0 ? `Zostało tylko ${remaining} kcal` : 'Cel kalorii na dziś jest już osiągnięty'}, więc nie ułożę z tego pełnego posiłku. Zakładka „Dopełnij” dobierze chude produkty z Twoich ulubionych.
+    </p>
+  );
+}
 
 export function TodayMealPlanner({
   date, state, logged, targetKcal, targetProtein, canGenerate = true, preferences,
@@ -19,6 +29,8 @@ export function TodayMealPlanner({
   const [shopping, setShopping] = useState(false);
   const [selection, setSelection] = useState<{key:string; meals:string[]}>();
   const [reviewedKey, setReviewedKey] = useState<string>();
+  const remainingKcal = targetKcal != null && logged ? Math.round(targetKcal - logged.calories) : null;
+  const tooLittleLeft = remainingKcal != null && remainingKcal < MIN_PLAN_KCAL;
   const draft = state?.draft;
   const active = state?.active;
   const plan = draft ?? active;
@@ -90,8 +102,9 @@ export function TodayMealPlanner({
                     : 'Propozycje uwzględnią zjedzone dziś i pozostały budżet.'}
                 </p>
               </div>
+              {tooLittleLeft && <LowBudgetNote remaining={remainingKcal} />}
               <Button className="meal-planner-cta" variant="neutral" onClick={onGenerate} loading={isGenerating}
-                disabled={busy || isGenerating || !canGenerate} icon={<Sparkles size={16}/>}>
+                disabled={busy || isGenerating || !canGenerate || tooLittleLeft} icon={<Sparkles size={16}/>}>
                 {focus ? `Ułóż ${mealFocusPrompt(focus)}` : 'Ułóż plan na resztę dnia'}
               </Button>
             </div>

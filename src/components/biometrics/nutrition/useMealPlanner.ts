@@ -15,6 +15,14 @@ import {TIMEOUTS} from '../../../lib/constants';
 import type {MealPlanState} from '@vanguard/domain';
 
 
+/** Komunikat walidacji planu po ludzku; reszta błędów bez zmian. */
+function friendlyPlanError(message: string | undefined): string {
+  if (message && /odbiega od ustalonego celu/i.test(message)) {
+    return 'Nie udało się ułożyć propozycji, która mieści się w pozostałym budżecie. Spróbuj zakładki „Dopełnij”: dobiera produkty z Twoich ulubionych.';
+  }
+  return message || 'Nie udało się ułożyć jadłospisu.';
+}
+
 export function useMealPlanner(
   userId:string,
   date:string,
@@ -62,7 +70,7 @@ export function useMealPlanner(
         }
       );
       if (!res?.success) {
-        throw new Error(res?.errors?.[0] || 'Nie udało się ułożyć jadłospisu.');
+        throw new Error(friendlyPlanError(res?.errors?.[0]));
       }
       return res.state;
     },

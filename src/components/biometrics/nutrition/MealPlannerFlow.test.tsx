@@ -107,3 +107,33 @@ it('starts the daily planner on HTTP and shows generator failures inside the win
     vi.unstubAllGlobals();
   }
 });
+it('does not ask the model when almost nothing is left and explains validation failures in plain Polish', async () => {
+  const today = getTodayWarsaw();
+  vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) });
+  vi.mocked(fetchMealPreferences).mockResolvedValue({...parseMealPreferences(null), confirmed:true, revision:1});
+  vi.mocked(fetchMealPlannerState).mockResolvedValue({storageDate:today,state:null});
+  vi.mocked(invokeEdge).mockReset();
+  try {
+    const view = render(<QueryClientProvider client={new QueryClient()}>
+      <MealPlannerContainer userId="owner-one" date={today} targetKcal={2250} targetProtein={170}
+        logged={{calories:2161,protein:124,carbs:240,fat:81}} />
+    </QueryClientProvider>);
+    const button = await screen.findByRole('button',{name:'Ułóż plan na resztę dnia'});
+    expect(button).toBeDisabled();
+    expect(screen.getByRole('note')).toHaveTextContent('Zostało tylko 89 kcal');
+    expect(invokeEdge).not.toHaveBeenCalled();
+    view.unmount();
+
+    vi.mocked(invokeEdge).mockResolvedValue({success:false,state:null,errors:['2026-11-23: menu znacznie odbiega od ustalonego celu.']});
+    render(<QueryClientProvider client={new QueryClient()}>
+      <MealPlannerContainer userId="owner-one" date={today} targetKcal={2250} targetProtein={170}
+        logged={{calories:1500,protein:100,carbs:null,fat:null}} />
+    </QueryClientProvider>);
+    const enabled = await screen.findByRole('button',{name:'Ułóż plan na resztę dnia'});
+    await waitFor(() => expect(enabled).toBeEnabled());
+    fireEvent.click(enabled);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Spróbuj zakładki „Dopełnij”');
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
