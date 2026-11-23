@@ -253,6 +253,15 @@ def build_and_save_cache():
         except Exception as e:
             log.warning("Nie udało się zapisać lokalnego pliku snapshotu: %s", e)
 
+        # 3b. Dossier dla Wyroczni (pamięć długoterminowa w bazie; nie wymaga billingu cache)
+        dossier_info = {}
+        try:
+            from dossier_builder import build_and_store_dossier
+            dossier_info = build_and_store_dossier(conn, user_id, snapshot_text, window_start, window_end, GEMINI_API_KEY)
+        except Exception as e:
+            log.error("Nie udało się zbudować dossier: %s", e)
+            dossier_info = {"dossier_error": str(e)[:200]}
+
         # 4. Sprawdź próg minimalny (1024 tokeny)
         if approx_tokens < 1024:
             log.warning("Snapshot za mały na Context Caching (%d tokenów < 1024). Pomijam tworzenie cache.", approx_tokens)
@@ -272,6 +281,7 @@ def build_and_save_cache():
                     "status": "local_snapshot_ready",
                     "reason": "billing_required_for_cache_storage",
                     "snapshot_path": snapshot_path,
+                    **dossier_info,
                     "tokens": approx_tokens,
                     "chars": len(snapshot_text)
                 }

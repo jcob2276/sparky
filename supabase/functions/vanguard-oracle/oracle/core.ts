@@ -34,6 +34,7 @@ import { fetchCoreMemory, persistCoreMemoryResponse } from "./coreMemory.ts";
 import { fetchConversationAwareness } from "./conversationAwareness.ts";
 import { fetchEchoes } from "./echoes.ts";
 import { fetchPillars } from "./pillars.ts";
+import { fetchDossier } from "./dossier.ts";
 
 const MAX_SQL_TOOL_ITERATIONS = 3;
 
@@ -94,10 +95,11 @@ export async function runOracleQuery(
 
 
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
-  const [coreMemory, awarenessBase, echoesText, pillarsText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate), fetchPillars(supabase, user_id)]);
+  // Dossier z 90 dni pomijamy w backteście (override_date), bo zawiera wiedzę z "przyszłości" tamtego dnia.
+  const [coreMemory, awarenessBase, echoesText, pillarsText, dossierText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate), fetchPillars(supabase, user_id), override_date ? Promise.resolve('') : fetchDossier(supabase, user_id)]);
   const feedbackText = await getRecentFeedback(supabase, user_id, now).then(buildFeedbackPromptBlock)
     .catch((err: unknown) => { console.error('[oracle] feedback block skipped:', err); return ''; });
-  const awarenessText = [awarenessBase, pillarsText, echoesText, feedbackText].filter(Boolean).join('\n\n');
+  const awarenessText = [awarenessBase, dossierText, pillarsText, echoesText, feedbackText].filter(Boolean).join('\n\n');
 
   const { readinessScore, sleepHours } = circadianInputs(safeStateVector);
   const circadian = getCircadianStance(warsawHourFor(now, override_date), readinessScore, sleepHours);
