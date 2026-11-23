@@ -107,6 +107,7 @@
 | `note_folders` | `src/lib/noteFoldersApi` | `fn:delete_note_folder_hierarchy`, `fn:enforce_note_folder_hierarchy`, `fn:enforce_note_folder_owner` |
 | `note_smart_folders` | `src/lib/noteSmartFolders` | — |
 | `nutrition_day_reviews` | `edge:vanguard-nutrition-coach`, `pkg:domain`, `src/lib/health` | — |
+| `nutrition_estimate_feedback` | `src/lib/health` | `view:nutrition_estimate_errors` |
 | `nutrition_meal_captures` | — | `fn:confirm_nutrition_meal_capture` |
 | `nutrition_meal_memories` | `edge:parse-food-nl` | `fn:confirm_nutrition_meal_capture` |
 | `nutrition_meal_photos` | `edge:food-integrity-audit`, `pkg:domain`, `src/lib/health` | — |
@@ -194,6 +195,7 @@
 | View | Code (TS/JS) | SQL routines / views / cron |
 |---|---|---|
 | `confirmed_friction_events` | `edge:vanguard-eval-interview`, `edge:vanguard-wiki-compiler`, `src/lib/memorySourcesApi` | `fn:sync_friction_proposals` |
+| `nutrition_estimate_errors` ⚠ | — | — |
 | `oura_hr_zones_daily` | `edge:_shared`, `edge:vanguard-analyst` | — |
 | `strain_correlations` ⚠ | — | — |
 | `strava_activities_clean` | `edge:_shared`, `edge:analyze-food-quality`, `edge:analyze-training-load`, `edge:period-compare`, `edge:recap`, `edge:vanguard-nutrition-coach`, `pkg:domain`, `src/components`, `src/hooks/useSyncActivities`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/chronicle`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/stats` | `fn:get_desktop_dashboard_data`, `fn:link_planned_running_activity`, `view:strain_correlations` |

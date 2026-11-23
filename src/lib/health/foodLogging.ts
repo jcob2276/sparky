@@ -7,6 +7,7 @@ import { scheduleNutritionRefresh } from './nutritionSideEffects'
 import { pendingCaptureId, settleCaptures } from './pendingCaptureIds'
 import type { MicronutrientSources } from '@vanguard/domain'
 import type { MacroSource } from './foodTrust'
+import { recordEstimateFeedback } from './estimateFeedbackApi'
 
 export const MEAL_TYPES = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -153,7 +154,7 @@ export async function updateFoodEntry(
 ): Promise<void> {
   const { data: existing } = await supabase
     .from('daily_food_entries')
-    .select('date')
+    .select('date,name,amount,calories,protein,carbs,fat,meal_group_id,parse_meta')
     .eq('id', entryId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -164,6 +165,11 @@ export async function updateFoodEntry(
   });
   if (error) throw error;
   if (existing?.date) scheduleNutritionRefresh(userId, existing.date);
+  if (existing) {
+    void recordEstimateFeedback(userId, entryId, existing, {
+      amount: entry.amount, calories: entry.calories, protein: entry.protein, carbs: entry.carbs ?? null, fat: entry.fat ?? null,
+    });
+  }
 }
 
 /** Gives a single entry a meal group, so a photo can be attached to it. */

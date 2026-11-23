@@ -4216,6 +4216,48 @@ export type Database = {
         }
         Relationships: []
       }
+      nutrition_estimate_feedback: {
+        Row: {
+          created_at: string
+          entry_id: string
+          estimated: Json
+          final: Json
+          id: string
+          input_mode: string | null
+          macro_source: string | null
+          meal_group_id: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          estimated: Json
+          final: Json
+          id?: string
+          input_mode?: string | null
+          macro_source?: string | null
+          meal_group_id?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          estimated?: Json
+          final?: Json
+          id?: string
+          input_mode?: string | null
+          macro_source?: string | null
+          meal_group_id?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nutrition_meal_captures: {
         Row: {
           confirmed_at: string
@@ -8209,6 +8251,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nutrition_estimate_errors: {
+        Row: {
+          created_at: string | null
+          entry_id: string | null
+          estimated_kcal: number | null
+          final_kcal: number | null
+          input_mode: string | null
+          kcal_error: number | null
+          kcal_error_pct: number | null
+          macro_source: string | null
+          name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entry_id?: string | null
+          estimated_kcal?: never
+          final_kcal?: never
+          input_mode?: string | null
+          kcal_error?: never
+          kcal_error_pct?: never
+          macro_source?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entry_id?: string | null
+          estimated_kcal?: never
+          final_kcal?: never
+          input_mode?: string | null
+          kcal_error?: never
+          kcal_error_pct?: never
+          macro_source?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       oura_hr_zones_daily: {
         Row: {
