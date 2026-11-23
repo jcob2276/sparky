@@ -87,7 +87,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
 
   return (
     <SidebarProvider>
-    <div className="flex h-dvh overflow-hidden bg-background text-text-primary">
+    <div className="page-top-inset flex h-dvh overflow-hidden bg-background text-text-primary">
       <style>{`
         @keyframes pop-check {
           0%   { transform: scale(1); }

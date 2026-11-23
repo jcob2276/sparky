@@ -1636,8 +1636,9 @@ html.capacitor-ios { --safe-top: max(env(safe-area-inset-top, 0px), 3.5rem); }
 .baseline-badge-yellow { background: color-mix(in srgb, #facc15 55%, transparent); color: var(--text-primary); }
 .baseline-badge-orange { background: color-mix(in srgb, #fb923c 55%, transparent); color: var(--text-primary); }
 
-/* These workspace shells already reserve the top inset. */
-.capacitor-ios header.workspace-page-toolbar {
+/* Powłoki Zadań, Kalendarza, Notatek i Pocketu same rezerwują górny margines, więc nagłówek nie dodaje drugiego
+   (wcześniej reguła wyżej miała większą specyficzność przez „.sticky.top-0”, przez co margines liczył się dwa razy). */
+.capacitor-ios header.workspace-page-toolbar.sticky.top-0 {
   padding-top: 0;
 }
 
@@ -3475,22 +3476,53 @@ progress,
   font-feature-settings: 'tnum' 1;
 }
 
-/* Floating tab bar: deeper layering + spring pill. */
+/* Floating tab bar: Liquid Glass. Szkło przepuszcza treść spod spodu (niska krycie + mocny blur i nasycenie),
+   z jasną krawędzią (refleks) i szklaną „bańką” zaznaczonej zakładki. */
 .ui-floating-nav {
+  position: fixed;
+  isolation: isolate;
+  --liquid-nav-bg: linear-gradient(180deg,
+    color-mix(in srgb, white 14%, transparent),
+    color-mix(in srgb, white 4%, transparent)),
+    color-mix(in srgb, var(--surface-solid) 34%, transparent);
+  --liquid-nav-blur: blur(26px) saturate(210%) brightness(1.06);
+  background: var(--liquid-nav-bg);
+  backdrop-filter: var(--liquid-nav-blur);
+  -webkit-backdrop-filter: var(--liquid-nav-blur);
   box-shadow:
-    0 0 0 0.5px color-mix(in srgb, var(--text-primary) 6%, transparent),
-    0 10px 30px -6px color-mix(in srgb, var(--scrim) 28%, transparent),
-    0 2px 6px color-mix(in srgb, var(--scrim) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
-  background: color-mix(in srgb, var(--surface-solid) 97%, transparent);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
+    0 14px 34px -8px color-mix(in srgb, black 42%, transparent),
+    0 2px 8px color-mix(in srgb, black 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 38%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, white 8%, transparent);
+}
+.ui-floating-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, white 70%, transparent),
+    color-mix(in srgb, white 10%, transparent) 38%,
+    color-mix(in srgb, white 6%, transparent) 62%,
+    color-mix(in srgb, white 46%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
 .ui-nav-pill {
   transition: transform var(--motion-enter) var(--ease-spring-soft), opacity var(--motion-fast) var(--ease-out);
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, white 34%, transparent),
+    color-mix(in srgb, white 12%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, white 10%, transparent),
+    0 3px 12px color-mix(in srgb, black 20%, transparent);
 }
-.ui-nav-pill--capture { background: color-mix(in srgb, var(--primary) 16%, transparent); }
+.ui-nav-pill--capture { background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 36%, transparent), color-mix(in srgb, var(--primary) 14%, transparent)); }
 .ui-nav-item-icon { transition: transform var(--motion-medium) var(--ease-overshoot), color var(--motion-fast) var(--ease-out), opacity var(--motion-fast) var(--ease-out); }
 
 /* Sticky header: frosted, hairline only (no stacked shadow). */
@@ -3609,6 +3641,18 @@ progress,
     -webkit-backdrop-filter: none !important;
   }
   .ui-floating-layer, .ui-floating-nav { background: var(--surface-solid); }
+}
+
+/* iOS (WKWebView) radzi sobie z blurem jednego, małego paska, więc dolna nawigacja zostaje „Liquid Glass”,
+   mimo że na reszcie ekranów dotykowych rozmycie jest wyłączone dla wydajności. */
+@supports (-webkit-touch-callout: none) {
+  @media (hover: none) and (pointer: coarse) {
+    .ui-floating-nav {
+      background: var(--liquid-nav-bg);
+      backdrop-filter: var(--liquid-nav-blur) !important;
+      -webkit-backdrop-filter: var(--liquid-nav-blur) !important;
+    }
+  }
 }
 
 /* Kolory zakreślacza (jak w Notatkach Apple): pastelowe tło tekstu i nasycona próbka w menu. */
