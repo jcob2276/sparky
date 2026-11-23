@@ -36,3 +36,15 @@ Deno.test('future menus keep evidence freshness at the actual assessment date an
   assertEquals(result.targets[6].calories,2115);
   assertEquals(result.targets[6].protein,160);
 });
+Deno.test('a single requested meal gets its share of the day, capped by what is left',()=>{
+  const context=buildHealthCoachContext({asOf:'2026-10-14T12:00:00Z',data:{}});
+  const data={profile:{weekly_loss_kg:0.35,protein_g_per_kg:2},bm:[{date:'2026-10-14',weight:80}],
+    oura:[{date:'2026-10-13',total_calories:2500}],nutr:[],dayReviews:[],runs:[],gym:[],todayOura:undefined,todayNutr:{date:'2026-10-14',calories:600,protein:30},
+    medicalContext:{today:'2026-10-14',rule:'',latest_labs:[],body_composition:null,documents:[]},
+    today:'2026-10-14',targetDate:new Date('2026-10-14T12:00:00Z'),d30:'2026-09-17',context};
+  const lunch=buildMealPlanTargets(data,data.today,1,{calories:2100,protein:152},'lunch').targets[0];
+  assertEquals(lunch.calories,Math.round(2100*0.35));
+  assertEquals(lunch.protein,Math.round(152*0.35*10)/10);
+  const rest=buildMealPlanTargets(data,data.today,1,{calories:2100,protein:152}).targets[0];
+  assertEquals(rest.calories,1500);
+});

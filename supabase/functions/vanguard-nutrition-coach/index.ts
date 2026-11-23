@@ -41,7 +41,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     const remainingToday = body.remainingToday === true;
     const positiveGoal = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
     const remainingGoals = remainingToday ? {calories:positiveGoal(body.targetKcal),protein:positiveGoal(body.targetProtein)} : undefined;
-    const {targets,trainingContext}=buildMealPlanTargets(data,body.startDate ?? today,body.days ?? 7,remainingGoals);
+    const {targets,trainingContext}=buildMealPlanTargets(data,body.startDate ?? today,body.days ?? 7,remainingGoals,typeof body.mealFocus === 'string' ? body.mealFocus.trim().toLowerCase() : undefined);
     const res = await generateMealPlan({
       supabase,
       userId,

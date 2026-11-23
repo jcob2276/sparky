@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, startTransition } from 'react';
 import { ChefHat } from 'lucide-react';
 import Button from '../../ui/Button';
 import Sheet from '../../ui/Sheet';
+import Tabs from '../../ui/Tabs';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -45,23 +46,35 @@ interface ModalsProps {
 }
 
 function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry, onCloseEdit, copyDayOpen, onCloseCopyDay, onSaved }: ModalsProps) {
+  const [plannerScope, setPlannerScope] = useState<'today' | 'week'>('today');
   return (
     <>
       {plannerOpen && c.userId && (
         <Sheet
           open={plannerOpen}
           onOpenChange={(open) => { if (!open) onClosePlanner(); }}
-          title="Posiłki na dziś"
+          title={plannerScope === 'week' ? 'Posiłki na tydzień' : 'Posiłki na dziś'}
           side="bottom"
           compact
           handleDragOnly
         >
           <div className="pb-2">
+            <Tabs
+              className="mb-3"
+              tabs={[{ key: 'today', label: 'Dziś' }, { key: 'week', label: 'Cały tydzień' }]}
+              active={plannerScope}
+              onChange={(key) => setPlannerScope(key === 'week' ? 'week' : 'today')}
+            />
             <Suspense fallback={<p role="status" className="py-8 text-center text-xs text-text-muted">Wczytuję planer…</p>}>
-              <MealPlanner key={c.mealType} userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
-                targetProtein={c.totals.targetProtein} mealFocus={c.mealType} logged={{
-                  calories: c.totals.calories, protein: c.totals.protein, carbs: macros.carbs, fat: macros.fat,
-                }} />
+              {plannerScope === 'week' ? (
+                <MealPlanner key="week" userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
+                  targetProtein={c.totals.targetProtein} />
+              ) : (
+                <MealPlanner key={`today:${c.mealType}`} userId={c.userId} date={c.today} targetKcal={c.totals.targetKcal}
+                  targetProtein={c.totals.targetProtein} mealFocus={c.mealType} logged={{
+                    calories: c.totals.calories, protein: c.totals.protein, carbs: macros.carbs, fat: macros.fat,
+                  }} />
+              )}
             </Suspense>
           </div>
         </Sheet>
