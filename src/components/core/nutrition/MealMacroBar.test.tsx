@@ -23,4 +23,13 @@ describe('MealMacroBar', () => {
     expect(items[3]).toHaveAttribute('data-macro', 'carbs');
     expect(screen.queryByText(/brak danych kcal/)).not.toBeInTheDocument();
   });
+
+  it('highlights fat above the personal target', () => {
+    render(<MealMacroBar calories={1600} targetKcal={2250} protein={75} targetProtein={170} targetFat={50} targetCarbs={280} fat={69} carbs={183} />);
+    const items = screen.getAllByRole('listitem');
+    expect(items[2]).toHaveTextContent('69 / 50 g');
+    expect(items[2].querySelector('.text-warning')).not.toBeNull();
+    expect(items[3]).toHaveTextContent('183 / 280 g');
+    expect(items[3].querySelector('.text-warning')).toBeNull();
+  });
 });

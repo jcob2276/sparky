@@ -1,6 +1,7 @@
 import { MIN_FULL_DAY_KCAL } from '@vanguard/domain';
 import { shiftDateStr } from '../date';
 import type { NutritionDayCompleteness } from './nutritionTracker';
+import type { WeekMacros } from './weekMacros';
 
 export interface WeekBalance {
   /** Suma zjedzonych kcal od poniedziałku do dziś (włącznie). */
@@ -17,6 +18,8 @@ export interface WeekBalance {
   partialDays: number;
   /** Czy „zostało do zjedzenia” opiera się na pełnych danych; gdy nie, to tylko orientacja. */
   binding: boolean;
+  /** Tygodniowy bilans białka, tłuszczu i węgli (gdy znane są cele makro). */
+  macros?: WeekMacros;
 }
 
 interface Input {

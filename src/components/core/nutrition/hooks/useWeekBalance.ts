@@ -3,6 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { getTodayWarsaw, getWeekStartWarsaw } from '../../../../lib/date';
 import { computeWeekBalance, type WeekBalance } from '../../../../lib/health/weekBalance';
 import { fetchWeekBalanceRows } from '../../../../lib/health/weekBalanceApi';
+import { computeWeekMacros, type DayMacros } from '../../../../lib/health/weekMacros';
+
+/** Makra wybranego dnia na żywo z kompozytora oraz cele dnia używane, gdy tydzień nie ma zapisanych celów. */
+export interface LiveMacros { eaten: DayMacros; targets: DayMacros }
 
 /**
  * Bilans tygodnia pon–nd dla dnia, który właśnie logujesz. Kcal wybranego dnia bierze na żywo
@@ -13,8 +17,12 @@ export function useWeekBalance(
   logDate: string,
   liveCalories: number,
   fallbackTarget: number | null,
+  live?: LiveMacros,
 ): WeekBalance | null {
   const weekStart = getWeekStartWarsaw(logDate);
+  const hasLive = live != null;
+  const eatenProtein = live?.eaten.protein, eatenFat = live?.eaten.fat, eatenCarbs = live?.eaten.carbs;
+  const targetProtein = live?.targets.protein, targetFat = live?.targets.fat, targetCarbs = live?.targets.carbs;
   const { data } = useQuery({
     queryKey: ['week-balance', userId ?? '', weekStart],
     queryFn: () => fetchWeekBalanceRows(userId!, weekStart),
@@ -25,7 +33,7 @@ export function useWeekBalance(
 
   return useMemo(() => {
     if (!data) return null;
-    return computeWeekBalance({
+    const balance = computeWeekBalance({
       weekStart,
       today: getTodayWarsaw(),
       eatenByDate: { ...data.eatenByDate, [logDate]: liveCalories },
@@ -33,5 +41,14 @@ export function useWeekBalance(
       completenessByDate: data.completenessByDate,
       fallbackTarget,
     });
-  }, [data, weekStart, logDate, liveCalories, fallbackTarget]);
+    if (!balance) return null;
+    const macros = computeWeekMacros({
+      weekStart,
+      today: getTodayWarsaw(),
+      eatenByDate: { ...data.eatenMacrosByDate, ...(hasLive ? { [logDate]: { protein: eatenProtein, fat: eatenFat, carbs: eatenCarbs } } : {}) },
+      targetByDate: data.targetMacrosByDate,
+      fallback: { protein: targetProtein, fat: targetFat, carbs: targetCarbs },
+    });
+    return Object.keys(macros).length ? { ...balance, macros } : balance;
+  }, [data, weekStart, logDate, liveCalories, fallbackTarget, hasLive, eatenProtein, eatenFat, eatenCarbs, targetProtein, targetFat, targetCarbs]);
 }

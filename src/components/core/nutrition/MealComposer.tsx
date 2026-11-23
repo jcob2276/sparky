@@ -28,7 +28,10 @@ export default function MealComposer({ onSaved, refreshSignal = 0, launchAction 
   const nutrients = useMemo(() => computeDayNutrientCoverage(c.allTodayEntries), [c.allTodayEntries]);
   const energy = useMemo(() => computeDayEnergyRange(c.allTodayEntries), [c.allTodayEntries]);
   const macros = useMemo(() => sumDayMacros(c.allTodayEntries), [c.allTodayEntries]);
-  const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal);
+  const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal, {
+    eaten: { protein: c.totals.protein, fat: macros.fat ?? 0, carbs: macros.carbs ?? 0 },
+    targets: { protein: c.totals.targetProtein ?? undefined, fat: c.totals.targetFat ?? undefined, carbs: c.totals.targetCarbs ?? undefined },
+  });
   const openCapture = useEffectEvent(async (action: 'aparat' | 'skaner') => {
     if (action === 'skaner') {
       c.search.setScannerOpen(true);

@@ -35,7 +35,7 @@ export default function MealMacroBar({ calories, targetKcal, protein, targetProt
               <span className="meal-bar-fill block h-full w-full origin-left rounded-full" style={{ transform: `scaleX(${ratio})` }} />
             </span>
             <span className={`block text-2xs font-medium ${id === 'calories' ? 'text-text-muted' : 'meal-macro-label'}`}>{label}</span>
-            <span className="block text-sm font-semibold tabular-nums text-text-primary">
+            <span className={`block text-sm font-semibold tabular-nums ${id === 'fat' && value != null && target != null && value > target ? 'text-warning' : 'text-text-primary'}`}>
               {value == null ? '—' : formatDecimalPl(value)}
               <span className="text-2xs font-normal text-text-muted"> / {target == null ? '—' : formatDecimalPl(Math.round(target))}{unit}</span>
             </span>

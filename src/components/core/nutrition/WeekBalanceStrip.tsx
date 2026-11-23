@@ -27,6 +27,16 @@ export default function WeekBalanceStrip({ week }: { week: WeekBalance }) {
           <> · ok. <span className="font-semibold tabular-nums text-text-primary">{fmt(week.perDayLeft)}</span>/dzień przez {week.daysLeft} {week.daysLeft === 1 ? 'dzień' : 'dni'}</>
         )}
       </p>
+      {week.macros && (
+        <p className="flex flex-wrap gap-x-3 text-2xs font-semibold tabular-nums text-text-muted" aria-label="Makra tygodnia">
+          {([['protein', 'B'], ['fat', 'T'], ['carbs', 'W']] as const).flatMap(([key, label]) => {
+            const macro = week.macros?.[key];
+            if (!macro) return [];
+            const warn = key === 'fat' && macro.overPace;
+            return [<span key={key} className={warn ? 'text-warning' : undefined}>{label} {fmt(macro.eaten)} / {fmt(macro.budget)} g{warn ? ' · ponad plan' : ''}</span>];
+          })}
+        </p>
+      )}
       {week.missingDays > 0 && (
         <p className="text-2xs font-semibold text-warning">
           Brak wpisów z {week.missingDays} {week.missingDays === 1 ? 'dnia' : 'dni'}: realnie zostało mniej.
