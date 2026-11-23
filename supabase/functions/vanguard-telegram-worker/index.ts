@@ -17,6 +17,16 @@ import { logCriticalError } from "../_shared/errorLogging.ts";
 // Same "always 200" design as vanguard-outbox-sender — the async DB trigger must not see
 // a non-2xx or it retries indefinitely. Errors are caught, logged, and swallowed here.
 Deno.serve(serveJson(async (req, ctx) => {
+  const isArchiveSecret = req.headers.get("x-archive-secret") === Deno.env.get("ARCHIVE_SECRET");
+  const authHeader = req.headers.get("Authorization") || "";
+  const apiKey = req.headers.get("apikey") || "";
+  const token = (authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader) || apiKey;
+  const isServiceRole = token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!isArchiveSecret && !isServiceRole) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+
   const supabase = ctx.supabase;
   let recordId: string | null = null;
   try {
@@ -93,4 +103,4 @@ Deno.serve(serveJson(async (req, ctx) => {
 
     return "Error processed";
   }
-}, { auth: 'service' }));
+}, { auth: 'none' }));

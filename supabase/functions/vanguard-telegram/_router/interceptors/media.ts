@@ -31,6 +31,13 @@ export class TranscriptionInterceptor implements MessageInterceptor {
   async handle(ctx: MessageContext): Promise<boolean> {
     if (!ctx.isVoice) return false;
 
+    // If already transcribed (e.g. by VPS worker), pass directly through to pipeline
+    if (ctx.text && ctx.text.trim().length > 0) {
+      console.log(`[telegram] voice note ${ctx.messageId} already transcribed, continuing:`, ctx.text.slice(0, 60));
+      ctx.cleanText = ctx.text;
+      return false;
+    }
+
     await sendChatAction(ctx.telegramToken, ctx.chatId, "typing", { direct: true });
     const { setMessageReaction } = await import("../../../_shared/telegram.ts");
     await setMessageReaction(ctx.telegramToken, ctx.chatId, ctx.messageId, "👀", { direct: true });

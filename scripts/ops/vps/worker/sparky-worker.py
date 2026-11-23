@@ -6,6 +6,7 @@ Dodawanie zadania z SQL:  select pgmq.send('sparky_jobs', '{"type":"echo","paylo
 Sukces -> wiadomosc trafia do archiwum. Blad -> wraca do kolejki po VT sekundach (ponowienie);
 po MAX_READS probach laduje w archiwum z oznaczeniem bledu (dead letter), bez petli w nieskonczonosc.
 """
+import base64
 import json
 import logging
 import os
@@ -15,6 +16,7 @@ import sqlite3
 import time
 import urllib.error
 import urllib.request
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import psycopg
@@ -162,6 +164,225 @@ def h_archive_oura_hr(payload):
 def h_fetch_prices(payload):
     from finance_prices import fetch_prices
     return fetch_prices(payload, DSN)
+
+
+def post_multipart(url, fields, files, headers=None, timeout=120):
+    boundary = f"----FormBoundary{uuid.uuid4().hex}"
+    body = bytearray()
+    for k, v in fields.items():
+        body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode())
+    for name, (fname, data, mime) in files.items():
+        body.extend(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"; filename=\"{fname}\"\r\nContent-Type: {mime}\r\n\r\n".encode())
+        body.extend(data)
+        body.extend(b"\r\n")
+    body.extend(f"--{boundary}--\r\n".encode())
+    req_headers = {"Content-Type": f"multipart/form-data; boundary={boundary}"}
+    if headers:
+        req_headers.update(headers)
+    req = urllib.request.Request(url, data=bytes(body), headers=req_headers, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def transcribe_groq(audio_bytes, filename, api_key):
+    url = "https://api.groq.com/openai/v1/audio/transcriptions"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    fields = {
+        "model": "whisper-large-v3-turbo",
+        "language": "pl",
+        "response_format": "json"
+    }
+    files = {"file": (filename, audio_bytes, "audio/ogg")}
+    res = post_multipart(url, fields, files, headers=headers, timeout=60)
+    return res.get("text", "").strip()
+
+
+def transcribe_gemini(audio_bytes, mime_type, api_key):
+    b64 = base64.b64encode(audio_bytes).decode("ascii")
+    prompt = (
+        "Dokonaj wiernej, dokładnej transkrypcji mowy z tego nagrania audio na tekst w języku polskim. "
+        "Zwróć wyłącznie sam tekst wypowiedzi, bez żadnych wstępów, cudzysłowów ani komentarzy. "
+        "Jeśli nagranie zawiera tylko ciszę lub szum, zwróć pusty ciąg znaków."
+    )
+    models = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-transcribe"]
+    last_err = None
+    for model in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        payload = json.dumps({
+            "contents": [{
+                "parts": [
+                    {"inlineData": {"mimeType": mime_type, "data": b64}},
+                    {"text": prompt}
+                ]
+            }]
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=90) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                candidates = data.get("candidates") or []
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    text = " ".join(p.get("text", "").strip() for p in parts if p.get("text")).strip()
+                    if text:
+                        return text
+        except Exception as e:
+            log.warning("Gemini %s failed: %s", model, e)
+            last_err = e
+    raise RuntimeError(f"Wszystkie modele Gemini zawiodły: {last_err}")
+
+
+@handler("transcribe_telegram_voice")
+def h_transcribe_telegram_voice(payload):
+    """Transkrybuje głosówkę z Telegrama na VPS bez limitów Edge Function.
+    
+    1. Pobiera rekord z vanguard_telegram_inbox.
+    2. Pobiera plik audio z Telegram Bot API.
+    3. Transkrybuje przez Gemini Audio API (lub Groq Whisper fallback).
+    4. Aktualizuje treść w vanguard_telegram_inbox.
+    5. Wywołuje vanguard-telegram-worker, aby dokończyć logikę biznesową (zapis do bazy, Wyrocznia).
+    """
+    inbox_id = str(payload.get("inbox_id", ""))
+    if not UUID_RE.fullmatch(inbox_id):
+        raise ValueError(f"niepoprawny inbox_id: {inbox_id}")
+
+    with psycopg.connect(DSN, autocommit=True, row_factory=dict_row) as conn:
+        row = conn.execute(
+            "SELECT id, payload, status FROM vanguard_telegram_inbox WHERE id = %s",
+            (inbox_id,)
+        ).fetchone()
+        if not row:
+            log.error("Nie znaleziono rekordu inbox_id=%s", inbox_id)
+            return {"error": "inbox_id not found"}
+        if row["status"] == "completed":
+            log.info("Rekord inbox_id=%s już ukończony, pomijam", inbox_id)
+            return {"status": "already_completed"}
+
+        conn.execute(
+            "UPDATE vanguard_telegram_inbox SET status = 'processing', updated_at = now() WHERE id = %s",
+            (inbox_id,)
+        )
+
+    tokens = call_archive_function("sync", {"service": "worker-voice-tokens"})
+    gemini_key = tokens.get("geminiApiKey", "")
+    tg_token = tokens.get("telegramBotToken", "")
+    groq_key = tokens.get("groqApiKey", "")
+
+    if not tg_token:
+        raise RuntimeError("Brak telegramBotToken")
+
+    inbox_payload = row["payload"] or {}
+    msg = inbox_payload.get("message") or {}
+    voice = msg.get("voice") or msg.get("audio") or {}
+    file_id = voice.get("file_id")
+    chat_id = msg.get("chat", {}).get("id")
+    message_id = msg.get("message_id")
+
+    if not file_id:
+        raise ValueError("Brak file_id w wiadomości głosowej")
+
+    # Send typing status to Telegram so user knows work is in progress
+    if chat_id:
+        try:
+            req = urllib.request.Request(
+                f"https://api.telegram.org/bot{tg_token}/sendChatAction",
+                data=json.dumps({"chat_id": chat_id, "action": "typing"}).encode(),
+                headers={"Content-Type": "application/json"}
+            )
+            urllib.request.urlopen(req, timeout=5)
+        except Exception as e:
+            log.warning("Nie udało się wysłać typing: %s", e)
+
+    # 1. Fetch file path from Telegram API
+    get_file_req = urllib.request.Request(
+        f"https://api.telegram.org/bot{tg_token}/getFile?file_id={file_id}"
+    )
+    with urllib.request.urlopen(get_file_req, timeout=20) as resp:
+        file_info = json.loads(resp.read().decode())
+    if not file_info.get("ok"):
+        raise RuntimeError(f"Błąd Telegram getFile: {file_info}")
+
+    file_path = file_info["result"]["file_path"]
+    download_url = f"https://api.telegram.org/file/bot{tg_token}/{file_path}"
+
+    # 2. Download audio stream
+    with urllib.request.urlopen(download_url, timeout=90) as resp:
+        audio_bytes = resp.read()
+
+    log.info("Pobrano plik audio %s (%s bajtów) dla inbox_id=%s", file_path, len(audio_bytes), inbox_id)
+
+    ext = file_path.split(".")[-1].lower() if "." in file_path else "ogg"
+    if ext in ("oga", "opus"):
+        ext = "ogg"
+    mime = "audio/ogg" if ext == "ogg" else "audio/mpeg" if ext == "mp3" else "audio/mp4" if ext == "m4a" else "audio/ogg"
+    filename = f"voice.{ext}"
+
+    # 3. Transcribe with Gemini (primary), Groq Whisper fallback
+    transcription = ""
+    err_msg = ""
+    if gemini_key:
+        try:
+            log.info("Rozpoczynam transkrypcję audio przez Gemini...")
+            transcription = transcribe_gemini(audio_bytes, mime, gemini_key)
+            log.info("Transkrypcja Gemini zakończona sukcesem (%s znaków)", len(transcription))
+        except Exception as e:
+            log.error("Gemini transkrypcja nie powiodła się: %s", e)
+            err_msg = str(e)
+
+    if not transcription and groq_key:
+        try:
+            log.info("Próba transkrypcji przez Groq Whisper (%s)...", filename)
+            transcription = transcribe_groq(audio_bytes, filename, groq_key)
+            log.info("Transkrypcja Groq zakończona sukcesem (%s znaków)", len(transcription))
+        except Exception as e:
+            log.error("Groq transkrypcja nie powiodła się: %s", e)
+            err_msg += f" | Groq: {e}"
+
+    if not transcription:
+        with psycopg.connect(DSN, autocommit=True, row_factory=dict_row) as conn:
+            conn.execute(
+                "UPDATE vanguard_telegram_inbox SET status = 'failed', error_log = %s, updated_at = now() WHERE id = %s",
+                (f"Transcription failure: {err_msg}", inbox_id)
+            )
+        raise RuntimeError(f"Błąd transkrypcji audio: {err_msg}")
+
+    # 4. Save transcribed text into payload
+    inbox_payload["message"]["text"] = transcription
+    with psycopg.connect(DSN, autocommit=True, row_factory=dict_row) as conn:
+        conn.execute(
+            "UPDATE vanguard_telegram_inbox SET payload = %s WHERE id = %s",
+            (json.dumps(inbox_payload), inbox_id)
+        )
+        updated_row = conn.execute(
+            "SELECT * FROM vanguard_telegram_inbox WHERE id = %s",
+            (inbox_id,)
+        ).fetchone()
+
+    # 5. Hand off to vanguard-telegram-worker to process downstream logic (Oracle, stream, notes)
+    log.info("Przekazywanie do vanguard-telegram-worker (inbox_id=%s)...", inbox_id)
+    worker_url = f"{SUPABASE_URL}/functions/v1/vanguard-telegram-worker"
+    worker_body = json.dumps({"record": dict(updated_row)}, default=str).encode("utf-8")
+    
+    service_role_key = tokens.get("serviceRoleKey", "") or FUNCTION_KEY
+    worker_headers = {
+        "Content-Type": "application/json",
+        "x-archive-secret": ARCHIVE_SECRET,
+    }
+    if service_role_key:
+        worker_headers["apikey"] = service_role_key
+        worker_headers["Authorization"] = f"Bearer {service_role_key}"
+
+    req = urllib.request.Request(
+        worker_url,
+        data=worker_body,
+        headers=worker_headers,
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        resp_data = resp.read().decode("utf-8", errors="replace")
+        log.info("vanguard-telegram-worker odpowiedział: %s", resp_data[:200])
+
+    return {"status": "ok", "transcription": transcription[:100], "len": len(transcription)}
 
 
 def process(conn, msg):

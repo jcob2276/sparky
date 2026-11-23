@@ -62,6 +62,22 @@ export async function handleCallbackQuery(
     return;
   }
 
+  if (data.startsWith("retry_inbox:")) {
+    const targetId = data.slice("retry_inbox:".length).trim();
+    const { answerCallbackQuery, editMessageText } = await import("../../_shared/infra/telegram/send.ts");
+    await answerCallbackQuery(telegramToken, callbackId, { text: "⏳ Przekazano do transkrypcji na VPS..." });
+    await editMessageText(telegramToken, chatId, messageId, "🔄 Przekazano głosówkę do kolejki VPS (brak limitu czasu).");
+
+    const { error: rpcErr } = await supabase.rpc("enqueue_sparky_job", {
+      p_type: "transcribe_telegram_voice",
+      p_payload: { inbox_id: targetId },
+    });
+    if (rpcErr) {
+      console.error("[callbacks] failed to enqueue retry_inbox:", rpcErr);
+    }
+    return;
+  }
+
   if (data.startsWith("contract_")) {
     const { answerCallbackQuery, editMessageText } = await import("../../_shared/infra/telegram/send.ts");
     if (data === "contract_done") {
