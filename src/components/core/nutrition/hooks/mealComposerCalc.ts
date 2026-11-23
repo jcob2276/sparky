@@ -20,6 +20,8 @@ export function computeComposerTotals(ctx: NutritionDayContext | undefined, entr
     protein: liveProtein,
     targetKcal: ctx?.targetKcal ?? null,
     targetProtein: ctx?.targetProtein ?? null,
+    targetFat: ctx?.targetFat ?? null,
+    targetCarbs: ctx?.targetCarbs ?? null,
     avgFoodQuality: ctx?.avgFoodQuality ?? null,
     foodQualityAnalysis: ctx?.foodQualityAnalysis ?? null,
   };

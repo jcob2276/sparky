@@ -95,7 +95,7 @@ export async function fetchHealthCoachContext(input: {
     daily_food_entries: 'id,date,name,brand,amount,meal_type,calories,protein,carbs,fat,fiber,sugar,saturated_fat,insulin_load,food_quality_score,quality_reason,parse_meta,created_at',
     nutrition_day_reviews: 'date,completeness,confirmed_at',
     body_metrics: 'id,date,weight,waist,belly,body_fat,neck,created_at',
-    nutrition_profile: 'height_cm,birth_date,sex,goal_body_fat,current_body_fat_est,goal_target_date,protein_g_per_kg,weekly_loss_kg,event_name,event_date,philosophy_note,sleep_target_hours,updated_at',
+    nutrition_profile: 'height_cm,birth_date,sex,goal_body_fat,current_body_fat_est,goal_target_date,protein_g_per_kg,weekly_loss_kg,event_name,event_date,philosophy_note,sleep_target_hours,fixed_kcal,fixed_protein_g,fixed_fat_g,updated_at',
     goal_kpis: 'id,name,unit,target,project_id,goal_id,higher_is_better,measurement_spec,revision,created_at',
     vanguard_preferences: 'id,key,value,updated_at',
     vanguard_stream: 'id,content,source,category,timestamp',

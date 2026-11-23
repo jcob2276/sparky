@@ -12,6 +12,9 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   date: string;
   carbs: number;
   fat: number;
+  /** Własny cel makro z nutrition_targets (null, gdy go nie ustawiono). */
+  targetFat?: number | null;
+  targetCarbs?: number | null;
   lastMealAt?: string | null;
   lastCaffeineAt?: string | null;
   caffeineMg?: number | null;
@@ -206,6 +209,8 @@ export async function fetchNutritionDayContext(
     caffeineMg: caffeineEntries.length > 0 ? caffeineMg : null,
     targetKcal: effectiveTarget?.target_kcal ?? null,
     targetProtein: effectiveTarget?.protein_floor_g ?? null,
+    targetFat: effectiveTarget?.target_fat_g ?? null,
+    targetCarbs: effectiveTarget?.target_carbs_g ?? null,
     avgFoodQuality: dayRow.data?.avg_food_quality ?? null,
     foodQualityAnalysis: dayRow.data?.food_quality_analysis ?? null,
     addBackKcal,

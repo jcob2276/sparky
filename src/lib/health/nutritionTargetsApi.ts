@@ -8,7 +8,7 @@ import { getTodayWarsaw } from '../date';
 export async function fetchNutritionTargetForDay(userId: string, date: string = getTodayWarsaw()) {
   const { data, error } = await supabase
     .from('nutrition_targets')
-    .select('date, target_kcal, protein_floor_g')
+    .select('date, target_kcal, protein_floor_g, target_fat_g, target_carbs_g')
     .eq('user_id', userId)
     .lte('date', date)
     .order('date', { ascending: false })

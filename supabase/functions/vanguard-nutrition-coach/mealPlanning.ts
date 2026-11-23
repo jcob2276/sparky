@@ -21,7 +21,7 @@ const MEAL_FOCUS_LABELS: Record<string, string> = {
 export interface GenerateMealPlanInput {
   date: string;
   requestKey:string;
-  targets: Array<{ date: string; calories: number; protein: number }>;
+  targets: Array<{ date: string; calories: number; protein: number; fat?: number; carbs?: number }>;
   trainingContext?:string;
   remainingToday?:boolean;
   mealFocus?:string;
@@ -82,7 +82,7 @@ export async function generateMealPlan(params: {
   ).join('\n');
 
   const targetsSummary = input.targets.map(t =>
-    `Data: ${t.date} | Cel: ${t.calories} kcal, min. ${t.protein}g białka`
+    `Data: ${t.date} | Cel: ${t.calories} kcal, min. ${t.protein}g białka${t.fat != null && t.carbs != null ? `, tłuszcz do ${t.fat}g (nie przekraczaj o więcej niż 15%), węglowodany ok. ${t.carbs}g` : ''}`
   ).join('\n');
   const mealFocus = typeof input.mealFocus === 'string' ? input.mealFocus.trim().toLowerCase() : '';
   const mealFocusLabel = MEAL_FOCUS_LABELS[mealFocus];

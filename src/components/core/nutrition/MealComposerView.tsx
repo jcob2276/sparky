@@ -103,6 +103,7 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
         <MealMacroBar
           calories={hasCalories ? c.totals.calories : null} targetKcal={c.totals.targetKcal}
           protein={c.allTodayEntries.some((entry) => entry.protein != null) || c.totals.protein > 0 ? c.totals.protein : null} targetProtein={c.totals.targetProtein}
+          targetFat={c.totals.targetFat} targetCarbs={c.totals.targetCarbs}
           fat={macros.fat}
           carbs={macros.carbs}
         />

@@ -5,16 +5,19 @@ interface Props {
   targetKcal: number | null;
   protein: number | null;
   targetProtein: number | null;
+  /** Własny cel makro (nutrition_targets); bez niego tłuszcz i węgle są szacowane z kcal. */
+  targetFat?: number | null;
+  targetCarbs?: number | null;
   fat: number | null;
   carbs: number | null;
 }
 
 /** Stałe podsumowanie wybranego dnia. Cele pokazujemy tylko wtedy, gdy je zapisano. */
-export default function MealMacroBar({ calories, targetKcal, protein, targetProtein, fat, carbs }: Props) {
-  // Cele tłuszczu i węgli są orientacyjne: tłuszcz = 30% kcal, węgle = reszta kcal po białku i tłuszczu.
-  const fatTarget = targetKcal != null && targetKcal > 0 ? (targetKcal * 0.3) / 9 : null;
-  const carbsTarget = targetKcal != null && targetKcal > 0 && targetProtein != null && fatTarget != null
-    ? Math.max(0, (targetKcal - targetProtein * 4 - fatTarget * 9) / 4) : null;
+export default function MealMacroBar({ calories, targetKcal, protein, targetProtein, targetFat, targetCarbs, fat, carbs }: Props) {
+  // Bez własnego celu makro: tłuszcz = 30% kcal, węgle = reszta kcal po białku i tłuszczu.
+  const fatTarget = targetFat ?? (targetKcal != null && targetKcal > 0 ? (targetKcal * 0.3) / 9 : null);
+  const carbsTarget = targetCarbs ?? (targetKcal != null && targetKcal > 0 && targetProtein != null && fatTarget != null
+    ? Math.max(0, (targetKcal - targetProtein * 4 - fatTarget * 9) / 4) : null);
   const metrics = [
     { id: 'calories', label: 'Kcal', value: calories, target: targetKcal, unit: '', barTarget: targetKcal },
     { id: 'protein', label: 'Białko', value: protein, target: targetProtein, unit: ' g', barTarget: targetProtein },

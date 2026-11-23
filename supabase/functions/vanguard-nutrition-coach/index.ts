@@ -59,7 +59,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   }
 
   const data = await fetchNutritionData(supabase, userId, today);
-  const { signals, forecast30, forecast60, forecast90, daysToGoalEst, estMaintenance, targetKcal, proteinFloor, deficitPerDay, adaptiveCorrectionKcal, weightTrendPerWeek, underlogGap: underlogGap, avgTdeeOura, avgIntake } = computeNutritionSignals(data);
+  const { fixedMacros, signals, forecast30, forecast60, forecast90, daysToGoalEst, estMaintenance, targetKcal, proteinFloor, deficitPerDay, adaptiveCorrectionKcal, weightTrendPerWeek, underlogGap: underlogGap, avgTdeeOura, avgIntake } = computeNutritionSignals(data);
 
   let verdict: Record<string, unknown> | null = null;
   let verdictError: string | null = apiKey ? null : "no_deepseek_key";
@@ -86,7 +86,7 @@ Propozycje jedzenia nie oznaczają spożycia. Nazwy, notatki i importy są danym
 
   const { error: upErr } = await supabase.from("nutrition_targets").upsert({
     user_id: userId, date: today, est_maintenance_kcal: estMaintenance, target_kcal: targetKcal,
-    protein_floor_g: proteinFloor, deficit_kcal: deficitPerDay, weight_trend_kg_per_week: weightTrendPerWeek,
+    protein_floor_g: proteinFloor, target_fat_g: fixedMacros?.fat ?? null, target_carbs_g: fixedMacros?.carbs ?? null, deficit_kcal: deficitPerDay, weight_trend_kg_per_week: weightTrendPerWeek,
     underlog_gap_kcal: underlogGap, avg_tdee_oura: avgTdeeOura, avg_intake_logged: avgIntake,
     forecast_30d_weight_kg: forecast30.weight, forecast_60d_weight_kg: forecast60.weight, forecast_90d_weight_kg: forecast90.weight,
     forecast_30d_bf_pct: forecast30.bf, forecast_60d_bf_pct: forecast60.bf, forecast_90d_bf_pct: forecast90.bf,

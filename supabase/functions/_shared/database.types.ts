@@ -4317,6 +4317,9 @@ export type Database = {
           current_body_fat_est: number | null
           event_date: string | null
           event_name: string | null
+          fixed_fat_g: number | null
+          fixed_kcal: number | null
+          fixed_protein_g: number | null
           goal_body_fat: number | null
           goal_target_date: string | null
           height_cm: number | null
@@ -4333,6 +4336,9 @@ export type Database = {
           current_body_fat_est?: number | null
           event_date?: string | null
           event_name?: string | null
+          fixed_fat_g?: number | null
+          fixed_kcal?: number | null
+          fixed_protein_g?: number | null
           goal_body_fat?: number | null
           goal_target_date?: string | null
           height_cm?: number | null
@@ -4349,6 +4355,9 @@ export type Database = {
           current_body_fat_est?: number | null
           event_date?: string | null
           event_name?: string | null
+          fixed_fat_g?: number | null
+          fixed_kcal?: number | null
+          fixed_protein_g?: number | null
           goal_body_fat?: number | null
           goal_target_date?: string | null
           height_cm?: number | null
@@ -4382,6 +4391,8 @@ export type Database = {
           inputs: Json | null
           meal_plan: Json | null
           protein_floor_g: number | null
+          target_carbs_g: number | null
+          target_fat_g: number | null
           target_kcal: number | null
           underlog_gap_kcal: number | null
           updated_at: string
@@ -4408,6 +4419,8 @@ export type Database = {
           inputs?: Json | null
           meal_plan?: Json | null
           protein_floor_g?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
           target_kcal?: number | null
           underlog_gap_kcal?: number | null
           updated_at?: string
@@ -4434,6 +4447,8 @@ export type Database = {
           inputs?: Json | null
           meal_plan?: Json | null
           protein_floor_g?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
           target_kcal?: number | null
           underlog_gap_kcal?: number | null
           updated_at?: string
@@ -6370,6 +6385,51 @@ export type Database = {
         }
         Relationships: []
       }
+      vanguard_context_caches: {
+        Row: {
+          cache_name: string
+          created_at: string
+          expires_at: string
+          id: string
+          metadata: Json
+          model_name: string
+          status: string
+          token_count: number
+          updated_at: string
+          user_id: string | null
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          cache_name: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          metadata?: Json
+          model_name: string
+          status?: string
+          token_count?: number
+          updated_at?: string
+          user_id?: string | null
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          cache_name?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json
+          model_name?: string
+          status?: string
+          token_count?: number
+          updated_at?: string
+          user_id?: string | null
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       vanguard_core_memory_revisions: {
         Row: {
           changed_at: string
@@ -6408,6 +6468,39 @@ export type Database = {
           old_value?: string | null
           operation?: string
           preference_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vanguard_curation_reports: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          mode: string
+          model_name: string | null
+          summary: Json
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind: string
+          mode?: string
+          model_name?: string | null
+          summary?: Json
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          mode?: string
+          model_name?: string | null
+          summary?: Json
           user_id?: string
         }
         Relationships: []
@@ -6514,6 +6607,42 @@ export type Database = {
           strava_activities_json?: Json | null
           temp_deviation?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      vanguard_dossiers: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          kind: string
+          model_name: string
+          source_chars: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          kind?: string
+          model_name: string
+          source_chars?: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          model_name?: string
+          source_chars?: number
+          user_id?: string
+          window_end?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -7393,6 +7522,7 @@ export type Database = {
           payload: Json
           status: string
           updated_at: string | null
+          worker_type: string | null
         }
         Insert: {
           created_at?: string | null
@@ -7401,6 +7531,7 @@ export type Database = {
           payload: Json
           status?: string
           updated_at?: string | null
+          worker_type?: string | null
         }
         Update: {
           created_at?: string | null
@@ -7409,6 +7540,7 @@ export type Database = {
           payload?: Json
           status?: string
           updated_at?: string | null
+          worker_type?: string | null
         }
         Relationships: []
       }
@@ -8453,6 +8585,10 @@ export type Database = {
         Args: { p_owner: string; p_payload: Json; p_request_key: string }
         Returns: string
       }
+      enqueue_sparky_job: {
+        Args: { p_payload: Json; p_type: string }
+        Returns: number
+      }
       ensure_food_library: {
         Args: { p_default_grams: number; p_food: Json; p_user_id: string }
         Returns: string
@@ -8623,6 +8759,16 @@ export type Database = {
         }[]
       }
       oracle_readonly_query: { Args: { query_text: string }; Returns: Json }
+      push_reminder_snapshot: {
+        Args: {
+          p_meeting_from: string
+          p_meeting_to: string
+          p_now: string
+          p_sweep_before: string
+          p_today_start: string
+        }
+        Returns: Json
+      }
       record_finance_holding_purchase: {
         Args: {
           p_account_id?: string
@@ -8871,6 +9017,7 @@ export type Database = {
         Returns: undefined
       }
       vanguard_graph_cleanup: { Args: never; Returns: undefined }
+      vanguard_inbox_watchdog: { Args: never; Returns: number }
       vanguard_stream_origin: { Args: { src: string }; Returns: string }
       week_facts: {
         Args: { p_user: string; p_week_start: string }

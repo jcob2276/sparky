@@ -12,11 +12,14 @@ export function buildMealPlanTargets(data:Parameters<typeof computeNutritionSign
     const calories=remainingGoals?.calories ?? nutrition.targetKcal;
     const protein=remainingGoals?.protein ?? nutrition.proteinFloor;
     if(calories == null || protein == null) throw new HttpError(400,'Najpierw uzupełnij aktualny pomiar masy i dane do oszacowania energii.');
-    if (!remainingGoals) return {date,calories,protein};
+    const fixed=nutrition.fixedMacros;
+    if (!remainingGoals) return fixed?{date,calories,protein,fat:fixed.fat,carbs:fixed.carbs}:{date,calories,protein};
     const remainingCalories = Math.round(calories - Math.max(0, Number(data.todayNutr?.calories) || 0));
     const remainingProtein = Math.max(0, Math.round((protein - Math.max(0, Number(data.todayNutr?.protein) || 0)) * 10) / 10);
     if (remainingCalories <= 0) throw new HttpError(400,'Dzisiejszy cel kalorii został już osiągnięty. Brak pozostałego budżetu do zaplanowania.');
-    return {date,calories:remainingCalories,protein:remainingProtein};
+    const left=(goal:number|undefined,eaten:unknown)=>goal==null?undefined:Math.max(0,Math.round(goal-Math.max(0,Number(eaten)||0)));
+    const fat=left(fixed?.fat,data.todayNutr?.fat),carbs=left(fixed?.carbs,data.todayNutr?.carbs);
+    return fat==null||carbs==null?{date,calories:remainingCalories,protein:remainingProtein}:{date,calories:remainingCalories,protein:remainingProtein,fat,carbs};
   });
   const sessions=(data.context?.sources.training_plan_workouts.value ?? []).filter(row=>String(row.planned_date)>=startDate && String(row.planned_date)<=targets.at(-1)!.date && !row.skipped_at);
   return {targets,trainingContext:JSON.stringify({asOf:data.context?.asOf ?? data.today,futureRecovery:'unknown',sessions,

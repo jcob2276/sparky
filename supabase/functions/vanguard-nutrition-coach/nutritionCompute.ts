@@ -1,7 +1,7 @@
 import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts";
 import { fetchMedicalContext } from "../_shared/medicalContext.ts";
 import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
-import { shiftDateStr, calibrateNutrition, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
+import { shiftDateStr, calibrateNutrition, resolveFixedMacros, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {HttpError} from '../_shared/http.ts';
 
@@ -73,11 +73,14 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
   const inTaper = false;
   const declaredLoss = num(profile.weekly_loss_kg);
   const targetWeeklyLossKg = declaredLoss != null && declaredLoss >= 0 && declaredLoss <= 1 ? declaredLoss : null;
-  const deficitPerDay = recoveryHold || keyTrainingDay ? 0 : targetWeeklyLossKg == null ? null : Math.round(targetWeeklyLossKg*KCAL_PER_KG/7);
+  const fixedMacros = resolveFixedMacros(profile);
+  const computedDeficit = recoveryHold || keyTrainingDay ? 0 : targetWeeklyLossKg == null ? null : Math.round(targetWeeklyLossKg*KCAL_PER_KG/7);
+  // Stały cel makro użytkownika zastępuje deficyt wyliczony z trendu masy.
+  const deficitPerDay = fixedMacros && estMaintenance != null ? estMaintenance-fixedMacros.kcal : computedDeficit;
   // No automatic calorie correction from incomplete logs or partial-day watch calories.
   const adaptiveCorrectionKcal = 0, addBack = 0, underlogGap = null;
-  const targetKcal = estMaintenance != null && (deficitPerDay ?? 0)<estMaintenance ? estMaintenance-(deficitPerDay ?? 0) : null;
-  const proteinFloor = latestWeight == null ? null : Math.round(latestWeight*(num(profile.protein_g_per_kg) ?? 2));
+  const targetKcal = fixedMacros?.kcal ?? (estMaintenance != null && (deficitPerDay ?? 0)<estMaintenance ? estMaintenance-(deficitPerDay ?? 0) : null);
+  const proteinFloor = fixedMacros?.protein ?? (latestWeight == null ? null : Math.round(latestWeight*(num(profile.protein_g_per_kg) ?? 2)));
   const forecastAt = (days: number) => ({weight: calibration.status === 'ready' && weights.length>=4 && latestWeight != null && weightTrendPerWeek != null
     ? +(latestWeight+weightTrendPerWeek*days/7).toFixed(1) : null,bf:null});
   const forecast30 = forecastAt(30), forecast60 = forecastAt(60), forecast90 = forecastAt(90), daysToGoalEst = null;
@@ -95,5 +98,5 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
     medical_context:medicalContext,
     today:{date:today,target_kcal:targetKcal,protein_floor_g:proteinFloor,deficit_kcal:deficitPerDay,add_back_kcal:addBack,intake_so_far:intakeSoFar,protein_so_far:proteinSoFar,remaining_kcal:targetKcal == null?null:targetKcal-(intakeSoFar ?? 0),remaining_protein:proteinFloor == null?null:Math.max(0,proteinFloor-(proteinSoFar ?? 0)),active_so_far:num(todayOura?.active_calories),steps_so_far:num(todayOura?.steps),food_complete:completeDates.has(today)},
   };
-  return {signals,forecast30,forecast60,forecast90,daysToGoalEst,estMaintenance,targetKcal,proteinFloor,deficitPerDay,adaptiveCorrectionKcal,weightTrendPerWeek,underlogGap,avgTdeeOura,avgIntake};
+  return {fixedMacros,signals,forecast30,forecast60,forecast90,daysToGoalEst,estMaintenance,targetKcal,proteinFloor,deficitPerDay,adaptiveCorrectionKcal,weightTrendPerWeek,underlogGap,avgTdeeOura,avgIntake};
 }
