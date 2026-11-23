@@ -47,6 +47,7 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "vanguard-kpi-suggest",
   "vanguard-mcp-server",
   "week-insight",
+  "telegram-day-summary",
   "period-compare",
   "widget-food",
   "widget-tasks",

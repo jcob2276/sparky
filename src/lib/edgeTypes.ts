@@ -241,6 +241,13 @@ export interface ParseLabResultsResponse {
   }>;
 }
 
+interface TelegramDaySummaryResponse {
+  /** Punkty podsumowania; null, gdy tego dnia nie było wiadomości z Telegrama. */
+  bullets: string[] | null;
+  messageCount: number;
+  voiceSeconds: number;
+}
+
 export interface WeekAiInsightResponse {
   insight: {
     summary: string;
@@ -327,6 +334,7 @@ export interface EdgeFunctionResponses {
   'parse-workout-nl': ParseWorkoutNLResponse;
   'parse-todo-braindump': ParseTodoBraindumpResponse;
   'week-insight': WeekAiInsightResponse;
+  'telegram-day-summary': TelegramDaySummaryResponse;
   'period-compare': PeriodCompareResponse;
   'parse-lab-results': ParseLabResultsResponse;
   'vanguard-capture': CaptureResponse;

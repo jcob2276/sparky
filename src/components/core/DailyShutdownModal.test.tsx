@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
 
 vi.mock('./shutdown/useShutdownData', () => ({ useShutdownData: () => m.shutdown }));
 vi.mock('../shared/DailyScorePicker', () => ({ default: () => null }));
+vi.mock('./shutdown/TelegramDaySummaryCard', () => ({ default: () => null }));
 
 beforeEach(() => {
   m.shutdown = {

@@ -5811,6 +5811,36 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_day_summaries: {
+        Row: {
+          bullets: Json
+          date: string
+          generated_at: string
+          last_message_at: string
+          message_count: number
+          user_id: string
+          voice_seconds: number
+        }
+        Insert: {
+          bullets: Json
+          date: string
+          generated_at?: string
+          last_message_at: string
+          message_count: number
+          user_id: string
+          voice_seconds?: number
+        }
+        Update: {
+          bullets?: Json
+          date?: string
+          generated_at?: string
+          last_message_at?: string
+          message_count?: number
+          user_id?: string
+          voice_seconds?: number
+        }
+        Relationships: []
+      }
       todo_attachments: {
         Row: {
           created_at: string | null

@@ -9,6 +9,7 @@ import Modal from '../ui/Modal';
 import Skeleton from '../ui/Skeleton';
 import { useShutdownData } from './shutdown/useShutdownData';
 import DailyScorePicker from '../shared/DailyScorePicker';
+import TelegramDaySummaryCard from './shutdown/TelegramDaySummaryCard';
 
 interface Props {
   onClose: () => void;
@@ -90,6 +91,11 @@ export default function DailyShutdownModal({
               </label>
             ))}
           </section>
+
+          <TelegramDaySummaryCard
+            date={data.today}
+            onInsert={(text) => data.setReflectionText((current) => (current.trim() ? `${current.trim()}\n${text}` : text))}
+          />
 
           <section className="space-y-1.5">
             <label className="text-xs font-bold text-text-primary block" htmlFor="shutdown-reflection">
