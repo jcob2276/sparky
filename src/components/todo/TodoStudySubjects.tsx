@@ -5,7 +5,7 @@ import { updateTodoItem } from '../../lib/todo/todo';
 import { applyOptimisticPatch } from './todoOptimistic';
 import { confirmAndDeleteTodoItem } from './todoDeleteAction';
 import TodoCardConnected from './TodoCardConnected';
-import StudySubject from './StudySubject';
+import StudySubjectBoard, { type BoardSubject } from './StudySubjectBoard';
 import { ControlSelect } from '../ui/ControlPrimitives';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
@@ -24,30 +24,31 @@ export default function TodoStudySubjects({ items }: { items: TodoItemRow[] }) {
 
   return (
     <div onClick={event => event.stopPropagation()} className="space-y-3">
-      <p className="px-1 text-sm text-text-secondary">Rozwiń przedmiot, aby zapisać zadanie i termin.</p>
-      {subjects.map(subject => {
+      <StudySubjectBoard subjects={subjects.map((subject): BoardSubject => {
         const allAssignments = getChildren(subject.id)
           .filter(item => item.status !== 'dropped')
           .sort((a, b) => Number(a.status === 'done') - Number(b.status === 'done')
             || (a.due_date || '9999').localeCompare(b.due_date || '9999'));
+        const openAssignments = allAssignments.filter(item => item.status === 'open');
 
         // In overview dashboard, don't duplicate tasks that are already shown in "Na dziś"
-        const inTodayCount = allAssignments.filter(item => item.status === 'open' && todayIds.has(item.id)).length;
+        const inTodayCount = openAssignments.filter(item => todayIds.has(item.id)).length;
         const assignments = activeFilterSection
           ? allAssignments
           : allAssignments.filter(item => item.status === 'done' || !todayIds.has(item.id));
 
-        return (
-          <StudySubject
-            key={subject.id} title={subject.title}
-            openCount={allAssignments.filter(item => item.status === 'open').length}
-            doneCount={allAssignments.filter(item => item.status === 'done').length}
-            onSave={(title, date) => saveAssignment(subject, title, date)}
-            onRename={title => applyOptimisticPatch(setItems, subject, { title },
-              () => updateTodoItem(subject.id, { title }), setError)}
-            onDelete={() => void confirmAndDeleteTodoItem(subject, setItems, setError,
-              `Usunąć przedmiot „${subject.title}” razem z ${allAssignments.length} zadaniami? Tego nie da się cofnąć.`)}
-          >
+        return {
+          id: subject.id,
+          title: subject.title,
+          openCount: openAssignments.length,
+          doneCount: allAssignments.length - openAssignments.length,
+          nextDue: openAssignments.map(item => item.due_date).filter((date): date is string => Boolean(date)).sort()[0] ?? null,
+          onSave: (title, date) => saveAssignment(subject, title, date),
+          onRename: title => applyOptimisticPatch(setItems, subject, { title },
+            () => updateTodoItem(subject.id, { title }), setError),
+          onDelete: () => void confirmAndDeleteTodoItem(subject, setItems, setError,
+            `Usunąć przedmiot „${subject.title}” razem z ${allAssignments.length} zadaniami? Tego nie da się cofnąć.`),
+          children: (
             <div className="todo-focus-grid px-2 sm:px-3">
               {!activeFilterSection && inTodayCount > 0 && (
                 <div className="mx-1 my-1.5 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-1.5 text-2xs font-semibold text-primary">
@@ -56,9 +57,9 @@ export default function TodoStudySubjects({ items }: { items: TodoItemRow[] }) {
               )}
               {assignments.map(item => <TodoCardConnected key={item.id} item={item} />)}
             </div>
-          </StudySubject>
-        );
-      })}
+          ),
+        };
+      })} />
       <div className="todo-focus-grid">
         {otherTasks.map(item => (
           <div key={item.id}>

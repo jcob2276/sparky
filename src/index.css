@@ -3883,3 +3883,19 @@ html[data-tren-accent='stealth'] .trening-theme {
 .pb-safe-nav {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
+
+/* Tablica przedmiotów (Zadania → Studia): kafel z kolorem z nazwy przedmiotu i pierścieniem postępu. */
+.study-tile {
+  --subject-hue: 210;
+  --study-color: hsl(var(--subject-hue) 62% 52%);
+  color: var(--study-color);
+  background: color-mix(in srgb, var(--study-color) 10%, var(--surface-solid));
+  border: 1px solid color-mix(in srgb, var(--study-color) 30%, transparent);
+  border-radius: 1.25rem;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.study-tile:active { transform: scale(0.98); }
+.study-tile[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--study-color); }
+.study-panel { animation: study-panel-in 220ms ease-out; }
+@keyframes study-panel-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .study-tile, .study-panel { transition: none; animation: none; } }
