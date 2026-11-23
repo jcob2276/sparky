@@ -13,9 +13,12 @@ import {
 import { firstSuccess } from './hedgedRequest.ts'
 import { classifyMealPhotoResponse, geminiFailureReason, readGeminiText } from './visionResponse.ts'
 
-/** Limity zdjęcia: jeden model max 20 s, kolejny startuje po 12 s bez odpowiedzi (typowa odpowiedź to ok. 8–11 s, więc zapas kwoty nie jest marnowany), całość max 30 s. */
+/**
+ * Limity zdjęcia na darmowej kwocie Gemini: kolejny model startuje od razu po błędzie (429/503), a bez błędu dopiero po 18 s,
+ * więc zwykłe zdjęcie zużywa jedno zapytanie. Jeden model max 20 s, całość max 30 s.
+ */
 const VISION_MODEL_TIMEOUT_MS = 20_000
-const VISION_HEDGE_MS = 12_000
+const VISION_HEDGE_MS = 18_000
 const VISION_TOTAL_MS = 30_000
 
 function validMacro(value: unknown, max = 100): number | null {
