@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BASELINE_TESTS, baselineProgress, formatBaselineSummary, isBaselineSkipped, type BaselineResult } from './baselineTests';
+import { BASELINE_TESTS, baselineProgress, isBaselineSkipped, type BaselineResult } from './baselineTests';
 
 const result = (patch: Partial<BaselineResult> & { test_key: string }): BaselineResult =>
   ({ main_set: null, max_value: null, skipped: null, video_path: null, video_url: null, ...patch });
@@ -24,16 +24,5 @@ describe('pomiary wstępne', () => {
       result({ test_key: 't06', main_set: '   ' }),
     ]);
     expect(progress).toEqual({ done: 2, total: base.total + 1 });
-  });
-
-  it('streszczenie dla trenera pomija przekreślone testy i podaje link do wideo', () => {
-    const text = formatBaselineSummary([
-      result({ test_key: 't05', main_set: '160 kg × 3', max_value: '180 kg', video_url: 'https://youtu.be/x' }),
-      result({ test_key: 't06', video_path: 'u/t06.mp4' }),
-    ]);
-    expect(text).toContain('5. Martwy ciąg klasyczny (1RM) — seria: 160 kg × 3, max: 180 kg, wideo: https://youtu.be/x');
-    expect(text).toContain('6. Przysiad (1RM) — wideo: nagrane w aplikacji');
-    expect(text).toContain('12. Wyciskanie sztangi stojąc (1RM) — brak wyniku');
-    expect(text).not.toContain('Muscle-ups');
   });
 });

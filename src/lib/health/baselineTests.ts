@@ -67,19 +67,3 @@ export function baselineProgress(results: readonly BaselineResult[]): { done: nu
   const active = BASELINE_TESTS.filter((t) => !isBaselineSkipped(t, byKey.get(t.key)));
   return { done: active.filter((t) => filled(byKey.get(t.key))).length, total: active.length };
 }
-
-/** Tekst do wysłania trenerowi: aktywne testy z wynikiem, serią, maxem i linkiem do wideo (jeśli to link). */
-export function formatBaselineSummary(results: readonly BaselineResult[]): string {
-  const byKey = new Map(results.map((r) => [r.test_key, r]));
-  const lines = BASELINE_TESTS.flatMap((test) => {
-    const result = byKey.get(test.key);
-    if (isBaselineSkipped(test, result)) return [];
-    const parts = [
-      result?.main_set?.trim() ? `seria: ${result.main_set.trim()}` : null,
-      result?.max_value?.trim() ? `max: ${result.max_value.trim()}` : null,
-      result?.video_url ? `wideo: ${result.video_url}` : result?.video_path ? 'wideo: nagrane w aplikacji' : null,
-    ].filter(Boolean);
-    return [`${test.no}. ${test.name} — ${parts.length ? parts.join(', ') : 'brak wyniku'}`];
-  });
-  return `Pomiary wstępne\n${lines.join('\n')}`;
-}

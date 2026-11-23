@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { ClipboardList, Copy } from 'lucide-react';
-import Button from '../../ui/Button';
+import { ClipboardList } from 'lucide-react';
 import Sheet from '../../ui/Sheet';
 import { Pressable } from '../../ui/ControlPrimitives';
-import { notify } from '../../../lib/notify';
-import { BASELINE_TESTS, baselineProgress, formatBaselineSummary } from '../../../lib/health/baselineTests';
+import { BASELINE_TESTS, baselineProgress } from '../../../lib/health/baselineTests';
 import BaselineRow from './BaselineRow';
 import { useBaselineResults } from './useBaselineResults';
 
@@ -22,19 +20,12 @@ function BaselineList({ userId }: { userId: string }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const byKey = new Map(results.map((r) => [r.test_key, r]));
   const { done, total } = baselineProgress(results);
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(formatBaselineSummary(results)); notify('Skopiowano wyniki dla trenera.', 'success'); }
-    catch { notify('Nie udało się skopiować wyników.', 'error'); }
-  };
   if (isLoading) return <p role="status" className="py-8 text-center text-xs text-text-muted">Wczytuję testy…</p>;
   if (error) return <p role="alert" className="py-8 text-center text-xs text-danger">Nie udało się wczytać testów.</p>;
   return (
     <div className="space-y-3 pb-6">
       <div className="space-y-2 rounded-2xl border border-border-custom bg-surface p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-text-primary">Wykonano <span className="tabular-nums">{done}</span> z <span className="tabular-nums">{total}</span></p>
-          <Button size="sm" variant="tonal" icon={<Copy size={14} />} onClick={() => void copy()}>Kopiuj dla trenera</Button>
-        </div>
+        <p className="text-sm font-semibold text-text-primary">Wykonano <span className="tabular-nums">{done}</span> z <span className="tabular-nums">{total}</span></p>
         <ProgressBar done={done} total={total} />
         <p className="text-2xs text-text-muted">Dotknij testu, żeby wpisać serie i max oraz dodać wideo.</p>
       </div>
