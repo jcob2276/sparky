@@ -1617,6 +1617,8 @@ body {
    (wyspa i pasek stanu zasłaniały nagłówki); przy większym marginesie systemowym liczy się ten systemowy. */
 :root { --safe-top: env(safe-area-inset-top, 0px); }
 html.capacitor-ios { --safe-top: max(env(safe-area-inset-top, 0px), 3.5rem); }
+/* Android: WebView często zgłasza 0, a pasek stanu ma ok. 24 dp; ten sam kontrakt, niższa podłoga. */
+html.capacitor-android { --safe-top: max(env(safe-area-inset-top, 0px), 2.25rem); }
 
 /* Native Android / iOS status bar safe area offset for Capacitor APK */
 .capacitor-native header.sticky,
@@ -1638,7 +1640,7 @@ html.capacitor-ios { --safe-top: max(env(safe-area-inset-top, 0px), 3.5rem); }
 
 /* Powłoki Zadań, Kalendarza, Notatek i Pocketu same rezerwują górny margines, więc nagłówek nie dodaje drugiego
    (wcześniej reguła wyżej miała większą specyficzność przez „.sticky.top-0”, przez co margines liczył się dwa razy). */
-.capacitor-ios header.workspace-page-toolbar.sticky.top-0 {
+.capacitor-native header.workspace-page-toolbar.sticky.top-0 {
   padding-top: 0;
 }
 
@@ -3643,15 +3645,13 @@ progress,
   .ui-floating-layer, .ui-floating-nav { background: var(--surface-solid); }
 }
 
-/* iOS (WKWebView) radzi sobie z blurem jednego, małego paska, więc dolna nawigacja zostaje „Liquid Glass”,
-   mimo że na reszcie ekranów dotykowych rozmycie jest wyłączone dla wydajności. */
-@supports (-webkit-touch-callout: none) {
-  @media (hover: none) and (pointer: coarse) {
-    .ui-floating-nav {
-      background: var(--liquid-nav-bg);
-      backdrop-filter: var(--liquid-nav-blur) !important;
-      -webkit-backdrop-filter: var(--liquid-nav-blur) !important;
-    }
+/* Dolna nawigacja zostaje „Liquid Glass” na wszystkich telefonach (iOS i Android), mimo że na reszcie ekranów
+   dotykowych rozmycie jest wyłączone dla wydajności: to jeden mały, stały pasek. */
+@media (hover: none) and (pointer: coarse) {
+  .ui-floating-nav {
+    background: var(--liquid-nav-bg);
+    backdrop-filter: var(--liquid-nav-blur) !important;
+    -webkit-backdrop-filter: var(--liquid-nav-blur) !important;
   }
 }
 
