@@ -344,7 +344,7 @@
   --ds-local-css-color-mix-in-srgb-var-primary-40-transparent: color-mix(in srgb, var(--primary) 40%, transparent);
   --ds-local-css-rgba-148-163-184-0-18: rgba(148, 163, 184, 0.18);
   --ds-local-css-max-calc-env-safe-area-inset-bottom-70px-90px: max(calc(env(safe-area-inset-bottom) + 70px), 90px);
-  --ds-local-css-max-env-safe-area-inset-top-14px: max(env(safe-area-inset-top), 14px);
+  --ds-local-css-max-env-safe-area-inset-top-14px: max(var(--safe-top), 14px);
   --ds-local-css-rotate-45deg-translate-0-5px-0-5px: rotate(-45deg) translate(0.5px, -0.5px);
   --ds-local-css-scale-0-9: scale(0.9);
   --ds-local-css-scale-0-93: scale(0.93);
@@ -1608,21 +1608,26 @@ body {
   display: flex;
   min-height: 100dvh;
   flex-direction: column;
-  padding-top: max(env(safe-area-inset-top), 2.25rem);
+  padding-top: max(var(--safe-top), 2.25rem);
   padding-bottom: env(safe-area-inset-bottom);
   isolation: isolate;
 }
+
+/* Górny margines bezpieczny. Na iOS w aplikacji natywnej nigdy mniej niż 3,5 rem, nawet gdy WebView zgłosi 0
+   (wyspa i pasek stanu zasłaniały nagłówki); przy większym marginesie systemowym liczy się ten systemowy. */
+:root { --safe-top: env(safe-area-inset-top, 0px); }
+html.capacitor-ios { --safe-top: max(env(safe-area-inset-top, 0px), 3.5rem); }
 
 /* Native Android / iOS status bar safe area offset for Capacitor APK */
 .capacitor-native header.sticky,
 .capacitor-native .sticky.top-0,
 .capacitor-native .pt-safe-top {
-  padding-top: max(env(safe-area-inset-top), 2.25rem);
+  padding-top: max(var(--safe-top), 2.25rem);
 }
 
 /* Strony bez własnego nagłówka z marginesem (Ustawienia, Badania, Oura…): treść nie może wejść pod wyspę i pasek stanu. */
 .page-top-inset {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--safe-top);
 }
 
 /* Pomiary wstępne: dwa kolory naprzemiennie jak w arkuszu trenera (żółty i pomarańczowy). */
@@ -1638,7 +1643,7 @@ body {
 
 .terminy-page-toolbar,
 .capacitor-ios header.terminy-page-toolbar {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--safe-top);
 }
 
 /* Performance optimization for Capacitor Native WebView (Android / iOS):
@@ -3365,7 +3370,7 @@ a,
   --finance-glow: rgb(102 168 35 / .19);
 }
 .finance-reference .text-text-muted { color: var(--finance-muted); }
-.finance-reference-header { position: sticky; top: 0; z-index: var(--z-sticky); padding-top: env(safe-area-inset-top, 0px); background: color-mix(in srgb, var(--finance-bg) 72%, transparent); backdrop-filter: blur(18px); }
+.finance-reference-header { position: sticky; top: 0; z-index: var(--z-sticky); padding-top: var(--safe-top); background: color-mix(in srgb, var(--finance-bg) 72%, transparent); backdrop-filter: blur(18px); }
 .finance-reference-toolbar { margin: auto; max-width: var(--content-default); min-height: 58px; padding-inline: 14px; display: flex; align-items: center; gap: 7px; }
 .finance-reference-toolbar button { display: inline-grid; place-items: center; min-height: 42px; min-width: 38px; border-radius: 24px; }
 .finance-reference-toolbar strong { font-size: 1rem; font-weight: 700; }

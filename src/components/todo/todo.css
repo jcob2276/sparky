@@ -1,7 +1,7 @@
 .todoist-theme {
   height: 100dvh;
   box-sizing: border-box;
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--safe-top);
   overscroll-behavior: none;
 }
 

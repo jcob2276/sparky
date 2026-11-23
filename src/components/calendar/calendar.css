@@ -68,7 +68,7 @@
   .calendar-shell {
     background: var(--background);
     box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: var(--safe-top);
     overscroll-behavior: none;
   }
 

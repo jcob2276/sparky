@@ -8,7 +8,7 @@ export default function MealCaptureScreen() {
   const action = params.get('akcja');
 
   return (
-    <main className="mx-auto max-w-2xl space-y-4 px-4 pb-6 pt-[calc(1rem+env(safe-area-inset-top,0px))]">
+    <main className="mx-auto max-w-2xl space-y-4 px-4 pb-6 pt-[calc(1rem+var(--safe-top))]">
       <header className="flex items-center gap-2">
         <Link to="/dzis" aria-label="Wróć do Dzisiaj" className="inline-flex size-11 items-center justify-center rounded-full text-primary">
           <ArrowLeft size={20} aria-hidden="true" />

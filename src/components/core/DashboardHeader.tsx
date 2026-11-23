@@ -61,7 +61,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top min-h-14 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between gap-4 ui-app-header px-4 sm:px-5">
+    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top min-h-14 pb-2 pt-[calc(0.5rem+var(--safe-top))] flex items-center justify-between gap-4 ui-app-header px-4 sm:px-5">
       <div className="min-w-0 shrink-0 select-none">
         <div
           role="button"
