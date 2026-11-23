@@ -1,11 +1,12 @@
 import { memo, useMemo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 
 interface FastCaptureItem {
+  id?: string;
   label: string;
   emoji: string;
   color: string;
@@ -42,6 +43,7 @@ interface Tile {
   route?: string;
   color?: string;
   hint?: string;
+  id?: string;
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -55,15 +57,54 @@ function SectionTitle({ children }: { children: string }) {
   );
 }
 
+/** Jedna sugestia zależna od pory dnia; „Domknij dzień” dopiero od 20:00. */
+function pickSuggestion(hour: number): { id: string; title: string; hint: string } {
+  if (hour >= 20) return { id: 'shutdown', title: 'Domknij dzień', hint: 'Podsumowanie i plan na jutro' };
+  if (hour < 10) return { id: 'meal', title: 'Zapisz śniadanie', hint: 'Pora na pierwszy posiłek' };
+  if (hour < 15) return { id: 'meal', title: 'Zapisz obiad', hint: 'Pora posiłku' };
+  return { id: 'meal', title: 'Zapisz kolację', hint: 'Dopnij makra na dziś' };
+}
+
+function AppIcon({ tile, badge, onRun, onWarm }: { tile: Tile; badge?: number; onRun: () => void; onWarm?: () => void }) {
+  const Icon = tile.icon;
+  return (
+    <Pressable
+      variant="ghost"
+      aria-label={badge ? `${tile.label}, ${badge} pilnych` : tile.label}
+      onClick={onRun}
+      onMouseEnter={onWarm}
+      onTouchStart={onWarm}
+      className="group flex w-full flex-col items-center gap-1.5 text-center active:scale-95"
+    >
+      <span
+        className="relative flex aspect-square w-full max-w-[64px] items-center justify-center rounded-[18px] border border-[var(--border)] bg-surface-2 text-text-primary"
+        style={tile.color ? { color: tile.color, backgroundColor: `color-mix(in srgb, ${tile.color} 14%, transparent)` } : undefined}
+      >
+        <Icon size={24} aria-hidden="true" />
+        {!!badge && (
+          <span className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-2xs font-bold tabular-nums text-white">
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
+      </span>
+      <span className="w-full truncate text-xs font-medium text-text-primary">{tile.label}</span>
+    </Pressable>
+  );
+}
+
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
   const logTiles = useMemo<Tile[]>(
-    () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color, hint: item.hint })),
+    () => items.map((item) => ({ id: item.id, label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color, hint: item.hint })),
     [items],
   );
   const navTiles = useMemo<Tile[]>(
     () => tools.map((tool) => ({ label: tool.label, icon: tool.icon, action: tool.action, route: tool.route, hint: tool.hint })),
     [tools],
   );
+  const hour = show ? new Date().getHours() : 12;
+  const suggestion = useMemo(() => pickSuggestion(hour), [hour]);
+  const hero = logTiles.find((tile) => tile.id === suggestion.id);
+  const visibleLog = logTiles.filter((tile) => tile.id !== 'shutdown' && tile !== hero);
   const run = (tile: Tile) => {
     tile.action();
     onClose();
@@ -83,81 +124,48 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       compact
       handleDragOnly
     >
-      <div className="space-y-6 pb-2">
-        {logTiles.length > 0 && (
-          <section className="space-y-2.5" aria-label="Rejestruj">
+      <div className="space-y-5 pb-2">
+        {hero && (
+          <Pressable
+            variant="ghost"
+            aria-label={suggestion.title}
+            onClick={() => run(hero)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] p-3.5 text-left active:scale-[0.98]"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--color-primary)_18%,transparent)] text-primary">
+              <Sparkles size={22} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-bold text-text-primary">{suggestion.title}</span>
+              <span className="block truncate text-xs text-text-muted">{suggestion.hint}</span>
+            </span>
+          </Pressable>
+        )}
+
+        {visibleLog.length > 0 && (
+          <section className="space-y-3" aria-label="Rejestruj">
             <SectionTitle>Rejestruj</SectionTitle>
-            <div className={`grid gap-2.5 ${logTiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {logTiles.map((tile, index) => {
-                const Icon = tile.icon;
-                const spanBoth = logTiles.length % 2 === 1 && index === logTiles.length - 1 && logTiles.length > 1;
-                const tint = tile.color ?? 'var(--color-primary)';
-                return (
-                  <Pressable
-                    key={tile.label}
-                    variant="ghost"
-                    aria-label={tile.label}
-                    onClick={() => run(tile)}
-                    className={`group relative flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-left shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-[0.98] ${spanBoth ? 'col-span-2' : ''}`}
-                  >
-                    <span
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-150 group-hover:scale-105"
-                      style={{
-                        color: tint,
-                        backgroundColor: `color-mix(in srgb, ${tint} 14%, transparent)`,
-                        border: `1px solid color-mix(in srgb, ${tint} 24%, transparent)`,
-                      }}
-                    >
-                      <Icon size={20} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold leading-tight text-text-primary">
-                        {tile.label}
-                      </p>
-                      {tile.hint && (
-                        <p className="mt-0.5 truncate text-3xs font-medium text-text-muted">
-                          {tile.hint}
-                        </p>
-                      )}
-                    </div>
-                  </Pressable>
-                );
-              })}
+            <div className="grid grid-cols-4 gap-2">
+              {visibleLog.map((tile) => (
+                <AppIcon key={tile.label} tile={tile} onRun={() => run(tile)} />
+              ))}
             </div>
           </section>
         )}
 
         {navTiles.length > 0 && (
-          <section className="space-y-2.5" aria-label="Przejdź do">
+          <section className="space-y-3" aria-label="Przejdź do">
             <SectionTitle>Przejdź do</SectionTitle>
-            <div className="grid grid-cols-3 gap-2.5">
-              {navTiles.map((tile) => {
-                const Icon = tile.icon;
-                const badge = tile.route ? badges?.[tile.route] ?? 0 : 0;
-                return (
-                  <Pressable
-                    key={tile.label}
-                    variant="ghost"
-                    aria-label={badge > 0 ? `${tile.label}, ${badge} pilnych` : tile.label}
-                    onClick={() => run(tile)}
-                    onMouseEnter={() => warm(tile)}
-                    onTouchStart={() => warm(tile)}
-                    className="group flex min-h-[76px] flex-col items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-center shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-95"
-                  >
-                    <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2 text-text-primary transition-transform duration-150 group-hover:scale-105">
-                      <Icon size={20} aria-hidden="true" />
-                      {badge > 0 && (
-                        <span className="absolute -right-2 -top-1.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-danger px-1 text-2xs font-bold tabular-nums text-white shadow-xs">
-                          {badge > 9 ? '9+' : badge}
-                        </span>
-                      )}
-                    </span>
-                    <span className="w-full truncate text-xs font-semibold text-text-primary">
-                      {tile.label}
-                    </span>
-                  </Pressable>
-                );
-              })}
+            <div className="grid grid-cols-4 gap-x-2 gap-y-4">
+              {navTiles.map((tile) => (
+                <AppIcon
+                  key={tile.label}
+                  tile={tile}
+                  badge={tile.route ? badges?.[tile.route] ?? 0 : 0}
+                  onRun={() => run(tile)}
+                  onWarm={() => warm(tile)}
+                />
+              ))}
             </div>
           </section>
         )}

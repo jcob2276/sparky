@@ -82,9 +82,9 @@ function DashboardContent() {
   }, [s]);
 
   const fastCaptureItems = useMemo(() => [
-    { label: 'Centrum Treningowe', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => s.navigate('/trening'), hint: 'Trening i aktywność' },
-    { label: 'Zarejestruj posiłek', emoji: '🥗', icon: Utensils, color: 'var(--color-success)', action: () => s.setShowQuickFoodEntry(true), hint: 'Szybki wpis jedzenia' },
-    { label: 'Domknij dzień', emoji: '🌙', icon: Moon, color: 'var(--color-primary)', action: () => s.setShowShutdown(true), hint: 'Rytuał wieczorny' },
+    { id: 'training', label: 'Centrum Treningowe', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => s.navigate('/trening'), hint: 'Trening i aktywność' },
+    { id: 'meal', label: 'Zarejestruj posiłek', emoji: '🥗', icon: Utensils, color: 'var(--color-success)', action: () => s.setShowQuickFoodEntry(true), hint: 'Szybki wpis jedzenia' },
+    { id: 'shutdown', label: 'Domknij dzień', emoji: '🌙', icon: Moon, color: 'var(--color-primary)', action: () => s.setShowShutdown(true), hint: 'Rytuał wieczorny' },
   ], [s]);
 
   const workspaceTools = useMemo(() => [
