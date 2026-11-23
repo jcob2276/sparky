@@ -9,6 +9,7 @@
  * @status active
  */
 import { serveJson } from "../_shared/http.ts";
+import { requireServiceRole } from "../_shared/auth.ts";
 import { createTelegramContext } from "../vanguard-telegram/_router/config.ts";
 import { handleCallbackQuery } from "../vanguard-telegram/_router/callbacks.ts";
 import { handleIncomingMessage } from "../vanguard-telegram/_router/messages.ts";
@@ -20,14 +21,9 @@ Deno.serve(serveJson(async (req, ctx) => {
   // Wąski sekret VPS-a (przekazanie przetranskrybowanej głosówki); pusty/krótki sekret nigdy nie pasuje.
   const archiveSecret = Deno.env.get("ARCHIVE_SECRET") ?? "";
   const isArchiveSecret = archiveSecret.length >= 32 && req.headers.get("x-archive-secret") === archiveSecret;
-  const authHeader = req.headers.get("Authorization") || "";
-  const apiKey = req.headers.get("apikey") || "";
-  const token = (authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader) || apiKey;
-  const isServiceRole = token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-  if (!isArchiveSecret && !isServiceRole) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-  }
+  // Bez sekretu VPS wymagany jest klucz service-role (wywołanie z triggera bazy).
+  const denied = isArchiveSecret ? null : requireServiceRole(req);
+  if (denied) return denied;
 
   const supabase = ctx.supabase;
   let recordId: string | null = null;
