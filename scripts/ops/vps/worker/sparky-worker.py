@@ -171,6 +171,12 @@ def h_fetch_prices(payload):
     return fetch_prices(payload, DSN)
 
 
+@handler("build_context_cache")
+def h_build_context_cache(payload):
+    from context_cache_builder import build_and_save_cache
+    return build_and_save_cache()
+
+
 def post_multipart(url, fields, files, headers=None, timeout=120):
     boundary = f"----FormBoundary{uuid.uuid4().hex}"
     body = bytearray()
