@@ -6045,6 +6045,39 @@ export type Database = {
         }
         Relationships: []
       }
+      training_baseline_results: {
+        Row: {
+          main_set: string | null
+          max_value: string | null
+          skipped: boolean
+          test_key: string
+          updated_at: string
+          user_id: string
+          video_path: string | null
+          video_url: string | null
+        }
+        Insert: {
+          main_set?: string | null
+          max_value?: string | null
+          skipped?: boolean
+          test_key: string
+          updated_at?: string
+          user_id: string
+          video_path?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          main_set?: string | null
+          max_value?: string | null
+          skipped?: boolean
+          test_key?: string
+          updated_at?: string
+          user_id?: string
+          video_path?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       training_plan_versions: {
         Row: {
           activated_at: string | null

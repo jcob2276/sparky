@@ -109,7 +109,7 @@
 | `nutrition_day_reviews` | `edge:vanguard-nutrition-coach`, `pkg:domain`, `src/lib/health` | — |
 | `nutrition_estimate_feedback` | `src/lib/health` | `view:nutrition_estimate_errors` |
 | `nutrition_meal_captures` | — | `fn:confirm_nutrition_meal_capture` |
-| `nutrition_meal_memories` | `edge:parse-food-nl` | `fn:confirm_nutrition_meal_capture` |
+| `nutrition_meal_memories` | `edge:parse-food-nl`, `src/lib/health` | `fn:confirm_nutrition_meal_capture` |
 | `nutrition_meal_photos` | `edge:food-integrity-audit`, `pkg:domain`, `src/lib/health` | — |
 | `nutrition_profile` | `edge:_shared`, `edge:analyze-food-quality`, `edge:parse-food-nl`, `edge:vanguard-oracle`, `pkg:domain`, `src/components`, `src/lib/biometricsApi`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/lifeGoals`, `src/lib/lifeTargetsApi`, `src/lib/statsOverviewApi`, `src/lib/userSettingsApi` | `fn:compute_navy_bf`, `fn:save_health_goals` |
 | `nutrition_targets` | `edge:_shared`, `edge:period-compare`, `edge:vanguard-nutrition-coach`, `edge:widget-food`, `pkg:domain`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/morningPlanApi`, `src/lib/stats` | — |
@@ -144,6 +144,7 @@
 | `todo_items` | `edge:recap`, `edge:vanguard-auto-classify`, `edge:vanguard-oracle`, `edge:vanguard-push-reminder`, `edge:vanguard-telegram`, `edge:widget-tasks`, `src/components`, `src/lib/behavior`, `src/lib/checkpoints`, `src/lib/desktopDashboardFallback`, `src/lib/directionApi`, `src/lib/morningPlanApi`, `src/lib/nudgeApi`, `src/lib/queryKeys`, `src/lib/todo`, `src/lib/workspacePrefetch` | `fn:create_next_recurring_todo`, `fn:get_desktop_dashboard_data`, `fn:push_reminder_snapshot`, `fn:submit_morning_plan`, `fn:sync_daily_win_tasks_to_todo` |
 | `todo_sections` | `edge:recap`, `src/components`, `src/lib/directionApi`, `src/lib/todo` | — |
 | `todo_smart_lists` | `src/components`, `src/lib/todo` | — |
+| `training_baseline_results` | `src/lib/health` | — |
 | `training_plan_versions` | `edge:analyze-training-load` | `fn:activate_training_plan`, `fn:create_health_plan_draft`, `fn:enqueue_health_coach_job`, `fn:start_planned_workout` |
 | `training_plan_workouts` | `edge:_shared`, `edge:analyze-training-load`, `pkg:domain` | `fn:activate_training_plan`, `fn:link_planned_running_activity`, `fn:save_planned_workout_atomic`, `fn:start_planned_workout` |
 | `user_fundament` | `edge:_shared`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `src/components`, `src/lib/identityVaultApi`, `src/lib/stats` | `fn:match_vanguard_content` |

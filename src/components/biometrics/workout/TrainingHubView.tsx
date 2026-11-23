@@ -12,6 +12,7 @@ import TrainingHubGoal from './TrainingHubGoal';
 import { useBenchGoal } from '../../../lib/health/benchGoalApi';
 import TrainingHubWeekPanel from './TrainingHubWeekPanel';
 import TrainingHubRunning from './TrainingHubRunning';
+import TrainingHubBaseline from './TrainingHubBaseline';
 import TrainingHubSignals from './TrainingHubSignals';
 import TrainingHubAppearanceSheet from './TrainingHubAppearanceSheet';
 import './treningTheme.css';
@@ -174,6 +175,8 @@ export default function TrainingHubView({
               templates={templates}
               onSelectTemplate={handleSelectTemplate}
             />
+
+            {userId && <TrainingHubBaseline userId={userId} />}
 
             <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
 
