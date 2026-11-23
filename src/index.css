@@ -1620,6 +1620,11 @@ body {
   padding-top: max(env(safe-area-inset-top), 2.25rem);
 }
 
+/* Strony bez własnego nagłówka z marginesem (Ustawienia, Badania, Oura…): treść nie może wejść pod wyspę i pasek stanu. */
+.page-top-inset {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 /* These workspace shells already reserve the top inset. */
 .capacitor-ios header.workspace-page-toolbar {
   padding-top: 0;

@@ -30,13 +30,10 @@ const FinancePage = lazy(() => import('./components/finance/FinancePage'));
 const MonthPlanPage = lazy(() => import('./components/closer/MonthPlanPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
-import { queryClient } from './lib/queryClient';
-import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
-
 const FALLBACK_SPINNER = <ShellSkeleton />;
 
-function Screen({ kind, children }: { kind: PageTemplateKind; children: ReactNode }) {
-  return <PageTemplateBoundary kind={kind}>{children}</PageTemplateBoundary>;
+function Screen({ kind, children, topInset = false }: { kind: PageTemplateKind; children: ReactNode; topInset?: boolean }) {
+  return <PageTemplateBoundary kind={kind} topInset={topInset}>{children}</PageTemplateBoundary>;
 }
 
 function useNativePlatformSync(userId: string | undefined, handleNativeNavigate: (path: string) => void) {
@@ -64,7 +61,6 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
     const stopLocation = initLocationSync(userId);
     const stopBackground = initBackgroundSync(userId);
     const stopSignals = initDeviceSignalsSync(userId);
-    const stopBleSync = setupGlobalBleSync(queryClient, userId);
     const stopFoodWidget = initFoodWidgetSync(userId);
     return () => {
       stopFoodWidget();
@@ -72,7 +68,6 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
       stopLocation();
       stopBackground();
       stopSignals();
-      stopBleSync();
     };
   }, [userId]);
 }
@@ -123,7 +118,7 @@ function AppRoutes() {
           <Screen kind="dashboard"><DesktopDashboard /></Screen>
         </Suspense>
       } />
-      <Route path="/settings" element={<Screen kind="list"><Suspense fallback={FALLBACK_SPINNER}><SettingsView /></Suspense></Screen>} />
+      <Route path="/settings" element={<Screen kind="list" topInset><Suspense fallback={FALLBACK_SPINNER}><SettingsView /></Suspense></Screen>} />
       <Route path="/finanse" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><FinancePage /></Screen>
@@ -131,7 +126,7 @@ function AppRoutes() {
       } />
       <Route path="/plan-listopad" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><MonthPlanPage /></Screen>
+          <Screen kind="dashboard" topInset><MonthPlanPage /></Screen>
         </Suspense>
       } />
       <Route path="/rozwoj" element={
@@ -141,7 +136,7 @@ function AppRoutes() {
       } />
       <Route path="/badania" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="list"><MedicalStudiesPage /></Screen>
+          <Screen kind="list" topInset><MedicalStudiesPage /></Screen>
         </Suspense>
       } />
       <Route path="/badania/laboratorium" element={
@@ -151,12 +146,12 @@ function AppRoutes() {
       } />
       <Route path="/korelacje" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><CorrelationsPage /></Screen>
+          <Screen kind="dashboard" topInset><CorrelationsPage /></Screen>
         </Suspense>
       } />
       <Route path="/oura" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><OuraHealthPage /></Screen>
+          <Screen kind="dashboard" topInset><OuraHealthPage /></Screen>
         </Suspense>
       } />
 

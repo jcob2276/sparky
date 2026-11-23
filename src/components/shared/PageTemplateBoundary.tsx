@@ -6,6 +6,8 @@ export type PageTemplateKind = 'list' | 'grid' | 'dashboard' | 'timeline';
 interface PageTemplateBoundaryProps {
   kind: PageTemplateKind;
   children: ReactNode;
+  /** Strony bez własnego nagłówka z marginesem: dodaje górny margines bezpieczny (wyspa, pasek stanu iOS). */
+  topInset?: boolean;
 }
 
 const prefersReduced =
@@ -42,12 +44,12 @@ const spring = { type: 'spring' as const, damping: 30, stiffness: 360, mass: 0.7
 /** Route-level design contract. The wrapper is a real element (not display:contents)
  * so framer-motion can animate transform/opacity. Children inherit the selected
  * template's density and geometry tokens via CSS custom properties. */
-function PageTemplateBoundary({ kind, children }: PageTemplateBoundaryProps) {
+function PageTemplateBoundary({ kind, children, topInset = false }: PageTemplateBoundaryProps) {
   const v = kindVariants[kind];
 
   return (
     <motion.div
-      className={`min-h-full page-template-${kind}`}
+      className={`min-h-full page-template-${kind}${topInset ? ' page-top-inset' : ''}`}
       data-page-template={kind}
       variants={v}
       initial="initial"

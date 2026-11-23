@@ -88,8 +88,9 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
           <section className="space-y-2.5" aria-label="Rejestruj">
             <SectionTitle>Rejestruj</SectionTitle>
             <div className={`grid gap-2.5 ${logTiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {logTiles.map((tile) => {
+              {logTiles.map((tile, index) => {
                 const Icon = tile.icon;
+                const spanBoth = logTiles.length % 2 === 1 && index === logTiles.length - 1 && logTiles.length > 1;
                 const tint = tile.color ?? 'var(--color-primary)';
                 return (
                   <Pressable
@@ -97,7 +98,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     variant="ghost"
                     aria-label={tile.label}
                     onClick={() => run(tile)}
-                    className="group relative flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-left shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-[0.98]"
+                    className={`group relative flex min-h-[60px] w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface-solid p-3 text-left shadow-xs transition-all duration-150 hover:border-text-muted/30 hover:bg-surface-2 active:scale-[0.98] ${spanBoth ? 'col-span-2' : ''}`}
                   >
                     <span
                       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-150 group-hover:scale-105"

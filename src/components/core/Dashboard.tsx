@@ -14,7 +14,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback, useDeferredValue } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, Utensils, Flame, Moon } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, Utensils, Moon } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -84,7 +84,6 @@ function DashboardContent() {
   const fastCaptureItems = useMemo(() => [
     { label: 'Centrum Treningowe', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => s.navigate('/trening'), hint: 'Trening i aktywność' },
     { label: 'Zarejestruj posiłek', emoji: '🥗', icon: Utensils, color: 'var(--color-success)', action: () => s.setShowQuickFoodEntry(true), hint: 'Szybki wpis jedzenia' },
-    { label: 'Sesja sauny', emoji: '🔥', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna'), hint: 'Ciepło i regeneracja' },
     { label: 'Domknij dzień', emoji: '🌙', icon: Moon, color: 'var(--color-primary)', action: () => s.setShowShutdown(true), hint: 'Rytuał wieczorny' },
   ], [s]);
 
