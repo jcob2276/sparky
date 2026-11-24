@@ -5,6 +5,8 @@ import type { Recipe } from '../../../../lib/recipes/recipeTypes';
 interface RecipeDetailSheetProps {
   recipe: Recipe | null;
   saving: boolean;
+  inBasket: boolean;
+  onToggleBasket: (recipe: Recipe) => void;
   onClose: () => void;
   onLog: (recipe: Recipe) => void;
 }
@@ -40,7 +42,7 @@ function List({ title, items, ordered }: { title: string; items: string[]; order
   );
 }
 
-export default function RecipeDetailSheet({ recipe, saving, onClose, onLog }: RecipeDetailSheetProps) {
+export default function RecipeDetailSheet({ recipe, saving, inBasket, onToggleBasket, onClose, onLog }: RecipeDetailSheetProps) {
   return (
     <Sheet open={recipe !== null} onOpenChange={(open) => { if (!open) onClose(); }} side="bottom" compact title={recipe?.title ?? ''}>
       {recipe && (
@@ -54,7 +56,10 @@ export default function RecipeDetailSheet({ recipe, saving, onClose, onLog }: Re
           <List title="Do kupienia w markecie" items={recipe.lidl_biedronka_basket} />
           <List title="Przygotowanie" items={recipe.instructions} ordered />
           {recipe.pro_tip && <p className="rounded-xl bg-surface-2 p-3 text-xs text-text-secondary">{recipe.pro_tip}</p>}
-          <Button onClick={() => onLog(recipe)} loading={saving} className="w-full">Zapisz jako posiłek</Button>
+          <div className="flex gap-2">
+            <Button variant="tonal" onClick={() => onToggleBasket(recipe)} className="flex flex-1">{inBasket ? 'Usuń z listy' : 'Na listę zakupów'}</Button>
+            <Button onClick={() => onLog(recipe)} loading={saving} className="flex flex-1">Zapisz posiłek</Button>
+          </div>
         </div>
       )}
     </Sheet>

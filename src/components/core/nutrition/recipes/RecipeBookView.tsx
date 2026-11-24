@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ShoppingBasket } from 'lucide-react';
 import { ControlInput, Pressable } from '../../../ui/ControlPrimitives';
 import { ToggleChip } from '../../../ui/ToggleChip';
 import Spinner from '../../../ui/Spinner';
@@ -9,6 +9,8 @@ import { loadRecipes } from '../../../../lib/recipes/loadRecipes';
 import type { Recipe, RecipeQuickFilter } from '../../../../lib/recipes/recipeTypes';
 import RecipeCard from './RecipeCard';
 import RecipeDetailSheet from './RecipeDetailSheet';
+import RecipeShoppingSheet from './RecipeShoppingSheet';
+import { useRecipeBasket } from './useRecipeBasket';
 import { useLogRecipe } from './useLogRecipe';
 
 const QUICK: { key: RecipeQuickFilter; label: string }[] = [
@@ -30,7 +32,10 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
   const [category, setCategory] = useState<string | null>(null);
   const [quick, setQuick] = useState<ReadonlySet<RecipeQuickFilter>>(new Set());
   const [open, setOpen] = useState<Recipe | null>(null);
+  const [listOpen, setListOpen] = useState(false);
   const { logRecipe, saving } = useLogRecipe(userId);
+  const basket = useRecipeBasket();
+  const basketRecipes = useMemo(() => (recipes ?? []).filter((recipe) => basket.ids.includes(recipe.id)), [recipes, basket.ids]);
 
   useEffect(() => {
     void loadRecipes().then(setRecipes);
@@ -52,6 +57,16 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
         </Pressable>
         <h1 className="text-lg font-semibold text-text-primary">Przepisy</h1>
         {recipes && <span className="ml-auto text-xs text-text-muted">{visible.length} z {recipes.length}</span>}
+        <Pressable
+          onClick={() => setListOpen(true)}
+          aria-label={`Lista zakupów, ${basket.ids.length} przepisów`}
+          className="relative grid h-11 w-11 place-items-center rounded-full bg-surface/80 text-text-secondary"
+        >
+          <ShoppingBasket size={18} aria-hidden="true" />
+          {basket.ids.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-2xs font-bold tabular-nums text-on-accent">{basket.ids.length}</span>
+          )}
+        </Pressable>
       </header>
 
       <ControlInput
@@ -87,8 +102,19 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
       <RecipeDetailSheet
         recipe={open}
         saving={saving}
+        inBasket={open !== null && basket.ids.includes(open.id)}
+        onToggleBasket={(recipe) => basket.toggleRecipe(recipe.id)}
         onClose={() => setOpen(null)}
         onLog={(recipe) => { void logRecipe(recipe).then((ok) => { if (ok) setOpen(null); }); }}
+      />
+      <RecipeShoppingSheet
+        open={listOpen}
+        recipes={basketRecipes}
+        checked={basket.checked}
+        onToggleChecked={basket.toggleChecked}
+        onRemoveRecipe={basket.toggleRecipe}
+        onClear={basket.clear}
+        onClose={() => setListOpen(false)}
       />
     </div>
   );
