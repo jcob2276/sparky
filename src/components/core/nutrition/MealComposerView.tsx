@@ -1,5 +1,7 @@
 import { lazy, Suspense, useState, startTransition } from 'react';
-import { ChefHat } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChefHat, ChevronRight } from 'lucide-react';
+import { Pressable } from '../../ui/ControlPrimitives';
 import Button from '../../ui/Button';
 import Sheet from '../../ui/Sheet';
 import Tabs from '../../ui/Tabs';
@@ -51,6 +53,7 @@ interface ModalsProps {
 function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry, onCloseEdit, copyDayOpen, onCloseCopyDay, onSaved }: ModalsProps) {
   const [plannerScope, setPlannerScope] = useState<'today' | 'week' | 'fill'>('today');
   const [weekWithAi, setWeekWithAi] = useState(false);
+  const navigate = useNavigate();
   return (
     <>
       {plannerOpen && c.userId && (
@@ -69,6 +72,18 @@ function MealComposerModals({ c, macros, plannerOpen, onClosePlanner, editEntry,
               active={plannerScope}
               onChange={(key) => setPlannerScope(key === 'week' ? 'week' : key === 'fill' ? 'fill' : 'today')}
             />
+            <Pressable
+              variant="ghost"
+              onClick={() => { onClosePlanner(); navigate('/przepisy'); }}
+              className="mb-3 flex w-full items-center gap-3 rounded-2xl border border-[var(--border)] bg-surface-solid px-3.5 py-3 text-left"
+            >
+              <ChefHat size={18} className="shrink-0 text-primary" aria-hidden="true" />
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-text-primary">Książka przepisów</span>
+                <span className="block text-xs text-text-muted">Zdjęcia, ulubione i lista zakupów</span>
+              </span>
+              <ChevronRight size={16} className="text-text-muted" aria-hidden="true" />
+            </Pressable>
             <Suspense fallback={<p role="status" className="py-8 text-center text-xs text-text-muted">Wczytuję planer…</p>}>
               {plannerScope === 'fill' ? (
                 <MacroFillPanel

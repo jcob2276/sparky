@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
 import * as nutrientCoverage from '../../../lib/health/nutrientCoverage';
@@ -37,7 +38,7 @@ describe('MealComposer summaries', () => {
     state.composer.allTodayEntries = [entry];
     const coverage = vi.spyOn(nutrientCoverage, 'computeDayNutrientCoverage');
     const energy = vi.spyOn(nutritionAudit, 'computeDayEnergyRange');
-    const { rerender } = render(<MealComposer />);
+    const { rerender } = render(<MealComposer />, { wrapper: MemoryRouter });
     expect(screen.getByRole('img', { name: 'Zjedzone 250 z 2000 kcal' })).toBeInTheDocument();
     const carbReads = carbs.mock.calls.length;
     state.composer.text = 'herbata';
