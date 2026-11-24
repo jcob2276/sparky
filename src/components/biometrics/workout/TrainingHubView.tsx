@@ -15,6 +15,7 @@ import TrainingHubRunning from './TrainingHubRunning';
 import TrainingHubBaseline from './TrainingHubBaseline';
 import TrainingHubSignals from './TrainingHubSignals';
 import TrainingHubAppearanceSheet from './TrainingHubAppearanceSheet';
+import Tabs from '../../ui/Tabs';
 import './treningTheme.css';
 
 function ActiveDraftBanner({
@@ -82,6 +83,24 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
   );
 }
 
+type HubTab = 'dzis' | 'postepy' | 'analiza';
+const HUB_TABS = [
+  { key: 'dzis', label: 'Dziś' },
+  { key: 'postepy', label: 'Postępy' },
+  { key: 'analiza', label: 'Analiza' },
+];
+const TAB_STORAGE_KEY = 'sparky.trainingHub.tab';
+
+function readStoredTab(): HubTab {
+  try {
+    const stored = window.localStorage.getItem(TAB_STORAGE_KEY);
+    if (stored === 'postepy' || stored === 'analiza') return stored;
+  } catch {
+    // brak dostępu do pamięci: zaczynamy od „Dziś”
+  }
+  return 'dzis';
+}
+
 interface TrainingHubViewProps {
   userId: string | undefined;
   onStartWorkout: (initial?: WorkoutLoggerInitial | null) => void;
@@ -114,6 +133,16 @@ export default function TrainingHubView({
   const benchGoal = useBenchGoal(userId);
   const { accent, setAccent } = useTreningAccent();
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [tab, setTab] = useState<HubTab>(readStoredTab);
+  const changeTab = (key: string) => {
+    const next = key as HubTab;
+    setTab(next);
+    try {
+      window.localStorage.setItem(TAB_STORAGE_KEY, next);
+    } catch {
+      // zapamiętanie zakładki jest tylko wygodą
+    }
+  };
 
   return (
     <div
@@ -149,6 +178,10 @@ export default function TrainingHubView({
 
       <div className="trening-glow-line w-full shrink-0" aria-hidden />
 
+      <nav aria-label="Sekcje centrum treningowego" className="mx-auto w-full max-w-md px-3 pt-3">
+        <Tabs tabs={HUB_TABS} active={tab} onChange={changeTab} />
+      </nav>
+
       <main className="flex-1 px-3 py-4 space-y-3.5 max-w-md mx-auto w-full relative">
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center gap-2">
@@ -157,36 +190,44 @@ export default function TrainingHubView({
           </div>
         ) : (
           <div className="space-y-3.5 animate-in fade-in">
-            {hasDraft && (
-              <ActiveDraftBanner onResume={handleResumeDraft} onDiscard={handleDiscardDraft} />
+            {tab === 'dzis' && (
+              <>
+                {hasDraft && (
+                  <ActiveDraftBanner onResume={handleResumeDraft} onDiscard={handleDiscardDraft} />
+                )}
+
+                {todaySession ? (
+                  <TrainingTodayCard
+                    details={todaySession}
+                    onStartAnother={handleStartBlank}
+                    onLogSauna={() => onNavigate('/sauna')}
+                  />
+                ) : (
+                  <QuickStartCta onStart={handleStartBlank} onSauna={() => onNavigate('/sauna')} showStart={!hasDraft} />
+                )}
+
+                <TrainingTemplatesSection
+                  templates={templates}
+                  onSelectTemplate={handleSelectTemplate}
+                />
+              </>
             )}
 
-            {todaySession ? (
-              <TrainingTodayCard
-                details={todaySession}
-                onStartAnother={handleStartBlank}
-                onLogSauna={() => onNavigate('/sauna')}
-              />
-            ) : (
-              <QuickStartCta onStart={handleStartBlank} onSauna={() => onNavigate('/sauna')} showStart={!hasDraft} />
+            {tab === 'postepy' && (
+              <>
+                {userId && <TrainingHubBaseline userId={userId} />}
+                <TrainingHubGoal goal={benchGoal.data} />
+                <TrainingHubRecords records={records} />
+              </>
             )}
 
-            <TrainingTemplatesSection
-              templates={templates}
-              onSelectTemplate={handleSelectTemplate}
-            />
-
-            {userId && <TrainingHubBaseline userId={userId} />}
-
-            <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
-
-            <TrainingHubGoal goal={benchGoal.data} />
-
-            <TrainingHubRecords records={records} />
-
-            <TrainingHubSignals forecasts={forecasts} neglects={neglects} />
-
-            <TrainingHubRunning load={running.data} loading={running.isLoading} />
+            {tab === 'analiza' && (
+              <>
+                <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
+                <TrainingHubSignals forecasts={forecasts} neglects={neglects} />
+                <TrainingHubRunning load={running.data} loading={running.isLoading} />
+              </>
+            )}
           </div>
         )}
       </main>
