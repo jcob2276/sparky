@@ -13,6 +13,7 @@ const normalize = (text: string) => text.toLocaleLowerCase('pl').normalize('NFD'
 export function filterRecipes(recipes: readonly Recipe[], filters: RecipeFilters): Recipe[] {
   const query = normalize(filters.query.trim());
   return recipes.filter((recipe) => {
+    if (filters.onlyIds && !filters.onlyIds.has(recipe.id)) return false;
     if (filters.category && recipe.category !== filters.category) return false;
     for (const key of filters.quick) if (!QUICK_RULES[key](recipe)) return false;
     if (!query) return true;

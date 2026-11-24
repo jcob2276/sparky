@@ -33,6 +33,6 @@ export function recipeToMealItem(recipe: Recipe): MealDraftItem {
 export function recipeMealType(recipe: Pick<Recipe, 'category'>): string {
   if (recipe.category === 'Śniadania') return 'breakfast';
   if (recipe.category === 'Kolacje') return 'dinner';
-  if (recipe.category === 'Obiady' || recipe.category === 'Lunche & Do pracy') return 'lunch';
+  if (recipe.category === 'Obiady' || recipe.category === 'Lunche & Do Pracy') return 'lunch';
   return 'snack';
 }

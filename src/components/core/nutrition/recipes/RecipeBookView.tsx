@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ShoppingBasket } from 'lucide-react';
+import { ChevronLeft, Heart, ShoppingBasket } from 'lucide-react';
 import { ControlInput, Pressable } from '../../../ui/ControlPrimitives';
 import { ToggleChip } from '../../../ui/ToggleChip';
 import Spinner from '../../../ui/Spinner';
@@ -11,6 +11,7 @@ import RecipeCard from './RecipeCard';
 import RecipeDetailSheet from './RecipeDetailSheet';
 import RecipeShoppingSheet from './RecipeShoppingSheet';
 import { useRecipeBasket } from './useRecipeBasket';
+import { useRecipeFavorites } from './useRecipeFavorites';
 import { useLogRecipe } from './useLogRecipe';
 
 const QUICK: { key: RecipeQuickFilter; label: string }[] = [
@@ -33,6 +34,9 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
   const [quick, setQuick] = useState<ReadonlySet<RecipeQuickFilter>>(new Set());
   const [open, setOpen] = useState<Recipe | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const favorites = useRecipeFavorites();
+  const favoriteSet = useMemo(() => new Set(favorites.ids), [favorites.ids]);
   const { logRecipe, saving } = useLogRecipe(userId);
   const basket = useRecipeBasket();
   const basketRecipes = useMemo(() => (recipes ?? []).filter((recipe) => basket.ids.includes(recipe.id)), [recipes, basket.ids]);
@@ -42,7 +46,7 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
   }, []);
 
   const categories = useMemo(() => [...new Set((recipes ?? []).map((recipe) => recipe.category))], [recipes]);
-  const visible = useMemo(() => filterRecipes(recipes ?? [], { query, category, quick }), [recipes, query, category, quick]);
+  const visible = useMemo(() => filterRecipes(recipes ?? [], { query, category, quick, onlyIds: onlyFavorites ? favoriteSet : null }), [recipes, query, category, quick, onlyFavorites, favoriteSet]);
   const toggleQuick = (key: RecipeQuickFilter) => setQuick((current) => {
     const next = new Set(current);
     if (!next.delete(key)) next.add(key);
@@ -84,6 +88,9 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
         ))}
       </div>
       <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtry">
+        <ToggleChip active={onlyFavorites} onClick={() => setOnlyFavorites((value) => !value)}>
+          <Heart size={12} aria-hidden="true" className="mr-1 inline" />Ulubione ({favorites.ids.length})
+        </ToggleChip>
         {QUICK.map(({ key, label }) => (
           <ToggleChip key={key} active={quick.has(key)} variant="warning" onClick={() => toggleQuick(key)}>{label}</ToggleChip>
         ))}
@@ -92,16 +99,18 @@ export default function RecipeBookView({ onBack }: RecipeBookViewProps) {
       {!recipes ? (
         <div className="flex justify-center py-16"><Spinner size="md" /></div>
       ) : visible.length === 0 ? (
-        <p className="py-10 text-center text-sm text-text-muted">Brak przepisów dla tych filtrów.</p>
+        <p className="py-10 text-center text-sm text-text-muted">{onlyFavorites && favorites.ids.length === 0 ? 'Nie masz jeszcze ulubionych. Dotknij serca przy przepisie.' : 'Brak przepisów dla tych filtrów.'}</p>
       ) : (
         <div className="space-y-2.5">
-          {visible.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} onOpen={setOpen} />)}
+          {visible.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} favorite={favoriteSet.has(recipe.id)} onOpen={setOpen} onToggleFavorite={(item) => favorites.toggle(item.id)} />)}
         </div>
       )}
 
       <RecipeDetailSheet
         recipe={open}
         saving={saving}
+        favorite={open !== null && favoriteSet.has(open.id)}
+        onToggleFavorite={(recipe) => favorites.toggle(recipe.id)}
         inBasket={open !== null && basket.ids.includes(open.id)}
         onToggleBasket={(recipe) => basket.toggleRecipe(recipe.id)}
         onClose={() => setOpen(null)}

@@ -62,7 +62,7 @@ function groupOf(name: string): string {
   return 'Inne';
 }
 
-export const SHOPPING_GROUP_ORDER = ['Mięso i ryby', 'Nabiał i jajka', 'Warzywa i owoce', 'Suche i konserwy', 'Spiżarnia i przyprawy', 'Inne'];
+const SHOPPING_GROUP_ORDER = ['Mięso i ryby', 'Nabiał i jajka', 'Warzywa i owoce', 'Suche i konserwy', 'Spiżarnia i przyprawy', 'Inne'];
 
 /** Łączy listy zakupów wybranych przepisów w jedną, pogrupowaną w kolejności działów sklepu. */
 export function buildShoppingList(recipes: readonly Recipe[]): ShoppingItem[] {

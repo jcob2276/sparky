@@ -19,6 +19,11 @@ export interface Recipe {
   ingredients: string[];
   instructions: string[];
   pro_tip: string;
+  /** Przepisy z zewnętrznych stron: autor i link do oryginału. */
+  /** Zdjęcie dania (tylko przepisy z zewnętrznych stron). */
+  image?: string;
+  source_name?: string;
+  source_url?: string;
 }
 
 export type RecipeQuickFilter = 'airfryer' | 'protein40' | 'protein50' | 'fast' | 'lowCarb';
@@ -27,4 +32,6 @@ export interface RecipeFilters {
   query: string;
   category: string | null;
   quick: ReadonlySet<RecipeQuickFilter>;
+  /** Gdy podane: tylko przepisy o tych id (ulubione). */
+  onlyIds?: ReadonlySet<string> | null;
 }

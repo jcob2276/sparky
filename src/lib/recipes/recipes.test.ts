@@ -19,6 +19,14 @@ describe('recipe book data', () => {
   });
 });
 
+describe('recipe photos', () => {
+  it('uses https image urls only', () => {
+    const withImage = recipes.filter((recipe) => recipe.image !== undefined);
+    expect(withImage.length).toBeGreaterThan(0);
+    for (const recipe of withImage) expect(recipe.image, recipe.id).toMatch(/^https:\/\//);
+  });
+});
+
 describe('filterRecipes', () => {
   it('applies quick filters together', () => {
     const result = filterRecipes(recipes, { query: '', category: null, quick: new Set(['airfryer', 'protein50']) });
@@ -29,6 +37,13 @@ describe('filterRecipes', () => {
   it('searches without regard to Polish diacritics', () => {
     const result = filterRecipes(recipes, { query: 'poledwiczki', category: null, quick: none });
     expect(result.some((recipe) => /polędwiczk/i.test(recipe.title + recipe.ingredients.join(' ')))).toBe(true);
+  });
+
+  it('limits results to the given ids (favorites)', () => {
+    const ids = new Set([recipes[0].id, recipes[3].id]);
+    const result = filterRecipes(recipes, { query: '', category: null, quick: none, onlyIds: ids });
+    expect(result.map((recipe) => recipe.id).sort()).toEqual([...ids].sort());
+    expect(filterRecipes(recipes, { query: '', category: null, quick: none, onlyIds: new Set() })).toEqual([]);
   });
 
   it('filters by category', () => {
@@ -52,6 +67,7 @@ describe('recipeToMealItem', () => {
 
   it('maps categories to meal types', () => {
     expect(recipeMealType({ category: 'Śniadania' })).toBe('breakfast');
-    expect(recipeMealType({ category: 'Fit Desery' })).toBe('snack');
+    expect(recipeMealType({ category: 'Fit Słodkości & Desery' })).toBe('snack');
+    expect(recipeMealType({ category: 'Lunche & Do Pracy' })).toBe('lunch');
   });
 });
