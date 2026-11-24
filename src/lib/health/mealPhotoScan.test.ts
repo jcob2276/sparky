@@ -59,4 +59,34 @@ describe('scanMealPhoto', () => {
     await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))
       .rejects.toThrow('Serwer analizy zdjęć jest chwilowo przeciążony');
   });
+
+  it('retries quietly when the AI provider is briefly overloaded', async () => {
+    vi.useFakeTimers();
+    try {
+      const meal = { items: [{ id: 'rice', name: 'Ryż', grams: 200 }] };
+      invokeEdge
+        .mockRejectedValueOnce(new Error('Analiza zdjęć jest chwilowo przeciążona. Spróbuj za chwilę.'))
+        .mockResolvedValueOnce({ meal });
+      const pending = scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1');
+      await vi.advanceTimersByTimeAsync(5_000);
+      await expect(pending).resolves.toBe(meal);
+      expect(invokeEdge).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('gives up after the retries when the provider stays overloaded', async () => {
+    vi.useFakeTimers();
+    try {
+      invokeEdge.mockRejectedValue(new Error('Analiza zdjęć jest chwilowo przeciążona. Spróbuj za chwilę.'));
+      const pending = scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1');
+      const assertion = expect(pending).rejects.toThrow('przeciążon');
+      await vi.advanceTimersByTimeAsync(15_000);
+      await assertion;
+      expect(invokeEdge).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

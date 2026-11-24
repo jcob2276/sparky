@@ -4,6 +4,16 @@ import { prepareVisionUpload } from '../imageThumbnail';
 import { invokeEdge } from '../supabase';
 import type { MealPhotoResponse } from '../edgeTypes';
 
+/** Chwilowe przeciążenie dostawcy AI (HTTP 503 „high demand”) mija zwykle po kilku sekundach, więc ponawiamy po cichu. */
+const OVERLOAD_RETRY_DELAYS_MS = [5_000, 10_000];
+
+function isOverload(cause: unknown): boolean {
+  const msg = cause instanceof Error ? cause.message : String(cause);
+  return /przeciążon|high demand|\b503\b|unavailable/i.test(msg);
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
+
 function wrapPhotoUploadError(cause: unknown): Error {
   const msg = cause instanceof Error ? cause.message : String(cause);
   if (/failed to send a request|networkerror|fetch failed|load failed/i.test(msg)) {
@@ -29,21 +39,24 @@ export async function analyzeMealPhoto(
 ): Promise<MealPhotoResponse> {
   const imageBase64 = await blobToBase64(image);
 
-  let response: Awaited<ReturnType<typeof invokeEdge<'parse-food-nl'>>>;
-  try {
-    response = await invokeEdge('parse-food-nl', {
-      body: {
-        mode: 'meal_photo',
-        userId,
-        mimeType: 'image/jpeg',
-        imageBase64,
-        clientTime: new Date().toISOString(),
-        ...(hint?.trim() ? { hint: hint.trim() } : {}),
-      },
-      signal: AbortSignal.timeout(TIMEOUTS.llmHeavy),
-    });
-  } catch (cause: unknown) {
-    throw wrapPhotoUploadError(cause);
+  type EdgeResponse = Awaited<ReturnType<typeof invokeEdge<'parse-food-nl'>>>;
+  const body = {
+    mode: 'meal_photo' as const,
+    userId,
+    mimeType: 'image/jpeg',
+    imageBase64,
+    clientTime: new Date().toISOString(),
+    ...(hint?.trim() ? { hint: hint.trim() } : {}),
+  };
+  let response: EdgeResponse | undefined;
+  for (let attempt = 0; response === undefined; attempt++) {
+    try {
+      response = await invokeEdge('parse-food-nl', { body, signal: AbortSignal.timeout(TIMEOUTS.llmHeavy) });
+    } catch (cause: unknown) {
+      const delay = OVERLOAD_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined || !isOverload(cause)) throw wrapPhotoUploadError(cause);
+      await sleep(delay);
+    }
   }
 
   const meal = response.meal;
