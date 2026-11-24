@@ -3,6 +3,7 @@ import { notify } from '../../../../lib/notify';
 import { quickAddFavorite, type FoodFavoriteRow } from '../../../../lib/health/foodLogging';
 import type { MealDraftItem } from '../../../../lib/health/nutritionTracker';
 import { confirmMealCapture, type MealCaptureSource } from '../../../../lib/health/nutritionTrackerApi';
+import { confirmIfRecentDuplicate } from '../../../../lib/health/recentDuplicate';
 import { upsertUserPortionsFromDraft } from '../../../../lib/health/userPortionsApi';
 import type { useFoodEntrySearch } from './useFoodEntrySearch';
 
@@ -28,6 +29,8 @@ export function useMealComposerSave({
   userId, saving, setSaving, setError, logDate, mealType, search, scannedPhotoIdRef, draftItems,
   setDraftItems, setText, setMemoryName, setSearchOpen, refreshAfterSave,
 }: Params) {
+  // Blokada działa natychmiast (stan `saving` odświeża się dopiero po renderze).
+  const lockRef = useRef(false);
   const pendingCaptureRef = useRef<{
     userId: string; id: string; itemIds: string[]; date: string; loggedAt?: string; source: MealCaptureSource;
   } | null>(null);
@@ -41,10 +44,12 @@ export function useMealComposerSave({
     rememberIds: Set<string> = new Set(),
     options?: { memoryName?: string; loggedAt?: string },
   ) => {
-    if (!userId || !items.length || saving) return;
+    if (!userId || !items.length || saving || lockRef.current) return;
+    lockRef.current = true;
     setSaving(true);
     setError(null);
     try {
+      if (!pendingCaptureRef.current && !await confirmIfRecentDuplicate(userId, logDate, items.map((item) => item.name))) return;
       // Keep the same operation even if the response, time update or portion write fails.
       const pending = pendingCaptureRef.current;
       const capture = pending?.userId === userId && items.some(item => pending.itemIds.includes(item.id))
@@ -94,21 +99,25 @@ export function useMealComposerSave({
       setError(message);
       notify(message, 'error');
     } finally {
+      lockRef.current = false;
       setSaving(false);
     }
   }, [userId, saving, logDate, mealType, refreshAfterSave, search, scannedPhotoIdRef,
     setSaving, setError, setDraftItems, setText, setMemoryName, setSearchOpen]);
 
   const handleFavorite = useCallback(async (fav: Omit<FoodFavoriteRow, 'barcode'> & { barcode?: string | null }) => {
-    if (!userId || saving) return;
+    if (!userId || saving || lockRef.current) return;
+    lockRef.current = true;
     setSaving(true);
     try {
+      if (!await confirmIfRecentDuplicate(userId, logDate, [fav.name])) return;
       await quickAddFavorite(userId, fav, logDate, mealType);
       await refreshAfterSave();
       notify(fav.name, 'success');
     } catch (cause: unknown) {
       notify(cause instanceof Error ? cause.message : 'Błąd', 'error');
     } finally {
+      lockRef.current = false;
       setSaving(false);
     }
   }, [userId, saving, logDate, mealType, refreshAfterSave, setSaving]);

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { notify } from '../../../../lib/notify';
 import { copyFoodEntriesToDate, deleteFoodEntry, type TodayFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
 import { mealLabelForType } from '../../../../lib/health/mealComposerUtils';
@@ -16,8 +16,10 @@ interface Params {
 export function useMealComposerBulkActions({
   userId, saving, setSaving, allTodayEntries, todayStr, setLogDateAndResetTime, refreshAfterSave,
 }: Params) {
+  const lockRef = useRef(false);
   const copyEntireDayToToday = useCallback(async () => {
-    if (!userId || !allTodayEntries?.length || saving) return;
+    if (!userId || !allTodayEntries?.length || saving || lockRef.current) return;
+    lockRef.current = true;
     setSaving(true);
     try {
       await copyFoodEntriesToDate(userId, allTodayEntries, todayStr);
@@ -27,6 +29,7 @@ export function useMealComposerBulkActions({
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
     } finally {
+      lockRef.current = false;
       setSaving(false);
     }
   }, [allTodayEntries, refreshAfterSave, saving, setLogDateAndResetTime, setSaving, todayStr, userId]);
@@ -35,6 +38,8 @@ export function useMealComposerBulkActions({
     if (!userId || !allTodayEntries?.length || saving) return;
     const mealEntries = allTodayEntries.filter((e) => e.meal_type === sourceMealType);
     if (!mealEntries.length) return;
+    if (lockRef.current) return;
+    lockRef.current = true;
     setSaving(true);
     try {
       await copyFoodEntriesToDate(userId, mealEntries, todayStr, sourceMealType);
@@ -44,6 +49,7 @@ export function useMealComposerBulkActions({
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
     } finally {
+      lockRef.current = false;
       setSaving(false);
     }
   }, [allTodayEntries, refreshAfterSave, saving, setLogDateAndResetTime, setSaving, todayStr, userId]);
