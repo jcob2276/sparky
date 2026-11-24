@@ -14,7 +14,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback, useDeferredValue } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, Utensils, Moon } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, Utensils, Moon, ChefHat } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -91,6 +91,7 @@ function DashboardContent() {
     { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo'), route: 'todo' },
     { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz'), route: 'kalendarz' },
     { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep'), route: 'keep' },
+    { label: 'Przepisy', icon: ChefHat, action: () => s.navigate('/przepisy') },
     { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse'), route: 'finanse' },
     { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy'), route: 'terminy' },
     { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },

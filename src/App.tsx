@@ -21,6 +21,7 @@ import { QueryErrorResetBoundary } from '@tanstack/react-query';
 
 const MealCaptureScreen = lazy(() => import('./components/core/nutrition/MealCaptureScreen'));
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
+const RecipeBookView = lazy(() => import('./components/core/nutrition/recipes/RecipeBookView'));
 const SettingsView = lazy(() => import('./components/settings/SettingsView'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
 const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLaboratoryPage'));
@@ -119,6 +120,7 @@ function AppRoutes() {
         </Suspense>
       } />
       <Route path="/settings" element={<Screen kind="list" topInset><Suspense fallback={FALLBACK_SPINNER}><SettingsView /></Suspense></Screen>} />
+      <Route path="/przepisy" element={<Screen kind="list" topInset><Suspense fallback={FALLBACK_SPINNER}><RecipeBookView onBack={() => navigate('/dzis')} /></Suspense></Screen>} />
       <Route path="/finanse" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><FinancePage /></Screen>
