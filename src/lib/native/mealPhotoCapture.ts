@@ -82,7 +82,8 @@ export async function pickMealPhotoNative(sourceType: 'camera' | 'photos' = 'cam
       width: 1440,
       height: 1440,
       allowEditing: false,
-      resultType: CameraResultType.Uri,
+      // Base64 zamiast Uri: gdy aplikacja ładuje stronę z serwera (https), fetch adresu pliku capacitor:// kończy się „Load failed”.
+      resultType: CameraResultType.Base64,
       source: sourceType === 'camera' ? CameraSource.Camera : CameraSource.Photos,
       correctOrientation: true,
       saveToGallery: false,
